@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+
+const manifest = JSON.parse(await readFile('manifest.json', 'utf8'));
+const forbidden = ['tabs','history','cookies','webRequest','webRequestBlocking','debugger','downloads','nativeMessaging','scripting'];
+
+test('uses Manifest V3 and minimal permissions', () => {
+  assert.equal(manifest.manifest_version, 3);
+  assert.deepEqual([...manifest.permissions].sort(), ['declarativeNetRequest', 'storage'].sort());
+  for (const permission of forbidden) assert.equal(manifest.permissions.includes(permission), false);
+  assert.equal('host_permissions' in manifest, false);
+  assert.equal('content_scripts' in manifest, false);
+  assert.equal('background' in manifest, false);
+});
+
+test('declares one static ruleset and blocks extension network egress', () => {
+  assert.deepEqual(manifest.declarative_net_request.rule_resources, [{ id: 'ads_static', enabled: true, path: 'rules/ads.json' }]);
+  assert.match(manifest.content_security_policy.extension_pages, /connect-src 'none'/);
+});

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Jammer Options</title><link rel="stylesheet" href="styles.css"></head>
+<body>
+<main>
+  <h1>Jammer Options</h1>
+  <section class="card">
+    <div class="row"><label for="master-enabled">Jammer protection</label><input id="master-enabled" type="checkbox"></div>
+    <div class="row"><label for="ads-enabled">Ads rule group</label><input id="ads-enabled" type="checkbox"></div>
+  </section>
+  <section class="card">
+    <h2>Allowlist</h2>
+    <p class="muted">Enter a domain manually. Jammer does not read the current tab.</p>
+    <div class="row"><input id="allowlist-input" type="text" placeholder="example.com"><button id="add-domain" type="button">Add</button></div>
+    <ul id="allowlist"></ul>
+    <p id="message" aria-live="polite"></p>
+  </section>
+  <section class="card">
+    <h2>Content filtering</h2>
+    <p class="muted">Coming later. P1 does not scan page text or page content.</p>
+  </section>
+</main>
+<script type="module" src="options.js"></script>
+</body>
+</html>
