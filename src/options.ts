@@ -15,6 +15,11 @@ const addButton = requireElement<HTMLButtonElement>("#add-domain");
 const list = requireElement<HTMLUListElement>("#allowlist");
 const message = requireElement<HTMLElement>("#message");
 
+master.disabled = true;
+ads.disabled = true;
+input.disabled = true;
+addButton.disabled = true;
+
 let settings: JammerSettings;
 
 function renderAllowlist(): void {
@@ -84,6 +89,10 @@ void loadSettings().then((loaded) => {
   settings = loaded;
   master.checked = settings.enabled;
   ads.checked = settings.adsEnabled;
+  master.disabled = false;
+  ads.disabled = false;
+  input.disabled = false;
+  addButton.disabled = false;
   renderAllowlist();
 }).catch(() => {
   settings = { enabled: true, adsEnabled: true, allowlist: [] };
