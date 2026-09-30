@@ -25,5 +25,14 @@
       "urlFilter": "||banner.jammer.invalid^",
       "resourceTypes": ["script", "image", "xmlhttprequest", "sub_frame"]
     }
+  },
+  {
+    "id": 4,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "|http://127.0.0.1:8765/jammer-fixture/ad.js|",
+      "resourceTypes": ["script"]
+    }
   }
 ]
