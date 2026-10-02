@@ -1,0 +1,82 @@
+{
+  "id": "easyprivacy-network-extended-pinned-2026-10-02",
+  "repository": "easylist/easylist",
+  "commit": "3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8",
+  "license": "GPL-3.0-or-later OR CC-BY-SA-3.0-or-later",
+  "runtimeUpdate": false,
+  "sources": [
+    {
+      "id": "general",
+      "path": "easyprivacy/easyprivacy_general.txt",
+      "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easyprivacy/easyprivacy_general.txt",
+      "expectedGitBlobSha1": "2b23e88fa79dfb72fe92b2365e0a74b3db8047b8",
+      "ruleIdBase": 14000000,
+      "expectedAccepted": 3095,
+      "expectedRejected": 1
+    },
+    {
+      "id": "specific",
+      "path": "easyprivacy/easyprivacy_specific.txt",
+      "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easyprivacy/easyprivacy_specific.txt",
+      "expectedGitBlobSha1": "f6924bcb57925e3fc3e5b2ff5ebd2520c83c3db5",
+      "ruleIdBase": 14100000,
+      "expectedAccepted": 2491,
+      "expectedRejected": 4
+    },
+    {
+      "id": "thirdparty",
+      "path": "easyprivacy/easyprivacy_thirdparty.txt",
+      "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easyprivacy/easyprivacy_thirdparty.txt",
+      "expectedGitBlobSha1": "62fed1b0f55f28f3754174285345bf4134f8a0b6",
+      "ruleIdBase": 14200000,
+      "expectedAccepted": 3424,
+      "expectedRejected": 4
+    },
+    {
+      "id": "email_trackers",
+      "path": "easyprivacy/easyprivacy_general_emailtrackers.txt",
+      "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easyprivacy/easyprivacy_general_emailtrackers.txt",
+      "expectedGitBlobSha1": "b72512c5b43bc1b2f2276052c3198477a30d29e1",
+      "ruleIdBase": 14300000,
+      "expectedAccepted": 321,
+      "expectedRejected": 0
+    },
+    {
+      "id": "specific_international",
+      "path": "easyprivacy/easyprivacy_specific_international.txt",
+      "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easyprivacy/easyprivacy_specific_international.txt",
+      "expectedGitBlobSha1": "55131932cd276d45d15fcc630590c1e464bf5970",
+      "ruleIdBase": 14400000,
+      "expectedAccepted": 2091,
+      "expectedRejected": 0
+    },
+    {
+      "id": "thirdparty_international",
+      "path": "easyprivacy/easyprivacy_thirdparty_international.txt",
+      "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easyprivacy/easyprivacy_thirdparty_international.txt",
+      "expectedGitBlobSha1": "6320f37fff26fa5552874c8c9e38927b27e3a28d",
+      "ruleIdBase": 14500000,
+      "expectedAccepted": 1225,
+      "expectedRejected": 0
+    },
+    {
+      "id": "trackingservers_international",
+      "path": "easyprivacy/easyprivacy_trackingservers_international.txt",
+      "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easyprivacy/easyprivacy_trackingservers_international.txt",
+      "expectedGitBlobSha1": "30f619393a010ae527bd3ac5de24ca8bf8c37401",
+      "ruleIdBase": 14600000,
+      "expectedAccepted": 930,
+      "expectedRejected": 0
+    },
+    {
+      "id": "trackingservers_thirdparty",
+      "path": "easyprivacy/easyprivacy_trackingservers_thirdparty.txt",
+      "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easyprivacy/easyprivacy_trackingservers_thirdparty.txt",
+      "expectedGitBlobSha1": "24b46f49ccdf938d4b9937b9bb091afae568f72f",
+      "ruleIdBase": 14700000,
+      "expectedAccepted": 2539,
+      "expectedRejected": 0
+    }
+  ],
+  "expectedTotalRules": 16116
+}
