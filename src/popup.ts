@@ -322,7 +322,7 @@ async function popupApplyCosmetic(settings: PopupSettings): Promise<void> {
       id: POPUP_COSMETIC_SPECIFIC_SCRIPT_ID,
       matches: POPUP_SITE_ORIGINS,
       excludeMatches: popupDomainExcludeMatches(settings.allowlist),
-      js: ["cosmetic-specific-rules.js", "cosmetic-specific-filter.js"],
+      js: ["content-category-domains.js", "cosmetic-specific-rules.js", "cosmetic-specific-filter.js", "ad-element-filter.js"],
       runAt: "document_start",
       allFrames: true,
       persistAcrossSessions: true
