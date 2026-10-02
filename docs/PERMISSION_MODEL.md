@@ -78,3 +78,39 @@ Optional:
 `scripting`
 `http://*/*`
 `https://*/*`
+
+
+## P6.4 phishing and HTTPS-navigation permission review
+
+Known-phishing blocking uses packaged `declarativeNetRequest` rules and requires no permission expansion.
+
+The optional HTTPS-navigation upgrade uses the already-declared optional HTTP/HTTPS host permissions:
+
+- `http://*/*`
+- `https://*/*`
+
+It does not require `scripting`.
+
+Why host access is requested:
+- the feature installs a dynamic DNR `upgradeScheme` rule for top-level and embedded HTTP navigation;
+- Jammer only activates this rule after the user explicitly enables the feature and grants site access.
+
+Scope:
+- `main_frame`
+- `sub_frame`
+- URL pattern beginning with `http://`
+
+It does not inspect request bodies, DNS answers, cookies, history, or page contents.
+
+Permission cleanup:
+- if page cleanup/content filtering are off, `scripting` is removed even when HTTPS upgrade still needs host access;
+- HTTP/HTTPS host access is removed when page cleanup, content filtering, and HTTPS upgrade all stop needing it.
+
+No P6.4 permission adds:
+- `tabs`
+- `history`
+- `cookies`
+- `webRequest`
+- `webRequestBlocking`
+- `debugger`
+- `nativeMessaging`
