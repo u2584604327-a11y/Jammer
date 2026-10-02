@@ -31,6 +31,19 @@ jobs:
         run: npm run build:easylist-smoke
       - name: Build full Jammer EasyList product profile
         run: node scripts/build-product.mjs
+      - name: Package release candidate
+        run: npm run release:package
+      - name: Audit release candidate
+        run: npm run release:audit
+      - name: Upload release candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: jammer-release-candidate
+          path: |
+            release/jammer-0.5.2-chromium.zip
+            release/jammer-0.5.2-chromium.zip.sha256
+            release/jammer-0.5.2.release.json
+          if-no-files-found: error
       - name: Generate GitHub social preview
         run: npm run brand:preview
       - name: Upload branding preview
