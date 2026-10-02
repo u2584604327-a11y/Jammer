@@ -40,9 +40,9 @@ jobs:
         with:
           name: jammer-release-candidate
           path: |
-            release/jammer-0.7.0-chromium.zip
-            release/jammer-0.7.0-chromium.zip.sha256
-            release/jammer-0.7.0.release.json
+            release/jammer-0.7.1-chromium.zip
+            release/jammer-0.7.1-chromium.zip.sha256
+            release/jammer-0.7.1.release.json
           if-no-files-found: error
       - name: Generate GitHub social preview
         run: npm run brand:preview
