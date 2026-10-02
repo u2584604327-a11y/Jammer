@@ -17,7 +17,7 @@ interface PopupSettings {
 }
 
 const POPUP_STORAGE_KEY = "jammerSettings";
-const POPUP_ADS_RULESET_ID = "ads_static";
+const POPUP_ADS_RULESET_IDS = ["ads_static", "ads_extended"] as const;
 const POPUP_PRIVACY_RULESET_ID = "privacy_static";
 const POPUP_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
 const POPUP_COSMETIC_SITE_SCRIPT_ID = "jammer-cosmetic-canyoublockit";
@@ -388,10 +388,12 @@ async function popupApplyProtection(settings: PopupSettings): Promise<void> {
   const enabled = await popupGetEnabledRulesets();
   const desired = new Set<string>();
 
-  if (settings.enabled && settings.adsEnabled) desired.add(POPUP_ADS_RULESET_ID);
+  if (settings.enabled && settings.adsEnabled) {
+    for (const id of POPUP_ADS_RULESET_IDS) desired.add(id);
+  }
   if (settings.enabled && settings.privacyEnabled) desired.add(POPUP_PRIVACY_RULESET_ID);
 
-  const managed = [POPUP_ADS_RULESET_ID, POPUP_PRIVACY_RULESET_ID];
+  const managed = [...POPUP_ADS_RULESET_IDS, POPUP_PRIVACY_RULESET_ID];
   const enableRulesetIds = managed.filter((id) => desired.has(id) && !enabled.includes(id));
   const disableRulesetIds = managed.filter((id) => !desired.has(id) && enabled.includes(id));
 

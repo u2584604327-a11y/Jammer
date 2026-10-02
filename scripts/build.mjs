@@ -45,11 +45,11 @@ for (const file of ['dist/popup.html', 'dist/options.html']) {
 }
 
 const manifest = JSON.parse(await readFile('dist/manifest.json', 'utf8'));
-if (manifest.version !== '0.8.0') {
+if (manifest.version !== '0.8.1') {
   throw new Error('Unexpected dist manifest version');
 }
 const popupHtml = await readFile('dist/popup.html', 'utf8');
-if (!popupHtml.includes('Build: p62-network-privacy-dev')) {
+if (!popupHtml.includes('Build: p63-enhanced-ad-dev')) {
   throw new Error('Popup build marker missing from dist');
 }
 

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Jammer",
-  "version": "0.8.0",
-  "description": "Local-first ad, tracker, navigation, and opt-in content filtering with transparent user controls.",
+  "version": "0.8.1",
+  "description": "Local-first ad, tracker, navigation, and opt-in content filtering with broader script and banner blocking.",
   "permissions": [
     "declarativeNetRequest",
     "storage"
@@ -31,6 +31,11 @@
         "id": "ads_static",
         "enabled": true,
         "path": "rules/ads.json"
+      },
+      {
+        "id": "ads_extended",
+        "enabled": true,
+        "path": "rules/ads-extended.json"
       },
       {
         "id": "privacy_static",

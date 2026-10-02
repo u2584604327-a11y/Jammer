@@ -6,13 +6,25 @@ await import('./generate-brand-assets.mjs');
 
 const rulesSource = resolve('generated/easylist-adservers.rules.json');
 const reportSource = resolve('generated/easylist-adservers.report.json');
+const extendedRulesSource = resolve('generated/easylist-network-extended.rules.json');
+const extendedReportSource = resolve('generated/easylist-network-extended.report.json');
 const privacyRulesSource = resolve('generated/easyprivacy-tracking.rules.json');
 const privacyReportSource = resolve('generated/easyprivacy-tracking.report.json');
 const cosmeticGeneralSource = resolve('generated/easylist-general-hide.css');
 const cosmeticSiteSource = resolve('generated/easylist-canyoublockit.css');
 const cosmeticReportSource = resolve('generated/easylist-cosmetic.report.json');
 
-for (const path of [rulesSource, reportSource, privacyRulesSource, privacyReportSource, cosmeticGeneralSource, cosmeticSiteSource, cosmeticReportSource]) {
+for (const path of [
+  rulesSource,
+  reportSource,
+  extendedRulesSource,
+  extendedReportSource,
+  privacyRulesSource,
+  privacyReportSource,
+  cosmeticGeneralSource,
+  cosmeticSiteSource,
+  cosmeticReportSource
+]) {
   const info = await stat(path).catch(() => null);
   if (!info?.isFile()) {
     throw new Error('Missing generated EasyList rules. Run npm run rules:prepare:easylist first.');
@@ -21,12 +33,18 @@ for (const path of [rulesSource, reportSource, privacyRulesSource, privacyReport
 
 const rules = JSON.parse(await readFile(rulesSource, 'utf8'));
 const report = JSON.parse(await readFile(reportSource, 'utf8'));
+const extendedRules = JSON.parse(await readFile(extendedRulesSource, 'utf8'));
+const extendedReport = JSON.parse(await readFile(extendedReportSource, 'utf8'));
 const privacyRules = JSON.parse(await readFile(privacyRulesSource, 'utf8'));
 const privacyReport = JSON.parse(await readFile(privacyReportSource, 'utf8'));
 const cosmeticReport = JSON.parse(await readFile(cosmeticReportSource, 'utf8'));
 
 if (rules.length !== 256 || report.compiler.acceptedDomains !== 42940) {
   throw new Error('Unexpected EasyList product baseline');
+}
+
+if (extendedRules.length !== 3718 || extendedReport.output.rules !== 3718) {
+  throw new Error('Unexpected extended EasyList network baseline');
 }
 
 if (privacyRules.length !== 64 || privacyReport.compiler.acceptedDomains !== 534) {
@@ -54,14 +72,14 @@ await cp('src/cosmetic-canyoublockit-local.css', 'dist-product/cosmetic-canyoubl
 await cp('options.html', 'dist-product/options.html');
 
 let popupHtml = await readFile('popup.html', 'utf8');
-popupHtml = popupHtml.replace('Build: p62-network-privacy-dev', 'Build: p62-network-privacy-product');
+popupHtml = popupHtml.replace('Build: p63-enhanced-ad-dev', 'Build: p63-enhanced-ad-product');
 await writeFile('dist-product/popup.html', popupHtml);
 
 const manifest = {
   manifest_version: 3,
   name: 'Jammer',
-  version: '0.8.0',
-  description: 'Local-first ad, tracker, navigation, and opt-in content filtering with transparent user controls.',
+  version: '0.8.1',
+  description: 'Local-first ad, tracker, navigation, and content filtering with broader banner and ad-script blocking.',
   icons: {
     '16': 'icons/icon-16.png',
     '32': 'icons/icon-32.png',
@@ -90,6 +108,11 @@ const manifest = {
         path: 'rules/easylist-adservers.json'
       },
       {
+        id: 'ads_extended',
+        enabled: true,
+        path: 'rules/easylist-network-extended.json'
+      },
+      {
         id: 'privacy_static',
         enabled: true,
         path: 'rules/easyprivacy-tracking.json'
@@ -103,12 +126,14 @@ const manifest = {
 
 await writeFile('dist-product/manifest.json', JSON.stringify(manifest, null, 2) + '\n');
 await cp(rulesSource, 'dist-product/rules/easylist-adservers.json');
+await cp(extendedRulesSource, 'dist-product/rules/easylist-network-extended.json');
 await cp(privacyRulesSource, 'dist-product/rules/easyprivacy-tracking.json');
 await cp(reportSource, 'dist-product/PROVENANCE.json');
+await cp(extendedReportSource, 'dist-product/AD_NETWORK_PROVENANCE.json');
 await cp(privacyReportSource, 'dist-product/PRIVACY_PROVENANCE.json');
 await cp(cosmeticReportSource, 'dist-product/COSMETIC_PROVENANCE.json');
 
-const notice = `Jammer 0.8.0
+const notice = `Jammer 0.8.1
 
 Network ad-blocking rules are generated at build time from:
 EasyList repository: ${report.source.repository}
@@ -124,6 +149,9 @@ The EasyList authors
 
 License information:
 https://easylist.to/pages/licence.html
+
+Additional banner/path/ad-script blocking rules are generated at build time from pinned EasyList general, specific, and third-party network sources.
+Compiled rules: ${extendedReport.output.rules}
 
 Privacy/tracker blocking rules are generated at build time from:
 EasyPrivacy repository: ${privacyReport.source.repository}
@@ -145,12 +173,18 @@ for (const file of ['dist-product/popup.js', 'dist-product/options.js', 'dist-pr
 }
 
 const builtManifest = JSON.parse(await readFile('dist-product/manifest.json', 'utf8'));
-if (builtManifest.version !== '0.8.0') throw new Error('Unexpected product version');
+if (builtManifest.version !== '0.8.1') throw new Error('Unexpected product version');
 if (builtManifest.declarative_net_request.rule_resources[0].id !== 'ads_static') {
   throw new Error('Product ruleset ID must remain ads_static for existing controls');
 }
 if (builtManifest.declarative_net_request.rule_resources[0].path !== 'rules/easylist-adservers.json') {
   throw new Error('Product ads ruleset path mismatch');
+}
+const extendedResource = builtManifest.declarative_net_request.rule_resources.find(
+  (item) => item.id === 'ads_extended'
+);
+if (!extendedResource || extendedResource.path !== 'rules/easylist-network-extended.json') {
+  throw new Error('Product extended ads ruleset path mismatch');
 }
 const privacyResource = builtManifest.declarative_net_request.rule_resources.find(
   (item) => item.id === 'privacy_static'
@@ -160,5 +194,5 @@ if (!privacyResource || privacyResource.path !== 'rules/easyprivacy-tracking.jso
 }
 
 console.log(
-  `product-build: PASS version=0.8.0 adsDomains=${report.compiler.acceptedDomains} privacyDomains=${privacyReport.compiler.acceptedDomains} adsRules=${rules.length} privacyRules=${privacyRules.length} cosmetic=${cosmeticReport.output.genericSelectors}`
+  `product-build: PASS version=0.8.1 adsDomains=${report.compiler.acceptedDomains} extendedRules=${extendedRules.length} privacyDomains=${privacyReport.compiler.acceptedDomains} adsRules=${rules.length} privacyRules=${privacyRules.length} cosmetic=${cosmeticReport.output.genericSelectors}`
 );
