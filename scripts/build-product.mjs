@@ -32,8 +32,10 @@ runTsc(['-p', 'tsconfig.build.json']);
 
 await mkdir('dist-product/rules', { recursive: true });
 await mkdir('dist-product/icons', { recursive: true });
+await mkdir('dist-product/assets', { recursive: true });
 await cp('.build-js', 'dist-product', { recursive: true });
 await cp('src/styles.css', 'dist-product/styles.css');
+await cp('assets/brand/jammer-cover.webp', 'dist-product/assets/jammer-cover.webp');
 for (const size of [16, 32, 48, 128]) {
   await cp(`generated/brand/icon-${size}.png`, `dist-product/icons/icon-${size}.png`);
 }
@@ -44,13 +46,13 @@ await cp('src/cosmetic-canyoublockit-local.css', 'dist-product/cosmetic-canyoubl
 await cp('options.html', 'dist-product/options.html');
 
 let popupHtml = await readFile('popup.html', 'utf8');
-popupHtml = popupHtml.replace('Build: p54-release-candidate-dev', 'Build: p54-release-candidate-product');
+popupHtml = popupHtml.replace('Build: p55-cover-integration-dev', 'Build: p55-cover-integration-product');
 await writeFile('dist-product/popup.html', popupHtml);
 
 const manifest = {
   manifest_version: 3,
   name: 'Jammer',
-  version: '0.5.2',
+  version: '0.6.0',
   description: 'Local-first ad blocking with transparent, user-controlled rules.',
   icons: {
     '16': 'icons/icon-16.png',
@@ -91,7 +93,7 @@ await cp(rulesSource, 'dist-product/rules/easylist-adservers.json');
 await cp(reportSource, 'dist-product/PROVENANCE.json');
 await cp(cosmeticReportSource, 'dist-product/COSMETIC_PROVENANCE.json');
 
-const notice = `Jammer 0.5.2
+const notice = `Jammer 0.6.0
 
 Network ad-blocking rules are generated at build time from:
 EasyList repository: ${report.source.repository}
@@ -122,7 +124,7 @@ for (const file of ['dist-product/popup.js', 'dist-product/options.js']) {
 }
 
 const builtManifest = JSON.parse(await readFile('dist-product/manifest.json', 'utf8'));
-if (builtManifest.version !== '0.5.2') throw new Error('Unexpected product version');
+if (builtManifest.version !== '0.6.0') throw new Error('Unexpected product version');
 if (builtManifest.declarative_net_request.rule_resources[0].id !== 'ads_static') {
   throw new Error('Product ruleset ID must remain ads_static for existing controls');
 }
@@ -131,5 +133,5 @@ if (builtManifest.declarative_net_request.rule_resources[0].path !== 'rules/easy
 }
 
 console.log(
-  `product-build: PASS version=0.5.2 domains=${report.compiler.acceptedDomains} rules=${rules.length} cosmetic=${cosmeticReport.output.genericSelectors}`
+  `product-build: PASS version=0.6.0 domains=${report.compiler.acceptedDomains} rules=${rules.length} cosmetic=${cosmeticReport.output.genericSelectors}`
 );

@@ -9,6 +9,7 @@ Jammer is a local-first Manifest V3 browser extension for blocking network ads a
 - **Network ad blocking:** pinned EasyList source compiled at build time into deterministic `declarativeNetRequest` rules.
 - **Page ad cleanup:** optional CSS-only cosmetic filtering using packaged selectors.
 - **Bilingual UI:** Auto / 中文 / English.
+- **Branded options cover:** packaged Jammer artwork shown locally inside the extension settings UI.
 - **Local allowlist:** exact-domain and subdomain exclusions stored only in extension storage.
 - **Reversible permissions:** page cleanup requests optional site access only when enabled and removes it when disabled.
 - **No telemetry:** no analytics, account system, cloud sync, or runtime filter-list download.
@@ -101,6 +102,7 @@ The extension does not update filter lists at runtime.
 - [P4.1 cosmetic filtering](docs/P41_COSMETIC_FILTERING.md)
 - [P4.2 bilingual popup](docs/P42_BILINGUAL_POPUP.md)
 - [P4.3 EasyList cosmetic filtering](docs/P43_EASYLIST_COSMETIC.md)
+- [P5.5 cover integration](docs/P55_COVER_INTEGRATION.md)
 - [Security](SECURITY.md)
 
 ## Status

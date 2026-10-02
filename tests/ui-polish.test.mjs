@@ -17,8 +17,14 @@ test('popup keeps all runtime control IDs after visual redesign', async () => {
   ]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
-  assert.match(html, /Build: p54-release-candidate-dev/);
+  assert.match(html, /Build: p55-cover-integration-dev/);
   assert.match(html, /class="brand-mark"/);
+});
+
+test('options embeds the packaged Jammer cover artwork', async () => {
+  const html = await readFile('options.html', 'utf8');
+  assert.match(html, /class="brand-cover"/);
+  assert.match(html, /assets\/jammer-cover\.webp/);
 });
 
 test('options keeps all runtime control IDs after visual redesign', async () => {

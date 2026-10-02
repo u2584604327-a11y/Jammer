@@ -10,10 +10,12 @@ await rm('dist', { recursive: true, force: true });
 runTsc(['-p', 'tsconfig.build.json']);
 
 await mkdir('dist/icons', { recursive: true });
+await mkdir('dist/assets', { recursive: true });
 for (const file of ['manifest.json', 'popup.html', 'options.html']) {
   await cp(file, join('dist', file));
 }
 await cp('src/styles.css', 'dist/styles.css');
+await cp('assets/brand/jammer-cover.webp', 'dist/assets/jammer-cover.webp');
 for (const size of [16, 32, 48, 128]) {
   await cp(`generated/brand/icon-${size}.png`, `dist/icons/icon-${size}.png`);
 }
@@ -43,11 +45,11 @@ for (const file of ['dist/popup.html', 'dist/options.html']) {
 }
 
 const manifest = JSON.parse(await readFile('dist/manifest.json', 'utf8'));
-if (manifest.version !== '0.2.2') {
+if (manifest.version !== '0.3.0') {
   throw new Error('Unexpected dist manifest version');
 }
 const popupHtml = await readFile('dist/popup.html', 'utf8');
-if (!popupHtml.includes('Build: p54-release-candidate-dev')) {
+if (!popupHtml.includes('Build: p55-cover-integration-dev')) {
   throw new Error('Popup build marker missing from dist');
 }
 

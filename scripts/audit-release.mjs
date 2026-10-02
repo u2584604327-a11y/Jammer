@@ -64,6 +64,7 @@ const requiredFiles = [
   'options.html',
   'options.js',
   'styles.css',
+  'assets/jammer-cover.webp',
   'PROVENANCE.json',
   'COSMETIC_PROVENANCE.json',
   'THIRD_PARTY_NOTICES.txt',
@@ -82,6 +83,10 @@ for (const rel of requiredFiles) {
   const info = await stat(resolve(PRODUCT_DIR, rel)).catch(() => null);
   if (!info?.isFile()) fail(`missing product file: ${rel}`);
 }
+
+const cover = await readFile(resolve(PRODUCT_DIR, 'assets/jammer-cover.webp'));
+if (cover.subarray(0, 4).toString('hex') !== '52494646') fail('invalid Jammer cover WebP');
+if (cover.length > 250_000) fail('Jammer cover is unexpectedly large');
 
 for (const size of [16,32,48,128]) {
   const png = await readFile(resolve(PRODUCT_DIR, `icons/icon-${size}.png`));

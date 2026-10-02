@@ -23,9 +23,9 @@ Output:
 
 ```text
 release/
-  jammer-0.5.2-chromium.zip
-  jammer-0.5.2-chromium.zip.sha256
-  jammer-0.5.2.release.json
+  jammer-0.6.0-chromium.zip
+  jammer-0.6.0-chromium.zip.sha256
+  jammer-0.6.0.release.json
 ```
 
 ## Archive contents
@@ -48,6 +48,7 @@ The release audit requires:
 - `connect-src 'none'`
 - `ads_static` DNR contract intact
 - all four PNG icon sizes present
+- packaged Jammer cover artwork present and valid WebP
 - network and cosmetic provenance present
 - EasyList third-party notice present
 - no TypeScript/source maps in the ZIP
