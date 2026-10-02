@@ -2,17 +2,18 @@
 
 # Jammer
 
-Jammer is a local-first Manifest V3 browser extension for ad/script blocking, tracker blocking, known-phishing navigation blocking, optional HTTPS navigation upgrade, page-ad cleanup, and opt-in local content-block masking.
+Jammer is a local-first Manifest V3 browser extension for high-coverage ad/script blocking, tracker blocking, badware/resource-abuse blocking, known-phishing navigation blocking, optional HTTPS upgrade, page-ad cleanup, and opt-in local content-block masking.
 
 ## Current capabilities
 
 - **Network ad blocking:** pinned EasyList ad-server domains plus broader EasyList general/specific/third-party network filters compiled at build time. The normal ad toggle controls both rulesets, covering many banner images, ad scripts, frames, XHRs, and path-based ad requests.
 - **Privacy / tracker blocking:** pinned EasyPrivacy tracking-server source compiled at build time; blocks known tracker scripts, pixels, XHR, pings, and embedded requests without runtime list download.
+- **Badware / abusive scripts:** pinned uBlockOrigin/uAssets badware and resource-abuse rules, independently controllable and enabled by default.
 - **Known-phishing blocking:** a pinned active Phishing-Database snapshot is compiled at build time and blocks top-level/embedded navigation to listed phishing domains.
 - **Dangerous-site list:** user-managed local domain list blocks top-level and embedded navigation to listed domains, including redirects that land on a listed domain.
 - **HTTPS navigation upgrade:** optional HTTP→HTTPS upgrade for top-level and embedded navigation; disabled by default because HTTP-only legacy sites can break.
-- **Page ad cleanup:** optional CSS-only cosmetic filtering using packaged selectors.
-- **Content filtering:** opt-in local text matching for gambling, explicit sexual material, graphic violence, scam-like promotion, and clickbait/nuisance content; only matched page blocks are hidden, with local reveal/exit controls and matched signals.
+- **Page ad cleanup:** optional generic plus pinned site-specific EasyList cosmetic filtering, with local dynamic-page rescans and a conservative stubborn-banner heuristic.
+- **Content filtering:** opt-in local matching across text, accessibility labels, links/media URLs, and pinned gambling/explicit domain signals; only matched page blocks are hidden, with local reveal/exit controls.
 - **Bilingual UI:** Auto / 中文 / English.
 - **Branded options cover:** packaged Jammer artwork shown locally inside the extension settings UI.
 - **Local exceptions:** separate ad-block allowlist and content-filter exception list, both stored only in extension storage.
@@ -125,8 +126,9 @@ The extension does not update filter lists at runtime.
 - [P6.2 network privacy and navigation protection](docs/P62_NETWORK_PRIVACY.md)
 - [P6.3 enhanced ad and ad-script blocking](docs/P63_ENHANCED_AD_BLOCKING.md)
 - [P6.4 phishing and secure navigation](docs/P64_PHISHING_SECURE_NAVIGATION.md)
+- [P6.5 high-coverage filtering](docs/P65_HIGH_COVERAGE_FILTERING.md)
 - [Security](SECURITY.md)
 
 ## Status
 
-The current Jammer 0.9.0 product build is intended for unpacked-extension testing and validation. Store publication remains a separate release step.
+The current Jammer 0.10.0 product build is intended for unpacked-extension testing and validation. Store publication remains a separate release step.
