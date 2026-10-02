@@ -125,7 +125,13 @@ The EasyList authors
 License information:
 https://easylist.to/pages/licence.html
 
-Jammer does not download this filter list at extension runtime.
+Privacy/tracker blocking rules are generated at build time from:
+EasyPrivacy repository: ${privacyReport.source.repository}
+Pinned commit: ${privacyReport.source.commit}
+Source path: ${privacyReport.source.path}
+Git blob SHA-1: ${privacyReport.source.gitBlobSha1}
+
+Jammer does not download these filter lists at extension runtime.
 `;
 await writeFile('dist-product/THIRD_PARTY_NOTICES.txt', notice);
 
