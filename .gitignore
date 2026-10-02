@@ -1,6 +1,7 @@
 node_modules/
 dist/
 dist-easylist-smoke/
+dist-product/
 .build-js/
 .test-build/
 generated/
