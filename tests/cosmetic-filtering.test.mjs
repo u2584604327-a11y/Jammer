@@ -38,4 +38,6 @@ test('allowlist domains are converted into cosmetic exclusions', async () => {
 
   assert.match(options, /\*:\/\/\$\{domain\}\/\*/);
   assert.match(options, /\*:\/\/\*\.\$\{domain\}\/\*/);
+  assert.match(options, /\\d\{1,3\}/);
+  assert.match(options, /return \[exact\]/);
 });
