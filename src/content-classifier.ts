@@ -50,7 +50,18 @@ const JAMMER_CONTENT_DEFINITIONS: Record<JammerContentCategory, JammerCategoryDe
       { term: "赌盘", weight: 4 },
       { term: "下注平台", weight: 4 },
       { term: "赌博", weight: 2 },
-      { term: "下注", weight: 2 }
+      { term: "下注", weight: 2 },
+      { term: "娱乐城", weight: 3 },
+      { term: "真人荷官", weight: 4 },
+      { term: "百家乐", weight: 3 },
+      { term: "棋牌投注", weight: 4 },
+      { term: "电竞投注", weight: 4 },
+      { term: "彩票投注", weight: 3 },
+      { term: "赔率", weight: 2 },
+      { term: "casino online", weight: 4 },
+      { term: "bet now", weight: 3 },
+      { term: "betting odds", weight: 3 },
+      { term: "sportsbook", weight: 3 }
     ]
   },
   explicit: {
@@ -72,7 +83,16 @@ const JAMMER_CONTENT_DEFINITIONS: Record<JammerContentCategory, JammerCategoryDe
       { term: "裸聊", weight: 4 },
       { term: "色情", weight: 2 },
       { term: "情色", weight: 2 },
-      { term: "裸体", weight: 1 }
+      { term: "裸体", weight: 1 },
+      { term: "成人视频", weight: 4 },
+      { term: "成人内容", weight: 3 },
+      { term: "成人直播", weight: 4 },
+      { term: "成人视频下载", weight: 4 },
+      { term: "sex video", weight: 4 },
+      { term: "adult content", weight: 3 },
+      { term: "nsfw", weight: 3 },
+      { term: "camgirl", weight: 3 },
+      { term: "webcam sex", weight: 4 }
     ]
   },
   violence: {
@@ -93,7 +113,14 @@ const JAMMER_CONTENT_DEFINITIONS: Record<JammerContentCategory, JammerCategoryDe
       { term: "尸体特写", weight: 4 },
       { term: "伤口特写", weight: 3 },
       { term: "血腥", weight: 2 },
-      { term: "暴力画面", weight: 2 }
+      { term: "暴力画面", weight: 2 },
+      { term: "血腥现场", weight: 4 },
+      { term: "虐杀", weight: 4 },
+      { term: "分尸", weight: 4 },
+      { term: "极端暴力", weight: 4 },
+      { term: "graphic gore", weight: 4 },
+      { term: "gory footage", weight: 4 },
+      { term: "violent footage", weight: 3 }
     ]
   },
   scam: {
@@ -117,7 +144,17 @@ const JAMMER_CONTENT_DEFINITIONS: Record<JammerContentCategory, JammerCategoryDe
       { term: "私钥", weight: 3 },
       { term: "转账验证", weight: 3 },
       { term: "中奖领取", weight: 3 },
-      { term: "账户冻结", weight: 2 }
+      { term: "账户冻结", weight: 2 },
+      { term: "冒充客服", weight: 4 },
+      { term: "安全账户", weight: 4 },
+      { term: "刷流水", weight: 4 },
+      { term: "做任务返佣", weight: 4 },
+      { term: "垫付返现", weight: 4 },
+      { term: "内部投资群", weight: 3 },
+      { term: "稳赚不赔", weight: 4 },
+      { term: "risk free profit", weight: 4 },
+      { term: "verify your wallet", weight: 3 },
+      { term: "limited time investment", weight: 3 }
     ]
   },
   clickbait: {
@@ -134,7 +171,14 @@ const JAMMER_CONTENT_DEFINITIONS: Record<JammerContentCategory, JammerCategoryDe
       { term: "内幕曝光", weight: 3 },
       { term: "惊呆了", weight: 3 },
       { term: "速看", weight: 2 },
-      { term: "赶紧转发", weight: 3 }
+      { term: "赶紧转发", weight: 3 },
+      { term: "全网都在看", weight: 3 },
+      { term: "删除前快看", weight: 4 },
+      { term: "马上消失", weight: 3 },
+      { term: "看完吓一跳", weight: 3 },
+      { term: "must see", weight: 2 },
+      { term: "before it gets deleted", weight: 4 },
+      { term: "this changes everything", weight: 3 }
     ]
   }
 };
@@ -146,6 +190,21 @@ function jammerNormalizeContent(value: string, limit: number): string {
     .toLocaleLowerCase()
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function jammerCountOccurrences(text: string, term: string, cap = 3): number {
+  if (!term) return 0;
+  let count = 0;
+  let offset = 0;
+
+  while (count < cap) {
+    const index = text.indexOf(term, offset);
+    if (index < 0) break;
+    count += 1;
+    offset = index + Math.max(1, term.length);
+  }
+
+  return count;
 }
 
 function jammerScoreCategory(
@@ -162,14 +221,18 @@ function jammerScoreCategory(
 
   for (const candidate of definition.terms) {
     const normalizedTerm = candidate.term.normalize("NFKC").toLocaleLowerCase();
-    const prominentMatch = prominent.includes(normalizedTerm);
-    const bodyMatch = body.includes(normalizedTerm);
-    if (!prominentMatch && !bodyMatch) continue;
+    const prominentCount = jammerCountOccurrences(prominent, normalizedTerm, 2);
+    const bodyCount = jammerCountOccurrences(body, normalizedTerm, 3);
+    if (prominentCount === 0 && bodyCount === 0) continue;
 
-    const contribution = candidate.weight * (prominentMatch ? 2 : 1);
-    score += contribution;
+    const prominentContribution = candidate.weight * Math.min(2, prominentCount) * 2;
+    const bodyContribution = candidate.weight * Math.min(2, bodyCount);
+    score += prominentContribution + bodyContribution;
     matchedTerms.push(candidate.term);
   }
+
+  if (matchedTerms.length >= 2) score += 1;
+  if (matchedTerms.length >= 3) score += 1;
 
   return { score, matchedTerms };
 }
