@@ -16,7 +16,8 @@
     "rules:prepare:easylist": "node scripts/prepare-easylist.mjs",
     "build:easylist-smoke": "node scripts/build-easylist-smoke.mjs",
     "smoke:easylist": "npm run rules:prepare:easylist && npm run build:easylist-smoke",
-    "build:product": "npm run rules:prepare:easylist && node scripts/build-product.mjs"
+    "build:product": "npm run rules:prepare:easylist && npm run rules:prepare:cosmetic && node scripts/build-product.mjs",
+    "rules:prepare:cosmetic": "node scripts/prepare-easylist-cosmetic.mjs"
   },
   "engines": {
     "node": ">=22"
