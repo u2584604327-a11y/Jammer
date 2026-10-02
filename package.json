@@ -19,7 +19,10 @@
     "build:product": "npm run rules:prepare:easylist && npm run rules:prepare:cosmetic && node scripts/build-product.mjs",
     "rules:prepare:cosmetic": "node scripts/prepare-easylist-cosmetic.mjs",
     "brand:generate": "node scripts/generate-brand-assets.mjs",
-    "brand:preview": "node scripts/generate-social-preview.mjs"
+    "brand:preview": "node scripts/generate-social-preview.mjs",
+    "release:package": "node scripts/package-release.mjs",
+    "release:audit": "node scripts/audit-release.mjs",
+    "release:rc": "npm run build:product && npm run release:package && npm run release:audit"
   },
   "engines": {
     "node": ">=22"
