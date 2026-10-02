@@ -8,7 +8,9 @@
     "lint": "node scripts/lint.mjs",
     "test": "node scripts/test.mjs",
     "build": "node scripts/build.mjs",
-    "runtime:fixture": "node scripts/runtime-fixture-server.mjs"
+    "runtime:fixture": "node scripts/runtime-fixture-server.mjs",
+    "rules:compile": "node scripts/compile-rules.mjs",
+    "rules:compile:sample": "node scripts/compile-rules.mjs rules/sources/sample-fixture.txt rules/sources/sample-fixture.meta.json generated/sample-rules.json generated/sample-report.json"
   },
   "engines": {
     "node": ">=22"

@@ -1,0 +1,9 @@
+! Jammer repository-owned P2 sample
+||ads.example.invalid^
+0.0.0.0 tracker.example.invalid
+127.0.0.1 beacon.example.invalid
+||ADS.EXAMPLE.INVALID^
+@@||allowed.example.invalid^
+example.invalid##.ad
+||path.example.invalid/banner.js
+||modifier.example.invalid^$script
