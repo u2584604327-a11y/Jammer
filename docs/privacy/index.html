@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Jammer Privacy Policy</title>
+  <meta name="description" content="Jammer privacy policy — local-first ad blocking, local settings, no telemetry.">
+  <style>
+    :root{color-scheme:light dark;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--bg:#f5f7fb;--panel:#fff;--text:#172033;--muted:#667085;--line:#d8dee9;--accent:#4f46e5}
+    @media(prefers-color-scheme:dark){:root{--bg:#0c111b;--panel:#141b29;--text:#f4f7fb;--muted:#a6b0c2;--line:#2c374b;--accent:#8b83ff}}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);line-height:1.65}main{width:min(900px,calc(100% - 28px));margin:28px auto 60px}.hero,.section{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 12px 30px rgba(15,23,42,.08)}.hero{margin-bottom:16px}.brand{display:flex;align-items:center;gap:12px}.mark{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(145deg,#4f46e5,#06b6d4);color:#fff;font-size:24px;font-weight:800}h1,h2{line-height:1.2}h1{margin:0;font-size:28px}h2{font-size:18px;margin:0 0 8px}.muted{color:var(--muted)}nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}a{color:var(--accent)}nav a{padding:7px 10px;border:1px solid var(--line);border-radius:999px;text-decoration:none}.section{margin-top:12px}code{background:color-mix(in srgb,var(--accent) 10%,transparent);padding:2px 5px;border-radius:5px}ul{padding-left:22px}.footer{color:var(--muted);font-size:13px;margin:20px 4px}
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <div class="brand"><div class="mark">J</div><div><h1>Jammer Privacy Policy</h1><div class="muted">Effective October 2, 2026 · 生效日期：2026年10月2日</div></div></div>
+    <nav><a href="#en">English</a><a href="#zh">简体中文</a><a href="https://github.com/u2584604327-a11y/Jammer">Repository</a></nav>
+  </section>
+
+  <section class="section" id="en">
+    <h2>English</h2>
+    <p>Jammer is a local-first browser extension. It does not collect, sell, rent, upload, or transmit personal data to a Jammer-operated server.</p>
+    <p><strong>Local data.</strong> Jammer stores protection state, network-blocking state, page-ad-cleanup state, language preference, and manually entered allowlist domains in local extension storage under <code>jammerSettings</code>.</p>
+    <p><strong>No telemetry.</strong> Jammer has no account system, analytics, telemetry, advertising SDK, cloud sync, remote configuration, or runtime filter-list download service.</p>
+    <p><strong>Network filtering.</strong> Network blocking uses Chromium <code>declarativeNetRequest</code> with packaged rules generated from pinned EasyList sources at build time. Jammer does not upload browsing or blocking logs.</p>
+    <p><strong>Optional page-ad cleanup.</strong> This feature is off by default. When enabled, Jammer requests optional <code>scripting</code> and HTTP/HTTPS site access only to register packaged CSS-only cosmetic filtering. It is not intended to read or collect page text, forms, passwords, history, or cookies. Disabling the feature removes the optional site access.</p>
+    <p><strong>Permissions.</strong> Required: <code>declarativeNetRequest</code>, <code>storage</code>. Optional for page cleanup: <code>scripting</code>, <code>http://*/*</code>, <code>https://*/*</code>.</p>
+    <p><strong>Retention.</strong> Jammer operates no backend user database. Local settings remain until changed, browser/extension storage is cleared, or Jammer is uninstalled.</p>
+    <p>Full policy: <a href="https://github.com/u2584604327-a11y/Jammer/blob/main/PRIVACY.md">PRIVACY.md</a>. Privacy questions: <a href="https://github.com/u2584604327-a11y/Jammer/issues">GitHub Issues</a>.</p>
+  </section>
+
+  <section class="section" id="zh">
+    <h2>简体中文</h2>
+    <p>Jammer是一个本地优先的浏览器扩展。Jammer不会向Jammer运营的服务器收集、出售、出租、上传或传输个人数据。</p>
+    <p><strong>本地数据。</strong> Jammer仅在扩展本地存储的<code>jammerSettings</code>中保存总保护状态、网络广告拦截状态、页面广告清理状态、语言偏好及用户手动输入的白名单域名。</p>
+    <p><strong>无遥测。</strong> Jammer没有账号系统、统计分析、遥测、广告SDK、云同步、远程配置或运行时过滤列表下载服务。</p>
+    <p><strong>网络过滤。</strong> 网络拦截使用Chromium <code>declarativeNetRequest</code>，规则在构建阶段根据固定并校验过的EasyList来源生成并随扩展打包。Jammer不会上传浏览或拦截日志。</p>
+    <p><strong>可选页面广告清理。</strong> 该功能默认关闭。启用时，仅为注入扩展内置CSS页面广告隐藏规则而请求可选<code>scripting</code>及HTTP/HTTPS网站访问权限；不会主动读取或收集网页正文、表单、密码、浏览历史或Cookie。关闭后会移除相应可选权限。</p>
+    <p><strong>权限。</strong> 必须：<code>declarativeNetRequest</code>、<code>storage</code>。页面清理可选：<code>scripting</code>、<code>http://*/*</code>、<code>https://*/*</code>。</p>
+    <p><strong>保留。</strong> Jammer不运营用户后端数据库。本地设置会保留到用户修改、清理浏览器/扩展存储或卸载Jammer为止。</p>
+    <p>完整政策：<a href="https://github.com/u2584604327-a11y/Jammer/blob/main/PRIVACY.md">PRIVACY.md</a>。隐私问题：<a href="https://github.com/u2584604327-a11y/Jammer/issues">GitHub Issues</a>。</p>
+  </section>
+
+  <div class="footer">Jammer · local-first ad blocking · no telemetry</div>
+</main>
+</body>
+</html>
