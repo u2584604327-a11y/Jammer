@@ -6,7 +6,7 @@ Jammer is a local-first Manifest V3 browser extension for ad blocking, tracker b
 
 ## Current capabilities
 
-- **Network ad blocking:** pinned EasyList source compiled at build time into deterministic `declarativeNetRequest` rules.
+- **Network ad blocking:** pinned EasyList ad-server domains plus broader EasyList general/specific/third-party network filters compiled at build time. The normal ad toggle controls both rulesets, covering many banner images, ad scripts, frames, XHRs, and path-based ad requests.
 - **Privacy / tracker blocking:** pinned EasyPrivacy tracking-server source compiled at build time; blocks known tracker scripts, pixels, XHR, pings, and embedded requests without runtime list download.
 - **Dangerous-site list:** user-managed local domain list blocks top-level and embedded navigation to listed domains, including redirects that land on a listed domain.
 - **Page ad cleanup:** optional CSS-only cosmetic filtering using packaged selectors.
@@ -88,6 +88,7 @@ The audited files are written under `release/`. See [P5.4 release packaging](doc
 Jammer pins reviewed EasyList source files to a specific upstream commit and verifies source identity before product compilation. Generated product builds include:
 
 - `PROVENANCE.json`
+- `AD_NETWORK_PROVENANCE.json`
 - `PRIVACY_PROVENANCE.json`
 - `COSMETIC_PROVENANCE.json`
 - `THIRD_PARTY_NOTICES.txt`
@@ -119,8 +120,9 @@ The extension does not update filter lists at runtime.
 - [P6.0 local content filtering](docs/P60_CONTENT_FILTERING.md)
 - [P6.1 element-level content masking](docs/P61_ELEMENT_CONTENT_MASKING.md)
 - [P6.2 network privacy and navigation protection](docs/P62_NETWORK_PRIVACY.md)
+- [P6.3 enhanced ad and ad-script blocking](docs/P63_ENHANCED_AD_BLOCKING.md)
 - [Security](SECURITY.md)
 
 ## Status
 
-The current Jammer 0.8.0 product build is intended for unpacked-extension testing and validation. Store publication remains a separate release step.
+The current Jammer 0.8.1 product build is intended for unpacked-extension testing and validation. Store publication remains a separate release step.
