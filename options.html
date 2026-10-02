@@ -6,7 +6,13 @@
   <h1>Jammer Options</h1>
   <section class="card">
     <div class="row"><label for="master-enabled">Jammer protection</label><input id="master-enabled" type="checkbox"></div>
-    <div class="row"><label for="ads-enabled">Ads rule group</label><input id="ads-enabled" type="checkbox"></div>
+    <div class="row"><label for="ads-enabled">Network ad blocking</label><input id="ads-enabled" type="checkbox"></div>
+  </section>
+  <section class="card">
+    <h2>Page ad cleanup</h2>
+    <div class="row"><label for="cosmetic-enabled">Hide page ad containers</label><input id="cosmetic-enabled" type="checkbox"></div>
+    <p class="muted">Optional. When enabled, Edge asks for website access so Jammer can inject CSS-only ad hiding. Jammer does not read page text, forms, or passwords.</p>
+    <p class="muted">Reload open pages after changing this setting. Allowlisted sites are excluded.</p>
   </section>
   <section class="card">
     <h2>Allowlist</h2>
@@ -17,7 +23,7 @@
   </section>
   <section class="card">
     <h2>Content filtering</h2>
-    <p class="muted">Coming later. P1 does not scan page text or page content.</p>
+    <p class="muted">Semantic page-content filtering is not implemented. P4.1 only hides explicit ad containers with CSS.</p>
   </section>
 </main>
 <script src="options.js"></script>
