@@ -29,7 +29,14 @@ test('cosmetic filtering is opt-in and CSS-only', async () => {
   assert.match(options, /permissions\.request/);
   assert.match(options, /permissions\.remove/);
   assert.match(options, /excludeMatches/);
-  assert.equal(options.includes('js:'), false);
+  assert.match(
+    options,
+    /id:\s*OPTIONS_COSMETIC_SCRIPT_ID[\s\S]*?css:\s*\["cosmetic\.css", "cosmetic-easylist\.css"\][\s\S]*?runAt:\s*"document_start"/
+  );
+  assert.match(
+    options,
+    /id:\s*OPTIONS_CONTENT_SCRIPT_ID[\s\S]*?js:\s*\["content-classifier\.js", "content-filter\.js"\]/
+  );
   assert.equal(options.includes('executeScript'), false);
 });
 
