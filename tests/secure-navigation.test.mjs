@@ -41,7 +41,7 @@ test('HTTPS upgrade is opt-in and limited to page/frame navigation', async () =>
   assert.match(config, /secureNavigationEnabled:\s*false/);
   assert.match(options, /OPTIONS_HTTPS_UPGRADE_RULE_ID = 3_000_000/);
   assert.match(options, /action: \{ type: "upgradeScheme" \}/);
-  assert.match(options, /regexFilter: "\^http:\/\/" /);
+  assert.equal(options.includes('regexFilter: "^http://"'), true);
   assert.match(options, /resourceTypes: \["main_frame", "sub_frame"\]/);
   assert.match(options, /optionsHostPermissionRequest/);
 });
