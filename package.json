@@ -16,7 +16,7 @@
     "rules:prepare:easylist": "node scripts/prepare-easylist.mjs",
     "build:easylist-smoke": "node scripts/build-easylist-smoke.mjs",
     "smoke:easylist": "npm run rules:prepare:easylist && npm run build:easylist-smoke",
-    "build:product": "npm run rules:prepare:easylist && npm run rules:prepare:network-extended && npm run rules:prepare:privacy && npm run rules:prepare:phishing && npm run rules:prepare:content-domains && npm run rules:prepare:cosmetic && node scripts/build-product.mjs",
+    "build:product": "npm run rules:prepare:easylist && npm run rules:prepare:network-extended && npm run rules:prepare:privacy && npm run rules:prepare:phishing && npm run rules:prepare:security && npm run rules:prepare:content-domains && npm run rules:prepare:cosmetic && node scripts/build-product.mjs",
     "rules:prepare:cosmetic": "node scripts/prepare-easylist-cosmetic.mjs",
     "brand:generate": "node scripts/generate-brand-assets.mjs",
     "brand:preview": "node scripts/generate-social-preview.mjs",
@@ -26,7 +26,8 @@
     "rules:prepare:privacy": "node scripts/prepare-easyprivacy.mjs",
     "rules:prepare:network-extended": "node scripts/prepare-easylist-network-extended.mjs",
     "rules:prepare:phishing": "node scripts/prepare-phishing-active.mjs",
-    "rules:prepare:content-domains": "node scripts/prepare-content-category-domains.mjs"
+    "rules:prepare:content-domains": "node scripts/prepare-content-category-domains.mjs",
+    "rules:prepare:security": "node scripts/prepare-ublock-security.mjs"
   },
   "engines": {
     "node": ">=22"
