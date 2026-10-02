@@ -1,0 +1,37 @@
+{
+  "id": "easylist-network-extended-pinned-2026-10-02",
+  "repository": "easylist/easylist",
+  "commit": "3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8",
+  "license": "GPL-3.0-or-later OR CC-BY-SA-3.0-or-later",
+  "runtimeUpdate": false,
+  "sources": [
+    {
+      "id": "general_block",
+      "path": "easylist/easylist_general_block.txt",
+      "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easylist/easylist_general_block.txt",
+      "expectedGitBlobSha1": "1b1fc2321e0f73d0615108497d2e831c90a61dde",
+      "ruleIdBase": 12000000,
+      "expectedAccepted": 974,
+      "expectedRejected": 2
+    },
+    {
+      "id": "specific_block",
+      "path": "easylist/easylist_specific_block.txt",
+      "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easylist/easylist_specific_block.txt",
+      "expectedGitBlobSha1": "655211057a6db0557fe550352ac524cbd4346394",
+      "ruleIdBase": 12100000,
+      "expectedAccepted": 886,
+      "expectedRejected": 6
+    },
+    {
+      "id": "thirdparty",
+      "path": "easylist/easylist_thirdparty.txt",
+      "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easylist/easylist_thirdparty.txt",
+      "expectedGitBlobSha1": "d68cf87940ae633ecb24d8af866460910c9b3ae2",
+      "ruleIdBase": 12200000,
+      "expectedAccepted": 1858,
+      "expectedRejected": 0
+    }
+  ],
+  "expectedTotalRules": 3718
+}
