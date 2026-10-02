@@ -103,6 +103,7 @@ The extension does not update filter lists at runtime.
 - [P4.2 bilingual popup](docs/P42_BILINGUAL_POPUP.md)
 - [P4.3 EasyList cosmetic filtering](docs/P43_EASYLIST_COSMETIC.md)
 - [P5.5 cover integration](docs/P55_COVER_INTEGRATION.md)
+- [P5.6 store listing preparation](docs/P56_STORE_LISTING.md)
 - [Security](SECURITY.md)
 
 ## Status
