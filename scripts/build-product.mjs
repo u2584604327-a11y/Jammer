@@ -12,6 +12,8 @@ const privacyRulesSource = resolve('generated/easyprivacy-tracking.rules.json');
 const privacyReportSource = resolve('generated/easyprivacy-tracking.report.json');
 const phishingRulesSource = resolve('generated/phishing-active.rules.json');
 const phishingReportSource = resolve('generated/phishing-active.report.json');
+const contentDomainsSource = resolve('generated/content-category-domains.js');
+const contentDomainsReportSource = resolve('generated/content-category-domains.report.json');
 const cosmeticGeneralSource = resolve('generated/easylist-general-hide.css');
 const cosmeticSiteSource = resolve('generated/easylist-canyoublockit.css');
 const cosmeticSpecificSource = resolve('generated/easylist-specific-hide.rules.js');
@@ -26,6 +28,8 @@ for (const path of [
   privacyReportSource,
   phishingRulesSource,
   phishingReportSource,
+  contentDomainsSource,
+  contentDomainsReportSource,
   cosmeticGeneralSource,
   cosmeticSiteSource,
   cosmeticSpecificSource,
@@ -45,6 +49,7 @@ const privacyRules = JSON.parse(await readFile(privacyRulesSource, 'utf8'));
 const privacyReport = JSON.parse(await readFile(privacyReportSource, 'utf8'));
 const phishingRules = JSON.parse(await readFile(phishingRulesSource, 'utf8'));
 const phishingReport = JSON.parse(await readFile(phishingReportSource, 'utf8'));
+const contentDomainsReport = JSON.parse(await readFile(contentDomainsReportSource, 'utf8'));
 const cosmeticReport = JSON.parse(await readFile(cosmeticReportSource, 'utf8'));
 
 if (rules.length !== 256 || report.compiler.acceptedDomains !== 42940) {
@@ -86,6 +91,7 @@ await cp(cosmeticGeneralSource, 'dist-product/cosmetic-easylist.css');
 await cp(cosmeticSiteSource, 'dist-product/cosmetic-canyoublockit.css');
 await cp('src/cosmetic-canyoublockit-local.css', 'dist-product/cosmetic-canyoublockit-local.css');
 await cp(cosmeticSpecificSource, 'dist-product/cosmetic-specific-rules.js');
+await cp(contentDomainsSource, 'dist-product/content-category-domains.js');
 await cp('options.html', 'dist-product/options.html');
 
 let popupHtml = await readFile('popup.html', 'utf8');
@@ -194,7 +200,7 @@ Jammer does not download these filter lists at extension runtime.
 `;
 await writeFile('dist-product/THIRD_PARTY_NOTICES.txt', notice);
 
-for (const file of ['dist-product/popup.js', 'dist-product/options.js', 'dist-product/content-classifier.js', 'dist-product/content-filter.js', 'dist-product/cosmetic-specific-filter.js', 'dist-product/cosmetic-specific-rules.js']) {
+for (const file of ['dist-product/popup.js', 'dist-product/options.js', 'dist-product/content-classifier.js', 'dist-product/content-filter.js', 'dist-product/cosmetic-specific-filter.js', 'dist-product/cosmetic-specific-rules.js', 'dist-product/content-category-domains.js']) {
   const info = await stat(file);
   if (!info.isFile() || info.size === 0) throw new Error(`Missing runtime entry: ${file}`);
   const source = await readFile(file, 'utf8');
