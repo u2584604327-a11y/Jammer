@@ -79,13 +79,17 @@ export function parseRuleSource(text, metadata) {
   return { accepted, rejected, duplicates };
 }
 
-function fnv1a31(value) {
+function fnv1a32(value) {
   let hash = 0x811c9dc5;
   for (let index = 0; index < value.length; index += 1) {
     hash ^= value.charCodeAt(index);
     hash = Math.imul(hash, 0x01000193) >>> 0;
   }
-  const positive = hash & 0x7fffffff;
+  return hash >>> 0;
+}
+
+function fnv1a31(value) {
+  const positive = fnv1a32(value) & 0x7fffffff;
   return positive === 0 ? 1 : positive;
 }
 
@@ -128,6 +132,72 @@ export function compileDnrRules(text, metadata) {
       duplicates: parsed.duplicates,
       rejected: parsed.rejected.length,
       rejectedLines: parsed.rejected
+    }
+  };
+}
+
+export function bucketDomains(domains, bucketCount = 256) {
+  if (!Number.isInteger(bucketCount) || bucketCount < 1 || bucketCount > 4096) {
+    throw new Error('invalid-bucket-count');
+  }
+
+  const buckets = Array.from({ length: bucketCount }, () => []);
+  for (const domain of [...domains].sort((a, b) => a.localeCompare(b))) {
+    const index = fnv1a32(domain) % bucketCount;
+    buckets[index].push(domain);
+  }
+
+  return buckets;
+}
+
+export function compileDnrRequestDomainBuckets(text, metadata, options = {}) {
+  validateMetadata(metadata);
+  const bucketCount = options.bucketCount ?? 256;
+  const ruleIdBase = options.ruleIdBase ?? 10_000_000;
+
+  if (!Number.isInteger(ruleIdBase) || ruleIdBase < 1 || ruleIdBase > 0x7fffffff) {
+    throw new Error('invalid-rule-id-base');
+  }
+  if (ruleIdBase + bucketCount - 1 > 0x7fffffff) {
+    throw new Error('rule-id-range-overflow');
+  }
+
+  const parsed = parseRuleSource(text, metadata);
+  const buckets = bucketDomains(parsed.accepted, bucketCount);
+  const rules = [];
+
+  for (let index = 0; index < buckets.length; index += 1) {
+    const domains = buckets[index];
+    if (domains.length === 0) continue;
+
+    rules.push({
+      id: ruleIdBase + index,
+      priority: 1,
+      action: { type: 'block' },
+      condition: {
+        requestDomains: domains
+      }
+    });
+  }
+
+  const sizes = rules.map((rule) => rule.condition.requestDomains.length);
+
+  return {
+    rules,
+    report: {
+      source: metadata,
+      mode: 'requestDomains-buckets',
+      acceptedDomains: parsed.accepted.length,
+      duplicates: parsed.duplicates,
+      rejected: parsed.rejected.length,
+      rejectedLines: parsed.rejected,
+      requestedBucketCount: bucketCount,
+      emittedRules: rules.length,
+      minDomainsPerRule: sizes.length ? Math.min(...sizes) : 0,
+      maxDomainsPerRule: sizes.length ? Math.max(...sizes) : 0,
+      averageDomainsPerRule: sizes.length
+        ? Number((parsed.accepted.length / sizes.length).toFixed(2))
+        : 0
     }
   };
 }
