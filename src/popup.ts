@@ -338,7 +338,7 @@ async function popupApplyContentFilter(settings: PopupSettings): Promise<void> {
       id: POPUP_CONTENT_SCRIPT_ID,
       matches: POPUP_SITE_ORIGINS,
       excludeMatches: popupDomainExcludeMatches(settings.contentAllowlist),
-      js: ["content-classifier.js", "content-filter.js"],
+      js: ["content-category-domains.js", "content-classifier.js", "content-filter.js"],
       runAt: "document_idle",
       allFrames: false,
       persistAcrossSessions: true
