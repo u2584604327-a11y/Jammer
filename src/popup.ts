@@ -110,10 +110,11 @@ function popupUnregisterContentScript(): Promise<void> {
 }
 
 function popupAllowlistExcludeMatches(domains: string[]): string[] {
-  return domains.flatMap((domain) => [
-    `*://${domain}/*`,
-    `*://*.${domain}/*`
-  ]);
+  return domains.flatMap((domain) => {
+    const exact = `*://${domain}/*`;
+    if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(domain)) return [exact];
+    return [exact, `*://*.${domain}/*`];
+  });
 }
 
 async function popupUnregisterCosmeticIfPresent(): Promise<void> {
