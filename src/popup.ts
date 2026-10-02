@@ -11,7 +11,7 @@ interface PopupSettings {
 
 const POPUP_STORAGE_KEY = "jammerSettings";
 const POPUP_ADS_RULESET_ID = "ads_static";
-const POPUP_COSMETIC_SCRIPT_ID = "jammer-popupCosmeticToggle-css";
+const POPUP_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
 const POPUP_COSMETIC_ORIGINS = ["http://*/*", "https://*/*"];
 
 const POPUP_DEFAULT_SETTINGS: PopupSettings = {
@@ -27,7 +27,7 @@ const POPUP_STRINGS: Record<PopupResolvedLanguage, Record<string, string>> = {
     protection: "Protection",
     enabled: "Enabled",
     disabled: "Disabled",
-    popupCosmeticToggle: "Page ad cleanup",
+    cosmetic: "Page ad cleanup",
     cosmeticHint: "Hide explicit ad containers. Enabling requires website access.",
     cosmeticOn: "Page ad cleanup is on.",
     cosmeticOff: "Page ad cleanup is off.",
@@ -41,7 +41,7 @@ const POPUP_STRINGS: Record<PopupResolvedLanguage, Record<string, string>> = {
     protection: "总保护",
     enabled: "已启用",
     disabled: "已停用",
-    popupCosmeticToggle: "页面广告清理",
+    cosmetic: "页面广告清理",
     cosmeticHint: "隐藏明确的页面广告容器。启用时需要网站访问权限。",
     cosmeticOn: "页面广告清理已开启。",
     cosmeticOff: "页面广告清理已关闭。",
@@ -204,7 +204,7 @@ async function popupApplyCosmetic(settings: PopupSettings): Promise<void> {
     id: POPUP_COSMETIC_SCRIPT_ID,
     matches: POPUP_COSMETIC_ORIGINS,
     excludeMatches: popupAllowlistExcludeMatches(settings.allowlist),
-    css: ["popupCosmeticToggle.css"],
+    css: ["cosmetic.css"],
     runAt: "document_start",
     allFrames: true,
     persistAcrossSessions: true
@@ -284,12 +284,12 @@ async function popupApplyProtection(settings: PopupSettings): Promise<void> {
 }
 
 const protection = popupRequireElement<HTMLInputElement>("#protection");
-const popupCosmeticToggle = popupRequireElement<HTMLInputElement>("#popupCosmeticToggle-enabled");
+const popupCosmeticToggle = popupRequireElement<HTMLInputElement>("#cosmetic-enabled");
 const statusElement = popupRequireElement<HTMLElement>("#status");
-const cosmeticStatus = popupRequireElement<HTMLElement>("#popupCosmeticToggle-status");
+const cosmeticStatus = popupRequireElement<HTMLElement>("#cosmetic-status");
 const protectionLabel = popupRequireElement<HTMLElement>("#protection-label");
-const popupCosmeticLabel = popupRequireElement<HTMLElement>("#popupCosmeticToggle-label");
-const cosmeticHint = popupRequireElement<HTMLElement>("#popupCosmeticToggle-hint");
+const popupCosmeticLabel = popupRequireElement<HTMLElement>("#cosmetic-label");
+const cosmeticHint = popupRequireElement<HTMLElement>("#cosmetic-hint");
 const optionsButton = popupRequireElement<HTMLButtonElement>("#open-options");
 const popupLanguageSelect = popupRequireElement<HTMLSelectElement>("#language-select");
 
@@ -299,7 +299,7 @@ function popupApplyTranslations(settings: PopupSettings): void {
 
   document.documentElement.lang = language;
   protectionLabel.textContent = strings.protection;
-  popupCosmeticLabel.textContent = strings.popupCosmeticToggle;
+  popupCosmeticLabel.textContent = strings.cosmetic;
   cosmeticHint.textContent = strings.cosmeticHint;
   optionsButton.textContent = strings.options;
   statusElement.textContent = settings.enabled ? strings.enabled : strings.disabled;
