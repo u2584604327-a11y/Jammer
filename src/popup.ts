@@ -1,14 +1,19 @@
 interface PopupSettings {
   enabled: boolean;
   adsEnabled: boolean;
+  cosmeticEnabled: boolean;
   allowlist: string[];
 }
 
 const POPUP_STORAGE_KEY = "jammerSettings";
 const POPUP_ADS_RULESET_ID = "ads_static";
+const POPUP_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
+const POPUP_COSMETIC_ORIGINS = ["http://*/*", "https://*/*"];
+
 const POPUP_DEFAULT_SETTINGS: PopupSettings = {
   enabled: true,
   adsEnabled: true,
+  cosmeticEnabled: false,
   allowlist: []
 };
 
@@ -47,6 +52,98 @@ function popupStorageSet(items: Record<string, unknown>): Promise<void> {
   });
 }
 
+function popupPermissionContains(): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    chrome.permissions.contains(
+      { permissions: ["scripting"], origins: POPUP_COSMETIC_ORIGINS },
+      (result) => {
+        if (chrome.runtime.lastError) {
+          reject(popupRuntimeError("Permission check failed"));
+          return;
+        }
+        resolve(result);
+      }
+    );
+  });
+}
+
+function popupGetRegisteredCosmetic(): Promise<JammerContentScript[]> {
+  return new Promise((resolve, reject) => {
+    chrome.scripting.getRegisteredContentScripts(
+      { ids: [POPUP_COSMETIC_SCRIPT_ID] },
+      (scripts) => {
+        if (chrome.runtime.lastError) {
+          reject(popupRuntimeError("Cosmetic registration read failed"));
+          return;
+        }
+        resolve(scripts);
+      }
+    );
+  });
+}
+
+function popupRegisterContentScript(script: JammerContentScript): Promise<void> {
+  return new Promise((resolve, reject) => {
+    chrome.scripting.registerContentScripts([script], () => {
+      if (chrome.runtime.lastError) {
+        reject(popupRuntimeError("Cosmetic registration failed"));
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+function popupUnregisterContentScript(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    chrome.scripting.unregisterContentScripts(
+      { ids: [POPUP_COSMETIC_SCRIPT_ID] },
+      () => {
+        if (chrome.runtime.lastError) {
+          reject(popupRuntimeError("Cosmetic unregister failed"));
+          return;
+        }
+        resolve();
+      }
+    );
+  });
+}
+
+function popupAllowlistExcludeMatches(domains: string[]): string[] {
+  return domains.flatMap((domain) => [
+    `*://${domain}/*`,
+    `*://*.${domain}/*`
+  ]);
+}
+
+async function popupUnregisterCosmeticIfPresent(): Promise<void> {
+  const granted = await popupPermissionContains();
+  if (!granted) return;
+
+  const existing = await popupGetRegisteredCosmetic();
+  if (existing.length > 0) await popupUnregisterContentScript();
+}
+
+async function popupApplyCosmetic(settings: PopupSettings): Promise<void> {
+  const granted = await popupPermissionContains();
+
+  if (!settings.enabled || !settings.cosmeticEnabled || !granted) {
+    if (granted) await popupUnregisterCosmeticIfPresent();
+    return;
+  }
+
+  await popupUnregisterCosmeticIfPresent();
+  await popupRegisterContentScript({
+    id: POPUP_COSMETIC_SCRIPT_ID,
+    matches: POPUP_COSMETIC_ORIGINS,
+    excludeMatches: popupAllowlistExcludeMatches(settings.allowlist),
+    css: ["cosmetic.css"],
+    runAt: "document_start",
+    allFrames: true,
+    persistAcrossSessions: true
+  });
+}
+
 function popupGetEnabledRulesets(): Promise<string[]> {
   return new Promise((resolve, reject) => {
     chrome.declarativeNetRequest.getEnabledRulesets((rulesets) => {
@@ -80,6 +177,7 @@ function popupSanitizeSettings(value: unknown): PopupSettings {
   return {
     enabled: typeof candidate.enabled === "boolean" ? candidate.enabled : true,
     adsEnabled: typeof candidate.adsEnabled === "boolean" ? candidate.adsEnabled : true,
+    cosmeticEnabled: typeof candidate.cosmeticEnabled === "boolean" ? candidate.cosmeticEnabled : false,
     allowlist: Array.isArray(candidate.allowlist)
       ? candidate.allowlist.filter((item): item is string => typeof item === "string")
       : []
@@ -100,6 +198,7 @@ async function popupApplyProtection(settings: PopupSettings): Promise<void> {
   const enabled = await popupGetEnabledRulesets();
   const isEnabled = enabled.includes(POPUP_ADS_RULESET_ID);
   if (shouldEnable === isEnabled) return;
+
   await popupUpdateEnabledRulesets(
     shouldEnable
       ? { enableRulesetIds: [POPUP_ADS_RULESET_ID] }
@@ -128,6 +227,7 @@ protection.addEventListener("change", async () => {
     settings.enabled = protection.checked;
     await popupSaveSettings(settings);
     await popupApplyProtection(settings);
+    await popupApplyCosmetic(settings);
     statusElement.textContent = settings.enabled ? "Enabled" : "Disabled";
   } catch (error) {
     statusElement.textContent = error instanceof Error ? error.message : "Could not update protection";
@@ -149,7 +249,14 @@ optionsButton.addEventListener("click", () => {
   });
 });
 
-void popupRefresh().catch((error) => {
+void popupLoadSettings().then(async (settings) => {
+  protection.checked = settings.enabled;
+  statusElement.textContent = settings.enabled ? "Enabled" : "Disabled";
+  protection.disabled = false;
+
+  const granted = await popupPermissionContains();
+  if (granted) await popupApplyCosmetic(settings);
+}).catch((error) => {
   statusElement.textContent = error instanceof Error ? error.message : "Could not load settings";
   protection.disabled = false;
 });
