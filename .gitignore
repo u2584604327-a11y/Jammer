@@ -6,3 +6,4 @@ dist-product/
 .test-build/
 generated/
 .DS_Store
+release/
