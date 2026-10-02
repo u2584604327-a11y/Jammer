@@ -1,9 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Jammer",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Local-first ad blocking with transparent, user-controlled rules.",
   "permissions": ["declarativeNetRequest", "storage"],
+  "optional_permissions": ["scripting"],
+  "optional_host_permissions": ["http://*/*", "https://*/*"],
   "action": {
     "default_title": "Jammer",
     "default_popup": "popup.html"
