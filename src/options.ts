@@ -29,6 +29,7 @@ const OPTIONS_BLOCKED_RULE_ID_LIMIT = 2_999_999;
 const OPTIONS_HTTPS_UPGRADE_RULE_ID = 3_000_000;
 const OPTIONS_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
 const OPTIONS_COSMETIC_SITE_SCRIPT_ID = "jammer-cosmetic-canyoublockit";
+const OPTIONS_AD_HEURISTIC_SCRIPT_ID = "jammer-ad-cleanup";
 const OPTIONS_CONTENT_SCRIPT_ID = "jammer-content-filter";
 const OPTIONS_COSMETIC_ORIGINS = ["http://*/*", "https://*/*"];
 
@@ -71,7 +72,7 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     cosmeticTitle: "Page ad cleanup",
     cosmeticLabel: "Hide page ad containers",
     cosmeticDescription:
-      "Optional. When enabled, Edge asks for website access so Jammer can inject CSS-only ad hiding.",
+      "Optional. When enabled, Edge asks for website access so Jammer can apply packaged CSS plus local element heuristics for self-hosted and dynamic ads.",
     cosmeticReload: "Reload open pages after changing this setting. Allowlisted sites are excluded.",
     contentTitle: "Content filtering",
     contentMaster: "Hide matched content blocks",
@@ -128,7 +129,7 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     cosmeticTitle: "页面广告清理",
     cosmeticLabel: "隐藏页面广告容器",
     cosmeticDescription:
-      "可选功能。启用后会请求网站访问权限，仅用于注入本地 CSS 隐藏广告容器。",
+      "可选功能。启用后会请求网站访问权限，使用内置 CSS 与本地元素特征识别，清理自托管横幅、动态广告和常见广告容器。",
     cosmeticReload: "修改后请刷新已打开页面。广告白名单网站不会注入页面广告清理 CSS。",
     contentTitle: "内容过滤",
     contentMaster: "只隐藏命中的内容块",
@@ -401,7 +402,11 @@ function optionsHasSelectedContentCategory(settings: OptionsSettings): boolean {
 
 async function optionsApplyCosmetic(settings: OptionsSettings): Promise<void> {
   const granted = await optionsPermissionContains();
-  const ids = [OPTIONS_COSMETIC_SCRIPT_ID, OPTIONS_COSMETIC_SITE_SCRIPT_ID];
+  const ids = [
+    OPTIONS_COSMETIC_SCRIPT_ID,
+    OPTIONS_COSMETIC_SITE_SCRIPT_ID,
+    OPTIONS_AD_HEURISTIC_SCRIPT_ID
+  ];
   const shouldEnable = settings.enabled && settings.cosmeticEnabled && granted;
 
   if (!shouldEnable) {
@@ -426,6 +431,15 @@ async function optionsApplyCosmetic(settings: OptionsSettings): Promise<void> {
       excludeMatches: optionsDomainExcludeMatches(settings.allowlist),
       css: ["cosmetic-canyoublockit.css", "cosmetic-canyoublockit-local.css"],
       runAt: "document_start",
+      allFrames: true,
+      persistAcrossSessions: true
+    },
+    {
+      id: OPTIONS_AD_HEURISTIC_SCRIPT_ID,
+      matches: OPTIONS_COSMETIC_ORIGINS,
+      excludeMatches: optionsDomainExcludeMatches(settings.allowlist),
+      js: ["ad-cleanup.js"],
+      runAt: "document_idle",
       allFrames: true,
       persistAcrossSessions: true
     }
