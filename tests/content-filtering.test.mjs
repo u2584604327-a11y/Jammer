@@ -132,8 +132,10 @@ test('content filtering is opt-in and uses separate local exceptions', async () 
   }
   assert.match(config, /contentAllowlist/);
   assert.match(options, /jammer-content-filter/);
+  assert.match(options, /content-category-domains\.js/);
   assert.match(options, /content-classifier\.js/);
   assert.match(options, /content-filter\.js/);
+  assert.match(popup, /content-category-domains\.js/);
   assert.match(popup, /content-classifier\.js/);
   assert.match(popup, /content-filter\.js/);
 });
@@ -180,4 +182,30 @@ test('classifier recall uses repeated-signal scoring and expanded variants', asy
   assert.match(source, /成人视频/);
   assert.match(source, /冒充客服/);
   assert.match(source, /before it gets deleted/);
+});
+
+
+test('high-recall content runtime inspects linked media URLs and local category-domain signals', async () => {
+  const source = await readFile('src/content-filter.ts', 'utf8');
+
+  assert.match(source, /jammerContentFilterUrlSignals/);
+  assert.match(source, /a\[href\],img\[src\]/);
+  assert.match(source, /JammerContentCategoryDomains/);
+  assert.match(source, /jammerContentMatchDomainList/);
+  assert.match(source, /domain:\$\{matchedDomain\}/);
+  assert.match(source, /score:\s*20/);
+});
+
+test('content-category domain sources are pinned and stay local', async () => {
+  const meta = JSON.parse(
+    await readFile('rules/sources/content-category-domains.pinned.json', 'utf8')
+  );
+  const script = await readFile('scripts/prepare-content-category-domains.mjs', 'utf8');
+
+  assert.equal(meta.commit, 'abe587abf7979d93b7a8267d5d3e1fbc32541163');
+  assert.equal(meta.runtimeUpdate, false);
+  assert.equal(meta.sources.find((item) => item.category === 'gambling').expectedDomains, 6673);
+  assert.equal(meta.sources.find((item) => item.category === 'explicit').expectedDomains, 76793);
+  assert.match(script, /expectedGitBlobSha1/);
+  assert.match(script, /content-category-domains\.js/);
 });
