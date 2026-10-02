@@ -2,7 +2,7 @@
 
 **Effective date: October 2, 2026**
 
-Jammer is a local-first Manifest V3 browser extension for network ad blocking, tracker blocking, known-phishing navigation blocking, optional HTTPS navigation upgrade, page-ad cleanup, and opt-in local content filtering.
+Jammer is a local-first Manifest V3 browser extension for ad/script blocking, tracker blocking, badware/resource-abuse blocking, known-phishing navigation blocking, optional HTTPS navigation upgrade, page-ad cleanup, and opt-in local content filtering.
 
 [简体中文](#简体中文) · [English](#english)
 
@@ -24,6 +24,7 @@ Jammer stores configuration under the browser extension's local `jammerSettings`
 - whether network ad blocking is enabled;
 - whether Privacy / tracker blocking is enabled;
 - whether known-phishing navigation blocking is enabled;
+- whether badware / abusive-script blocking is enabled;
 - whether optional HTTPS navigation upgrade is enabled;
 - whether page-ad cleanup is enabled;
 - whether content filtering is enabled;
@@ -93,13 +94,13 @@ When enabled, Jammer requests:
 - optional `scripting`; and
 - optional `http://*/*` and `https://*/*` site access.
 
-These permissions register packaged CSS-only cosmetic-filtering resources that hide identified ad containers. Jammer does not use page-ad cleanup to intentionally read form values, passwords, browsing history, or cookies.
+These permissions register packaged generic and site-specific cosmetic resources. A local high-coverage helper may inspect element identifiers/classes, link/image URLs, image dimensions, and other ad-related attributes to hide stubborn linked-image banners. It does not intentionally read form values, passwords, browsing history, or cookies, and it does not upload the inspected page data.
 
 ### 9. Optional content filtering
 
 Content filtering is optional and disabled by default. Every category is also disabled by default.
 
-When enabled, Jammer locally evaluates a bounded amount of title, description, heading, accessibility/image-label, and visible body text against packaged weighted rules for:
+When enabled, Jammer locally evaluates a bounded amount of title, description, heading, accessibility/image-label, visible body text, and link/media URL metadata against packaged weighted rules and local category-domain signals for:
 
 - gambling / betting promotion;
 - explicit sexual material;
@@ -109,11 +110,17 @@ When enabled, Jammer locally evaluates a bounded amount of title, description, h
 
 When a selected category crosses its threshold, Jammer hides only the matched content block and inserts a local placeholder with the category, matched signals, reveal control, leave-page control, and site exception control.
 
-The classifier is heuristic, not an AI security service. False positives and false negatives are possible.
+The classifier is heuristic, not an AI security service. Pinned local domain signals for gambling and explicit-content links can contribute to a block-level match. False positives and false negatives are possible.
 
 Jammer does **not upload scanned page text** or matched terms to a Jammer server. It does not intentionally read form input values, password values, cookies, or browser history for this feature.
 
-### 10. Allowlists and exceptions
+### 10. Badware / abusive-script blocking
+
+When enabled, Jammer uses a separate packaged DNR ruleset generated at build time from pinned uBlockOrigin/uAssets badware and resource-abuse sources. These rules can block many known malicious, credential-stealing, miner, resource-abuse, and related network requests.
+
+The installed extension does not download these security lists at runtime and does not upload a record of blocked requests. This is a rule-based protection layer, not a guarantee that every malicious script or site will be detected.
+
+### 11. Allowlists and exceptions
 
 The ad-block allowlist contains domains manually entered by the user and excludes matching sites from ad blocking or page-ad cleanup.
 
@@ -121,7 +128,7 @@ Content-filter exceptions are stored separately and suppress local content maski
 
 The dangerous-site block list is also separate. These local lists are not uploaded to a Jammer server.
 
-### 11. External network communication
+### 12. External network communication
 
 Jammer extension pages use this Content Security Policy:
 
@@ -131,23 +138,25 @@ The popup, Options page, and content-filter runtime do not use `fetch`, XMLHttpR
 
 Build scripts may retrieve pinned third-party rule sources while producing a release. That build-time activity is not performed by the installed extension.
 
-### 12. Third-party filter sources
+### 13. Third-party filter sources
 
 Product builds may include rules derived from pinned snapshots of:
 
 - EasyList for advertisements and ad-related network requests;
 - EasyPrivacy for tracking endpoints; and
-- Phishing-Database/Phishing.Database for known active phishing domains.
+- Phishing-Database/Phishing.Database for known active phishing domains;
+- uBlockOrigin/uAssets for pinned badware/resource-abuse rules; and
+- StevenBlack/hosts for pinned gambling and explicit-content domain signals used locally by content/ad heuristics.
 
 The build verifies pinned source identity and includes provenance/third-party notices. The installed extension does not remotely update these packaged lists at runtime.
 
-### 13. Retention and deletion
+### 14. Retention and deletion
 
 Jammer operates no backend user database, so it has no Jammer server-side user-data retention period.
 
 Local Jammer settings remain until the user changes them, clears browser/extension storage, or uninstalls Jammer.
 
-### 14. Permissions summary
+### 15. Permissions summary
 
 Required:
 - `declarativeNetRequest`
@@ -159,11 +168,11 @@ Optional:
 
 Jammer does not request `tabs`, `history`, `cookies`, `webRequest`, `webRequestBlocking`, `debugger`, `downloads`, or `nativeMessaging`.
 
-### 15. Changes to this policy
+### 16. Changes to this policy
 
 If Jammer's data handling or permission model changes, this policy should be updated before the changed version is distributed.
 
-### 16. Contact
+### 17. Contact
 
 Questions or privacy concerns can be submitted through the public Jammer repository:
 
@@ -187,6 +196,7 @@ Jammer在浏览器扩展本地 `jammerSettings` 中保存：
 - 网络广告 / 广告脚本拦截状态；
 - 隐私 / 跟踪器拦截状态；
 - 已知钓鱼网站拦截状态；
+- 恶意 / 滥用脚本拦截状态；
 - 可选HTTPS导航升级状态；
 - 页面广告清理状态；
 - 内容过滤状态与所选类别；
@@ -251,13 +261,13 @@ HTTPS导航升级默认关闭。
 - 可选 `scripting` 权限；
 - 可选 `http://*/*` 与 `https://*/*` 网站访问权限。
 
-这些权限用于注册扩展内置CSS页面广告隐藏规则。页面广告清理不会被用于主动读取表单值、密码、浏览历史或Cookie。
+这些权限用于注册通用与站点专用页面广告清理资源。高覆盖本地辅助逻辑可能读取元素ID/类名、链接/图片URL、图片尺寸及其他广告相关属性，用于隐藏顽固图片横幅；不会主动读取表单值、密码、浏览历史或Cookie，也不会上传这些页面数据。
 
 ### 9. 可选内容过滤
 
 内容过滤及每个类别默认都关闭。
 
-启用后，Jammer会在本机对有限范围的网页标题、描述、标题文字、辅助/图片标签以及可见正文进行加权匹配，类别包括：
+启用后，Jammer会在本机对有限范围的网页标题、描述、标题文字、辅助/图片标签、可见正文以及链接/媒体URL元数据进行加权匹配，并结合本地类别域名信号，类别包括：
 
 - 赌博 / 博彩推广；
 - 露骨色情内容；
@@ -267,15 +277,21 @@ HTTPS导航升级默认关闭。
 
 达到阈值时，只隐藏命中的网页内容块，并在原位置提供类别、匹配信号、“显示这段内容”、“退出此网页”和站点例外控制。
 
-该分类器是启发式规则，不是AI安全服务，可能误判或漏判。
+该分类器是启发式规则，不是AI安全服务。固定的本地赌博/露骨内容域名信号可参与内容块判断，仍可能误判或漏判。
 
 Jammer不会把扫描到的网页正文或匹配词上传到Jammer服务器，也不会为了该功能主动读取表单输入值、密码值、Cookie或浏览历史。
 
-### 10. 白名单与例外
+### 10. 恶意 / 滥用脚本拦截
+
+启用后，Jammer使用独立的本地DNR规则集；规则在构建阶段从固定的uBlockOrigin/uAssets坏件与资源滥用来源生成，可阻止大量已知恶意、盗号、挖矿、资源滥用及相关网络请求。
+
+安装后的扩展不会在运行时下载这些安全列表，也不会上传拦截记录。它属于规则型保护层，不保证识别所有恶意脚本或网站。
+
+### 11. 白名单与例外
 
 广告白名单、内容过滤例外和危险网站拦截列表彼此独立，均只保存在浏览器本地，不会上传到Jammer服务器。
 
-### 11. 外部网络通信
+### 12. 外部网络通信
 
 Jammer扩展页面使用：
 
@@ -285,23 +301,25 @@ Popup、Options和内容过滤运行时代码不使用 `fetch`、XMLHttpRequest�
 
 构建脚本在制作版本时会下载并校验固定的第三方规则来源；这是构建阶段行为，不由安装后的扩展执行。
 
-### 12. 第三方过滤来源
+### 13. 第三方过滤来源
 
 产品构建可能包含来自以下固定快照的规则：
 
 - EasyList：广告及广告相关网络请求；
 - EasyPrivacy：跟踪端点；
-- Phishing-Database/Phishing.Database：已知活跃钓鱼域名。
+- Phishing-Database/Phishing.Database：已知活跃钓鱼域名；
+- uBlockOrigin/uAssets：固定的坏件/资源滥用规则；
+- StevenBlack/hosts：供本地内容/广告启发式判断使用的赌博与露骨内容域名信号。
 
 构建过程验证来源身份并写入provenance/第三方声明。安装后的扩展不会在运行时远程更新这些列表。
 
-### 13. 保留与删除
+### 14. 保留与删除
 
 Jammer不运营扩展用户后端数据库，因此没有Jammer服务器端用户数据保留周期。
 
 本地设置会保留到用户修改、清理浏览器/扩展存储或卸载Jammer为止。
 
-### 14. 权限摘要
+### 15. 权限摘要
 
 必须权限：
 - `declarativeNetRequest`
@@ -313,11 +331,11 @@ Jammer不运营扩展用户后端数据库，因此没有Jammer服务器端用�
 
 Jammer不请求 `tabs`、`history`、`cookies`、`webRequest`、`webRequestBlocking`、`debugger`、`downloads` 或 `nativeMessaging`。
 
-### 15. 政策变更
+### 16. 政策变更
 
 如果Jammer的数据处理方式或权限模型发生变化，应在分发相关版本之前同步更新本政策。
 
-### 16. 联系方式
+### 17. 联系方式
 
 隐私问题可通过Jammer公开仓库提交：
 

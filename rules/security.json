@@ -1,0 +1,11 @@
+[
+  {
+    "id": 2001,
+    "priority": 50,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||badware.jammer.invalid^",
+      "resourceTypes": ["main_frame", "sub_frame", "script", "xmlhttprequest"]
+    }
+  }
+]

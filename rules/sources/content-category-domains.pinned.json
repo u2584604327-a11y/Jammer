@@ -1,0 +1,25 @@
+{
+  "id": "content-category-domains-pinned-2026-10-02",
+  "repository": "StevenBlack/hosts",
+  "commit": "abe587abf7979d93b7a8267d5d3e1fbc32541163",
+  "license": "MIT",
+  "runtimeUpdate": false,
+  "sources": [
+    {
+      "category": "gambling",
+      "path": "alternates/gambling-only/hosts",
+      "url": "https://raw.githubusercontent.com/StevenBlack/hosts/abe587abf7979d93b7a8267d5d3e1fbc32541163/alternates/gambling-only/hosts",
+      "expectedGitBlobSha1": "d9241af59f9ef4bcd88739600bd64c1aaa5aa12b",
+      "expectedSizeBytes": 147711,
+      "expectedDomains": 6673
+    },
+    {
+      "category": "explicit",
+      "path": "alternates/porn-only/hosts",
+      "url": "https://raw.githubusercontent.com/StevenBlack/hosts/abe587abf7979d93b7a8267d5d3e1fbc32541163/alternates/porn-only/hosts",
+      "expectedGitBlobSha1": "3e4363d4b71908d4fc8cc2c80791ad8444a03738",
+      "expectedSizeBytes": 1960645,
+      "expectedDomains": 76793
+    }
+  ]
+}

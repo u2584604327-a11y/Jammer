@@ -22,6 +22,10 @@ test('release audit protects permission and provenance contracts', async () => {
   assert.match(source, /scripting/);
   assert.match(source, /PROVENANCE\.json/);
   assert.match(source, /COSMETIC_PROVENANCE\.json/);
+  assert.match(source, /SECURITY_PROVENANCE\.json/);
+  assert.match(source, /content-category-domains\.js/);
+  assert.match(source, /cosmetic-specific-rules\.js/);
+  assert.match(source, /ad-element-filter\.js/);
   assert.match(source, /THIRD_PARTY_NOTICES\.txt/);
   assert.match(source, /assets\/jammer-cover\.webp/);
   assert.match(source, /raw EasyList text leaked/);

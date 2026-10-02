@@ -17,6 +17,10 @@ test('popup keeps all runtime control IDs after visual redesign', async () => {
     'phishing-label',
     'phishing-hint',
     'phishing-status',
+    'security-enabled',
+    'security-label',
+    'security-hint',
+    'security-status',
     'cosmetic-enabled',
     'cosmetic-label',
     'cosmetic-hint',
@@ -29,7 +33,7 @@ test('popup keeps all runtime control IDs after visual redesign', async () => {
   ]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
-  assert.match(html, /Build: p64-secure-navigation-dev/);
+  assert.match(html, /Build: p65-high-coverage-dev/);
   assert.match(html, /class="brand-mark"/);
 });
 
@@ -54,6 +58,9 @@ test('options keeps all runtime control IDs after visual redesign', async () => 
     'phishing-enabled',
     'phishing-label',
     'phishing-description',
+    'security-enabled',
+    'security-label',
+    'security-description',
     'secure-navigation-enabled',
     'secure-navigation-label',
     'secure-navigation-description',

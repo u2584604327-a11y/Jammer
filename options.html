@@ -13,7 +13,7 @@
       <span class="brand-mark" aria-hidden="true"><span>J</span></span>
       <div>
         <h1 id="options-title">Jammer Options</h1>
-        <p class="build-id">Jammer 0.9.0</p>
+        <p class="build-id">Jammer 0.10.0</p>
       </div>
     </div>
     <select id="language-select" class="compact-select" aria-label="Language">
@@ -51,6 +51,12 @@
     <p id="phishing-description" class="muted">Blocks top-level and embedded navigation to domains from a pinned active phishing feed.</p>
     <div class="divider"></div>
     <div class="feature-row">
+      <label id="security-label" for="security-enabled">Badware / abusive-script blocking</label>
+      <input id="security-enabled" class="switch" type="checkbox">
+    </div>
+    <p id="security-description" class="muted">Blocks packaged badware and resource-abuse network rules, including many malicious, credential-stealing, miner, and abusive scripts.</p>
+    <div class="divider"></div>
+    <div class="feature-row">
       <label id="secure-navigation-label" for="secure-navigation-enabled">Upgrade HTTP navigation to HTTPS</label>
       <input id="secure-navigation-enabled" class="switch" type="checkbox">
     </div>
@@ -63,7 +69,7 @@
       <input id="cosmetic-enabled" class="switch" type="checkbox">
     </div>
     <p id="cosmetic-label" class="section-label">Hide page ad containers</p>
-    <p id="cosmetic-description" class="muted">Optional. When enabled, Edge asks for website access so Jammer can inject CSS-only ad hiding. Jammer does not read page text, forms, or passwords.</p>
+    <p id="cosmetic-description" class="muted">Optional. When enabled, Edge asks for website access so Jammer can apply generic plus pinned site-specific EasyList cosmetic rules.</p>
     <p id="cosmetic-reload" class="hint-box">Reload open pages after changing this setting. Allowlisted sites are excluded.</p>
   </section>
 
@@ -95,7 +101,7 @@
       <input id="content-enabled" class="switch" type="checkbox">
     </div>
     <p id="content-master-label" class="section-label">Hide matched content blocks</p>
-    <p id="content-description" class="muted">Optional local text matching. Page text stays on-device.</p>
+    <p id="content-description" class="muted">Optional local matching of page text, link/media URLs, accessibility labels, and pinned gambling/adult domain signals. Data stays on-device.</p>
 
     <div class="category-grid" role="group" aria-label="Content categories">
       <label class="category-option">

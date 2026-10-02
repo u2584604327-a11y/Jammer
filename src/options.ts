@@ -8,6 +8,7 @@ interface OptionsSettings {
   adsEnabled: boolean;
   privacyEnabled: boolean;
   phishingEnabled: boolean;
+  securityEnabled: boolean;
   secureNavigationEnabled: boolean;
   cosmeticEnabled: boolean;
   contentEnabled: boolean;
@@ -22,6 +23,7 @@ const OPTIONS_STORAGE_KEY = "jammerSettings";
 const OPTIONS_ADS_RULESET_IDS = ["ads_static", "ads_extended"] as const;
 const OPTIONS_PRIVACY_RULESET_ID = "privacy_static";
 const OPTIONS_PHISHING_RULESET_ID = "phishing_static";
+const OPTIONS_SECURITY_RULESET_ID = "security_static";
 const OPTIONS_ALLOWLIST_RULE_ID_BASE = 1_000_000;
 const OPTIONS_ALLOWLIST_RULE_ID_LIMIT = 1_999_999;
 const OPTIONS_BLOCKED_RULE_ID_BASE = 2_000_000;
@@ -29,6 +31,7 @@ const OPTIONS_BLOCKED_RULE_ID_LIMIT = 2_999_999;
 const OPTIONS_HTTPS_UPGRADE_RULE_ID = 3_000_000;
 const OPTIONS_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
 const OPTIONS_COSMETIC_SITE_SCRIPT_ID = "jammer-cosmetic-canyoublockit";
+const OPTIONS_COSMETIC_SPECIFIC_SCRIPT_ID = "jammer-cosmetic-specific";
 const OPTIONS_CONTENT_SCRIPT_ID = "jammer-content-filter";
 const OPTIONS_COSMETIC_ORIGINS = ["http://*/*", "https://*/*"];
 
@@ -45,6 +48,7 @@ const OPTIONS_DEFAULT_SETTINGS: OptionsSettings = {
   adsEnabled: true,
   privacyEnabled: true,
   phishingEnabled: true,
+  securityEnabled: true,
   secureNavigationEnabled: false,
   cosmeticEnabled: false,
   contentEnabled: false,
@@ -64,6 +68,8 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     privacyDescription: "Blocks packaged known tracking endpoints for scripts, pixels, XHR, pings, and embedded frames.",
     phishing: "Known phishing-site blocking",
     phishingDescription: "Blocks top-level and embedded navigation to domains from a pinned active phishing feed.",
+    security: "Badware / abusive-script blocking",
+    securityDescription: "Blocks packaged badware and resource-abuse rules, including many malicious, credential-stealing, miner, and abusive scripts.",
     secureNavigation: "Upgrade HTTP navigation to HTTPS",
     secureNavigationDescription: "Optional. Upgrades HTTP page/frame navigation to HTTPS when the destination supports it; some legacy HTTP-only sites may fail.",
     blockedTitle: "Dangerous-site block list",
@@ -102,6 +108,7 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     networkUpdated: "Network ad & script blocking updated.",
     privacyUpdated: "Privacy / tracker blocking updated.",
     phishingUpdated: "Known phishing-site blocking updated.",
+    securityUpdated: "Badware / abusive-script blocking updated.",
     secureNavigationUpdated: "HTTPS navigation upgrade updated.",
     blockedUpdated: "Dangerous-site block list updated.",
     allowlistUpdated: "Ad-block allowlist updated.",
@@ -121,6 +128,8 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     privacyDescription: "拦截扩展内置规则识别的跟踪脚本、像素、XHR、Ping 和嵌入框架请求。",
     phishing: "已知钓鱼网站拦截",
     phishingDescription: "使用固定并校验过的活跃钓鱼域名数据，阻止顶层网页或嵌入页面跳转到已知钓鱼域名。",
+    security: "恶意 / 滥用脚本拦截",
+    securityDescription: "拦截内置坏件与资源滥用规则，包括大量恶意、盗号、挖矿和异常资源消耗脚本。",
     secureNavigation: "HTTP 导航自动升级到 HTTPS",
     secureNavigationDescription: "可选。将 HTTP 页面/框架导航升级为 HTTPS；部分仅支持 HTTP 的旧网站可能无法打开。",
     blockedTitle: "危险网站拦截列表",
@@ -157,6 +166,7 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     networkUpdated: "网络广告 / 广告脚本拦截设置已更新。",
     privacyUpdated: "隐私 / 跟踪器拦截设置已更新。",
     phishingUpdated: "已知钓鱼网站拦截设置已更新。",
+    securityUpdated: "恶意 / 滥用脚本拦截设置已更新。",
     secureNavigationUpdated: "HTTPS 导航升级设置已更新。",
     blockedUpdated: "危险网站拦截列表已更新。",
     allowlistUpdated: "广告拦截白名单已更新。",
@@ -401,7 +411,7 @@ function optionsHasSelectedContentCategory(settings: OptionsSettings): boolean {
 
 async function optionsApplyCosmetic(settings: OptionsSettings): Promise<void> {
   const granted = await optionsPermissionContains();
-  const ids = [OPTIONS_COSMETIC_SCRIPT_ID, OPTIONS_COSMETIC_SITE_SCRIPT_ID];
+  const ids = [OPTIONS_COSMETIC_SCRIPT_ID, OPTIONS_COSMETIC_SITE_SCRIPT_ID, OPTIONS_COSMETIC_SPECIFIC_SCRIPT_ID];
   const shouldEnable = settings.enabled && settings.cosmeticEnabled && granted;
 
   if (!shouldEnable) {
@@ -428,6 +438,15 @@ async function optionsApplyCosmetic(settings: OptionsSettings): Promise<void> {
       runAt: "document_start",
       allFrames: true,
       persistAcrossSessions: true
+    },
+    {
+      id: OPTIONS_COSMETIC_SPECIFIC_SCRIPT_ID,
+      matches: OPTIONS_COSMETIC_ORIGINS,
+      excludeMatches: optionsDomainExcludeMatches(settings.allowlist),
+      js: ["content-category-domains.js", "cosmetic-specific-rules.js", "cosmetic-specific-filter.js", "ad-element-filter.js"],
+      runAt: "document_start",
+      allFrames: true,
+      persistAcrossSessions: true
     }
   ]);
 }
@@ -451,7 +470,7 @@ async function optionsApplyContentFilter(settings: OptionsSettings): Promise<voi
       id: OPTIONS_CONTENT_SCRIPT_ID,
       matches: OPTIONS_COSMETIC_ORIGINS,
       excludeMatches: optionsDomainExcludeMatches(settings.contentAllowlist),
-      js: ["content-classifier.js", "content-filter.js"],
+      js: ["content-category-domains.js", "content-classifier.js", "content-filter.js"],
       runAt: "document_idle",
       allFrames: false,
       persistAcrossSessions: true
@@ -548,6 +567,7 @@ function optionsSanitizeSettings(value: unknown): OptionsSettings {
     adsEnabled: typeof candidate.adsEnabled === "boolean" ? candidate.adsEnabled : true,
     privacyEnabled: typeof candidate.privacyEnabled === "boolean" ? candidate.privacyEnabled : true,
     phishingEnabled: typeof candidate.phishingEnabled === "boolean" ? candidate.phishingEnabled : true,
+    securityEnabled: typeof candidate.securityEnabled === "boolean" ? candidate.securityEnabled : true,
     secureNavigationEnabled:
       typeof candidate.secureNavigationEnabled === "boolean" ? candidate.secureNavigationEnabled : false,
     cosmeticEnabled: typeof candidate.cosmeticEnabled === "boolean" ? candidate.cosmeticEnabled : false,
@@ -623,11 +643,13 @@ async function optionsApplyProtection(settings: OptionsSettings): Promise<void> 
   }
   if (settings.enabled && settings.privacyEnabled) desired.add(OPTIONS_PRIVACY_RULESET_ID);
   if (settings.enabled && settings.phishingEnabled) desired.add(OPTIONS_PHISHING_RULESET_ID);
+  if (settings.enabled && settings.securityEnabled) desired.add(OPTIONS_SECURITY_RULESET_ID);
 
   const managed = [
     ...OPTIONS_ADS_RULESET_IDS,
     OPTIONS_PRIVACY_RULESET_ID,
-    OPTIONS_PHISHING_RULESET_ID
+    OPTIONS_PHISHING_RULESET_ID,
+    OPTIONS_SECURITY_RULESET_ID
   ];
   const enableRulesetIds = managed.filter((id) => desired.has(id) && !enabled.includes(id));
   const disableRulesetIds = managed.filter((id) => !desired.has(id) && enabled.includes(id));
@@ -718,6 +740,7 @@ const master = optionsRequireElement<HTMLInputElement>("#master-enabled");
 const ads = optionsRequireElement<HTMLInputElement>("#ads-enabled");
 const privacy = optionsRequireElement<HTMLInputElement>("#privacy-enabled");
 const phishing = optionsRequireElement<HTMLInputElement>("#phishing-enabled");
+const security = optionsRequireElement<HTMLInputElement>("#security-enabled");
 const secureNavigation = optionsRequireElement<HTMLInputElement>("#secure-navigation-enabled");
 const cosmetic = optionsRequireElement<HTMLInputElement>("#cosmetic-enabled");
 const contentEnabled = optionsRequireElement<HTMLInputElement>("#content-enabled");
@@ -727,6 +750,8 @@ const privacyLabel = optionsRequireElement<HTMLElement>("#privacy-label");
 const privacyDescription = optionsRequireElement<HTMLElement>("#privacy-description");
 const phishingLabel = optionsRequireElement<HTMLElement>("#phishing-label");
 const phishingDescription = optionsRequireElement<HTMLElement>("#phishing-description");
+const securityLabel = optionsRequireElement<HTMLElement>("#security-label");
+const securityDescription = optionsRequireElement<HTMLElement>("#security-description");
 const secureNavigationLabel = optionsRequireElement<HTMLElement>("#secure-navigation-label");
 const secureNavigationDescription = optionsRequireElement<HTMLElement>("#secure-navigation-description");
 const cosmeticTitle = optionsRequireElement<HTMLElement>("#cosmetic-title");
@@ -778,6 +803,7 @@ for (const element of [
   ads,
   privacy,
   phishing,
+  security,
   secureNavigation,
   cosmetic,
   contentEnabled,
@@ -810,6 +836,8 @@ function optionsApplyTranslations(): void {
   privacyDescription.textContent = strings.privacyDescription;
   phishingLabel.textContent = strings.phishing;
   phishingDescription.textContent = strings.phishingDescription;
+  securityLabel.textContent = strings.security;
+  securityDescription.textContent = strings.securityDescription;
   secureNavigationLabel.textContent = strings.secureNavigation;
   secureNavigationDescription.textContent = strings.secureNavigationDescription;
   cosmeticTitle.textContent = strings.cosmeticTitle;
@@ -949,6 +977,15 @@ phishing.addEventListener("change", () => {
     message.textContent = optionsStrings(settings).phishingUpdated;
   }).catch((error) => {
     message.textContent = error instanceof Error ? error.message : "Could not update phishing blocking.";
+  });
+});
+
+security.addEventListener("change", () => {
+  settings.securityEnabled = security.checked;
+  void persist().then(() => {
+    message.textContent = optionsStrings(settings).securityUpdated;
+  }).catch((error) => {
+    message.textContent = error instanceof Error ? error.message : "Could not update badware blocking.";
   });
 });
 
@@ -1187,6 +1224,7 @@ void optionsLoadSettings().then(async (loaded) => {
   ads.checked = settings.adsEnabled;
   privacy.checked = settings.privacyEnabled;
   phishing.checked = settings.phishingEnabled;
+  security.checked = settings.securityEnabled;
   secureNavigation.checked = settings.secureNavigationEnabled;
   cosmetic.checked = settings.cosmeticEnabled;
   contentEnabled.checked = settings.contentEnabled;
@@ -1210,6 +1248,7 @@ void optionsLoadSettings().then(async (loaded) => {
     ads,
     privacy,
     phishing,
+    security,
     secureNavigation,
     cosmetic,
     contentEnabled,

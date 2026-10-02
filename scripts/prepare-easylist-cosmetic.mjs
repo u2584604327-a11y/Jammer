@@ -109,24 +109,103 @@ if (rejectedGeneral.length !== 0) {
 }
 
 const canYouBlockItSelectors = [];
+const specificByDomain = new Map();
+let acceptedSpecificRules = 0;
+let rejectedSpecificRules = 0;
+
+function normalizeSpecificDomain(value) {
+  const domain = value.trim().toLowerCase().replace(/\.$/, '');
+  if (!domain || !domain.includes('.') || !/^[a-z0-9.-]+$/i.test(domain)) {
+    throw new Error('invalid-domain');
+  }
+  return domain;
+}
+
 for (const rawLine of specific.text.split(/\r?\n/)) {
   const line = rawLine.trim();
-  if (!line.startsWith('canyoublockit.com##')) continue;
+  if (!line || line.startsWith('!')) continue;
 
-  const selector = line.slice('canyoublockit.com##'.length).trim();
-  if (!isSafeCssSelector(selector)) {
-    throw new Error(`Unsupported canyoublockit.com selector: ${selector}`);
+  const marker = line.indexOf('##');
+  if (marker <= 0) {
+    rejectedSpecificRules += 1;
+    continue;
   }
 
-  canYouBlockItSelectors.push(selector);
+  const domainPart = line.slice(0, marker).trim();
+  const selector = line.slice(marker + 2).trim();
+
+  if (!isSafeCssSelector(selector)) {
+    rejectedSpecificRules += 1;
+    continue;
+  }
+
+  const domains = domainPart.split(',').map((item) => item.trim()).filter(Boolean);
+  if (
+    domains.length === 0 ||
+    domains.some((item) => item.startsWith('~'))
+  ) {
+    rejectedSpecificRules += 1;
+    continue;
+  }
+
+  const normalizedDomains = [];
+  let invalidDomain = false;
+  for (const domain of domains) {
+    try {
+      normalizedDomains.push(normalizeSpecificDomain(domain));
+    } catch {
+      invalidDomain = true;
+      break;
+    }
+  }
+
+  if (invalidDomain) {
+    rejectedSpecificRules += 1;
+    continue;
+  }
+
+  acceptedSpecificRules += 1;
+
+  for (const domain of normalizedDomains) {
+    if (!specificByDomain.has(domain)) specificByDomain.set(domain, new Set());
+    specificByDomain.get(domain).add(selector);
+  }
+
+  if (normalizedDomains.includes('canyoublockit.com')) {
+    canYouBlockItSelectors.push(selector);
+  }
+}
+
+if (acceptedSpecificRules !== metadata.specificHide.expectedSafeRules) {
+  throw new Error(
+    `EasyList specific cosmetic accepted baseline changed: expected ${metadata.specificHide.expectedSafeRules}, got ${acceptedSpecificRules}`
+  );
+}
+
+if (specificByDomain.size !== metadata.specificHide.expectedUniqueDomains) {
+  throw new Error(
+    `EasyList specific cosmetic domain baseline changed: expected ${metadata.specificHide.expectedUniqueDomains}, got ${specificByDomain.size}`
+  );
+}
+
+if (rejectedSpecificRules !== metadata.specificHide.expectedRejected) {
+  throw new Error(
+    `EasyList specific cosmetic rejected baseline changed: expected ${metadata.specificHide.expectedRejected}, got ${rejectedSpecificRules}`
+  );
 }
 
 if (canYouBlockItSelectors.length === 0) {
   throw new Error('Pinned EasyList no longer contains the canyoublockit.com cosmetic regression rule');
 }
 
+const serializedSpecific = {};
+for (const domain of [...specificByDomain.keys()].sort()) {
+  serializedSpecific[domain] = [...specificByDomain.get(domain)].sort();
+}
+
 const generalPath = resolve('generated/easylist-general-hide.css');
 const sitePath = resolve('generated/easylist-canyoublockit.css');
+const specificJsPath = resolve('generated/easylist-specific-hide.rules.js');
 const reportPath = resolve('generated/easylist-cosmetic.report.json');
 
 await mkdir(dirname(generalPath), { recursive: true });
@@ -139,6 +218,11 @@ await writeFile(
 await writeFile(
   sitePath,
   renderCss(canYouBlockItSelectors, 'EasyList canyoublockit.com site-specific selectors')
+);
+
+await writeFile(
+  specificJsPath,
+  `globalThis.JammerEasyListSpecificCosmetic = ${JSON.stringify(serializedSpecific)};\n`
 );
 
 const report = {
@@ -163,12 +247,15 @@ const report = {
   runtimeUpdate: false,
   output: {
     genericSelectors: generalSelectors.length,
-    canYouBlockItSelectors: canYouBlockItSelectors.length
+    canYouBlockItSelectors: canYouBlockItSelectors.length,
+    specificRules: acceptedSpecificRules,
+    specificDomains: specificByDomain.size,
+    rejectedSpecificRules
   }
 };
 
 await writeFile(reportPath, JSON.stringify(report, null, 2) + '\n');
 
 console.log(
-  `easylist-cosmetic: PASS generic=${generalSelectors.length} canyoublockit=${canYouBlockItSelectors.length}`
+  `easylist-cosmetic: PASS generic=${generalSelectors.length} specific=${acceptedSpecificRules} domains=${specificByDomain.size} canyoublockit=${canYouBlockItSelectors.length}`
 );

@@ -35,7 +35,13 @@ const JAMMER_CONTENT_FILTER_CANDIDATE_SELECTOR = [
   "[class*='recommend' i]",
   "[class*='video' i]",
   "[class*='news' i]",
-  "[class*='content' i]"
+  "[class*='content' i]",
+  "[class*='banner' i]",
+  "[class*='promo' i]",
+  "[class*='sponsor' i]",
+  "[id*='banner' i]",
+  "[id*='promo' i]",
+  "a[href]"
 ].join(",");
 
 const JAMMER_CONTENT_FILTER_CONTAINER_SELECTOR = [
@@ -196,6 +202,152 @@ function jammerContentFilterAttributeText(element: HTMLElement): string {
   return values.join(" ").replace(/\s+/g, " ").trim().slice(0, 4_000);
 }
 
+type JammerContentCategoryDomainMap = {
+  gambling?: string[];
+  explicit?: string[];
+};
+
+function jammerContentCategoryDomainMap(): JammerContentCategoryDomainMap {
+  return (globalThis as unknown as {
+    JammerContentCategoryDomains?: JammerContentCategoryDomainMap;
+  }).JammerContentCategoryDomains ?? {};
+}
+
+function jammerContentDomainBinarySearch(domains: string[], value: string): boolean {
+  let low = 0;
+  let high = domains.length - 1;
+
+  while (low <= high) {
+    const middle = (low + high) >>> 1;
+    const current = domains[middle];
+    if (current === value) return true;
+    if (current < value) low = middle + 1;
+    else high = middle - 1;
+  }
+
+  return false;
+}
+
+function jammerContentMatchDomainList(domains: string[], hostname: string): string | null {
+  const normalized = hostname.toLocaleLowerCase().replace(/\.$/, "");
+  const labels = normalized.split(".").filter(Boolean);
+
+  for (let index = 0; index <= labels.length - 2; index += 1) {
+    const suffix = labels.slice(index).join(".");
+    if (jammerContentDomainBinarySearch(domains, suffix)) return suffix;
+  }
+
+  return null;
+}
+
+function jammerContentFilterUrlSignals(element: HTMLElement): Array<{ raw: string; hostname: string }> {
+  const nodes: Element[] = [element];
+  nodes.push(
+    ...Array.from(
+      element.querySelectorAll(
+        "a[href],img[src],img[data-src],video[src],video[poster],source[src],iframe[src]"
+      )
+    ).slice(0, 48)
+  );
+
+  const seen = new Set<string>();
+  const signals: Array<{ raw: string; hostname: string }> = [];
+
+  for (const node of nodes) {
+    const rawValues = [
+      node.getAttribute("href"),
+      node.getAttribute("src"),
+      node.getAttribute("data-src"),
+      node.getAttribute("poster")
+    ].filter((value): value is string => Boolean(value));
+
+    for (const raw of rawValues) {
+      try {
+        const url = new URL(raw, location.href);
+        if (url.protocol !== "http:" && url.protocol !== "https:") continue;
+        const key = url.href.slice(0, 600);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        signals.push({ raw: key, hostname: url.hostname.toLocaleLowerCase() });
+      } catch {
+        // Ignore malformed or non-URL attributes.
+      }
+
+      if (signals.length >= 48) return signals;
+    }
+  }
+
+  return signals;
+}
+
+function jammerContentFilterUrlSignalText(element: HTMLElement): string {
+  return jammerContentFilterUrlSignals(element)
+    .map((signal) => signal.raw)
+    .join(" ")
+    .replace(/[%_+\-/]+/g, " ")
+    .slice(0, 12_000);
+}
+
+function jammerContentFilterDomainMatches(
+  element: HTMLElement,
+  enabled: JammerContentFilterCategories
+): JammerContentMatch[] {
+  const map = jammerContentCategoryDomainMap();
+  const output = new Map<JammerContentFilterCategory, JammerContentMatch>();
+
+  for (const signal of jammerContentFilterUrlSignals(element)) {
+    for (const category of ["gambling", "explicit"] as JammerContentFilterCategory[]) {
+      if (!enabled[category]) continue;
+      const domains = map[category as "gambling" | "explicit"] ?? [];
+      const matchedDomain = jammerContentMatchDomainList(domains, signal.hostname);
+      if (!matchedDomain) continue;
+
+      const existing = output.get(category);
+      const term = `domain:${matchedDomain}`;
+      if (existing) {
+        if (!existing.matchedTerms.includes(term)) existing.matchedTerms.push(term);
+        existing.score = Math.max(existing.score, 20);
+      } else {
+        output.set(category, {
+          category,
+          score: 20,
+          matchedTerms: [term]
+        });
+      }
+    }
+  }
+
+  return [...output.values()];
+}
+
+function jammerContentFilterMergeMatches(
+  keywordMatches: JammerContentMatch[],
+  domainMatches: JammerContentMatch[]
+): JammerContentMatch[] {
+  const merged = new Map<JammerContentFilterCategory, JammerContentMatch>();
+
+  for (const match of [...keywordMatches, ...domainMatches]) {
+    const existing = merged.get(match.category);
+    if (!existing) {
+      merged.set(match.category, {
+        category: match.category,
+        score: match.score,
+        matchedTerms: [...match.matchedTerms]
+      });
+      continue;
+    }
+
+    existing.score = Math.max(existing.score, match.score);
+    existing.matchedTerms = Array.from(
+      new Set([...existing.matchedTerms, ...match.matchedTerms])
+    ).slice(0, 6);
+  }
+
+  return [...merged.values()].sort(
+    (a, b) => b.score - a.score || a.category.localeCompare(b.category)
+  );
+}
+
 function jammerContentFilterCandidateEligible(element: HTMLElement): boolean {
   if (!element.isConnected) return false;
   if (element.hasAttribute(JAMMER_CONTENT_FILTER_REVEALED_ATTR)) return false;
@@ -208,7 +360,10 @@ function jammerContentFilterCandidateEligible(element: HTMLElement): boolean {
   if (element.closest(`[${JAMMER_CONTENT_FILTER_MASK_ATTR}="true"]`)) return false;
 
   const text = jammerContentFilterCandidateText(element);
-  if (text.length < 24 || text.length > 8_000) return false;
+  const metadata = jammerContentFilterAttributeText(element);
+  const urlSignals = jammerContentFilterUrlSignalText(element);
+  if (text.length > 8_000) return false;
+  if (text.length < 12 && metadata.length < 4 && urlSignals.length < 8) return false;
 
   const style = getComputedStyle(element);
   if (style.display === "none" || style.visibility === "hidden") return false;
@@ -216,11 +371,18 @@ function jammerContentFilterCandidateEligible(element: HTMLElement): boolean {
 }
 
 function jammerContentFilterPromoteTarget(element: HTMLElement): HTMLElement {
-  if (element.matches("p,h1,h2,h3,h4,h5,h6")) {
+  if (element.matches("p,h1,h2,h3,h4,h5,h6,a[href],img,iframe,video")) {
     const container = element.closest<HTMLElement>(JAMMER_CONTENT_FILTER_CONTAINER_SELECTOR);
     if (container) {
       const text = jammerContentFilterCandidateText(container);
-      if (text.length >= 24 && text.length <= 8_000) return container;
+      const metadata = jammerContentFilterAttributeText(container);
+      const urlSignals = jammerContentFilterUrlSignalText(container);
+      if (
+        text.length <= 8_000 &&
+        (text.length >= 12 || metadata.length >= 4 || urlSignals.length >= 8)
+      ) {
+        return container;
+      }
     }
   }
   return element;
@@ -238,7 +400,10 @@ function jammerContentFilterSampleForElement(element: HTMLElement): JammerConten
 
   return {
     title: "",
-    description: jammerContentFilterAttributeText(element),
+    description: [
+      jammerContentFilterAttributeText(element),
+      jammerContentFilterUrlSignalText(element)
+    ].filter(Boolean).join(" "),
     headings: [selfHeading, headings].filter(Boolean).join(" "),
     body: jammerContentFilterCandidateText(element).slice(0, 8_000)
   };
@@ -465,10 +630,15 @@ async function jammerContentFilterScan(root: ParentNode = document): Promise<voi
   for (const candidate of candidates) {
     if (!jammerContentFilterCandidateEligible(candidate)) continue;
 
-    const matches = classifier.classify(
+    const keywordMatches = classifier.classify(
       jammerContentFilterSampleForElement(candidate),
       settings.contentCategories
     );
+    const domainMatches = jammerContentFilterDomainMatches(
+      candidate,
+      settings.contentCategories
+    );
+    const matches = jammerContentFilterMergeMatches(keywordMatches, domainMatches);
     if (matches.length === 0) continue;
 
     const target = jammerContentFilterPromoteTarget(candidate);

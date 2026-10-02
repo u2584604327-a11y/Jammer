@@ -23,10 +23,12 @@ await cp('src/cosmetic.css', 'dist/cosmetic.css');
 await cp('src/cosmetic-easylist.css', 'dist/cosmetic-easylist.css');
 await cp('src/cosmetic-canyoublockit.css', 'dist/cosmetic-canyoublockit.css');
 await cp('src/cosmetic-canyoublockit-local.css', 'dist/cosmetic-canyoublockit-local.css');
+await cp('src/cosmetic-specific-rules.js', 'dist/cosmetic-specific-rules.js');
+await cp('src/content-category-domains.js', 'dist/content-category-domains.js');
 await cp('rules', 'dist/rules', { recursive: true });
 await cp('.build-js', 'dist', { recursive: true });
 
-for (const file of ['dist/popup.js', 'dist/options.js', 'dist/content-classifier.js', 'dist/content-filter.js']) {
+for (const file of ['dist/popup.js', 'dist/options.js', 'dist/content-classifier.js', 'dist/content-filter.js', 'dist/cosmetic-specific-filter.js', 'dist/ad-element-filter.js', 'dist/cosmetic-specific-rules.js', 'dist/content-category-domains.js']) {
   const info = await stat(file);
   if (!info.isFile() || info.size === 0) {
     throw new Error(`Missing runtime entry: ${file}`);
@@ -45,11 +47,11 @@ for (const file of ['dist/popup.html', 'dist/options.html']) {
 }
 
 const manifest = JSON.parse(await readFile('dist/manifest.json', 'utf8'));
-if (manifest.version !== '0.9.0') {
+if (manifest.version !== '0.10.0') {
   throw new Error('Unexpected dist manifest version');
 }
 const popupHtml = await readFile('dist/popup.html', 'utf8');
-if (!popupHtml.includes('Build: p64-secure-navigation-dev')) {
+if (!popupHtml.includes('Build: p65-high-coverage-dev')) {
   throw new Error('Popup build marker missing from dist');
 }
 

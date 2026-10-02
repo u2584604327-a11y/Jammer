@@ -61,7 +61,18 @@ const JAMMER_CONTENT_DEFINITIONS: Record<JammerContentCategory, JammerCategoryDe
       { term: "casino online", weight: 4 },
       { term: "bet now", weight: 3 },
       { term: "betting odds", weight: 3 },
-      { term: "sportsbook", weight: 3 }
+      { term: "sportsbook", weight: 3 },
+      { term: "赌场", weight: 3 },
+      { term: "博彩平台", weight: 4 },
+      { term: "现金网", weight: 4 },
+      { term: "真人娱乐", weight: 4 },
+      { term: "老虎机", weight: 3 },
+      { term: "体育投注平台", weight: 4 },
+      { term: "送彩金", weight: 3 },
+      { term: "返水", weight: 3 },
+      { term: "投注", weight: 2 },
+      { term: "casino app", weight: 3 },
+      { term: "betting app", weight: 3 }
     ]
   },
   explicit: {
@@ -92,7 +103,16 @@ const JAMMER_CONTENT_DEFINITIONS: Record<JammerContentCategory, JammerCategoryDe
       { term: "adult content", weight: 3 },
       { term: "nsfw", weight: 3 },
       { term: "camgirl", weight: 3 },
-      { term: "webcam sex", weight: 4 }
+      { term: "webcam sex", weight: 4 },
+      { term: "福利姬", weight: 4 },
+      { term: "约炮", weight: 4 },
+      { term: "国产自拍", weight: 4 },
+      { term: "自拍偷拍", weight: 4 },
+      { term: "裸照", weight: 3 },
+      { term: "成人社区", weight: 3 },
+      { term: "成人视频网", weight: 4 },
+      { term: "18+ video", weight: 4 },
+      { term: "adult site", weight: 4 }
     ]
   },
   violence: {
@@ -120,7 +140,12 @@ const JAMMER_CONTENT_DEFINITIONS: Record<JammerContentCategory, JammerCategoryDe
       { term: "极端暴力", weight: 4 },
       { term: "graphic gore", weight: 4 },
       { term: "gory footage", weight: 4 },
-      { term: "violent footage", weight: 3 }
+      { term: "violent footage", weight: 3 },
+      { term: "血肉模糊", weight: 4 },
+      { term: "重口血腥", weight: 4 },
+      { term: "虐杀视频", weight: 4 },
+      { term: "尸体画面", weight: 4 },
+      { term: "graphic death", weight: 4 }
     ]
   },
   scam: {
@@ -154,7 +179,17 @@ const JAMMER_CONTENT_DEFINITIONS: Record<JammerContentCategory, JammerCategoryDe
       { term: "稳赚不赔", weight: 4 },
       { term: "risk free profit", weight: 4 },
       { term: "verify your wallet", weight: 3 },
-      { term: "limited time investment", weight: 3 }
+      { term: "limited time investment", weight: 3 },
+      { term: "刷单", weight: 3 },
+      { term: "返佣", weight: 3 },
+      { term: "垫付", weight: 2 },
+      { term: "客服退款", weight: 3 },
+      { term: "投资群", weight: 3 },
+      { term: "高回报", weight: 3 },
+      { term: "稳赚", weight: 3 },
+      { term: "点击链接验证", weight: 4 },
+      { term: "wallet verification", weight: 3 },
+      { term: "double your money", weight: 4 }
     ]
   },
   clickbait: {
@@ -178,7 +213,13 @@ const JAMMER_CONTENT_DEFINITIONS: Record<JammerContentCategory, JammerCategoryDe
       { term: "看完吓一跳", weight: 3 },
       { term: "must see", weight: 2 },
       { term: "before it gets deleted", weight: 4 },
-      { term: "this changes everything", weight: 3 }
+      { term: "this changes everything", weight: 3 },
+      { term: "震惊", weight: 2 },
+      { term: "万万没想到", weight: 3 },
+      { term: "真相曝光", weight: 3 },
+      { term: "看完沉默", weight: 3 },
+      { term: "不转不是", weight: 3 },
+      { term: "breaking secret", weight: 3 }
     ]
   }
 };
@@ -190,6 +231,10 @@ function jammerNormalizeContent(value: string, limit: number): string {
     .toLocaleLowerCase()
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function jammerCompactContent(value: string): string {
+  return value.replace(/[\s._+\-*/|·•:：，,。!?！？"'“”‘’()（）\[\]【】]+/g, "");
 }
 
 function jammerCountOccurrences(text: string, term: string, cap = 3): number {
@@ -216,13 +261,22 @@ function jammerScoreCategory(
     20_000
   );
   const body = jammerNormalizeContent(sample.body, 100_000);
+  const prominentCompact = jammerCompactContent(prominent);
+  const bodyCompact = jammerCompactContent(body);
   let score = 0;
   const matchedTerms: string[] = [];
 
   for (const candidate of definition.terms) {
     const normalizedTerm = candidate.term.normalize("NFKC").toLocaleLowerCase();
-    const prominentCount = jammerCountOccurrences(prominent, normalizedTerm, 2);
-    const bodyCount = jammerCountOccurrences(body, normalizedTerm, 3);
+    const compactTerm = jammerCompactContent(normalizedTerm);
+    const prominentCount = Math.max(
+      jammerCountOccurrences(prominent, normalizedTerm, 2),
+      compactTerm.length >= 3 ? jammerCountOccurrences(prominentCompact, compactTerm, 2) : 0
+    );
+    const bodyCount = Math.max(
+      jammerCountOccurrences(body, normalizedTerm, 3),
+      compactTerm.length >= 3 ? jammerCountOccurrences(bodyCompact, compactTerm, 3) : 0
+    );
     if (prominentCount === 0 && bodyCount === 0) continue;
 
     const prominentContribution = candidate.weight * Math.min(2, prominentCount) * 2;
