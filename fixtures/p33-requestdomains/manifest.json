@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Jammer P3.3 DNR diagnostics",
+  "version": "0.0.2",
+  "description": "Isolated runtime fixture comparing urlFilter, requestDomains single, and requestDomains batch behavior.",
+  "permissions": ["declarativeNetRequest"],
+  "action": {
+    "default_title": "Jammer P3.3 diagnostics",
+    "default_popup": "popup.html"
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "urlfilter_baseline",
+        "enabled": false,
+        "path": "rules-urlfilter.json"
+      },
+      {
+        "id": "requestdomains_single",
+        "enabled": false,
+        "path": "rules-requestdomains-single.json"
+      },
+      {
+        "id": "requestdomains_batch",
+        "enabled": false,
+        "path": "rules.json"
+      }
+    ]
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; connect-src 'none'"
+  }
+}
