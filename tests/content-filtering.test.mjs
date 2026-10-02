@@ -87,7 +87,7 @@ test('content classifier supports Chinese scam and explicit signals', async () =
   assert.equal(explicit[0]?.category, 'explicit');
 });
 
-test('prominent clickbait signals are weighted more than body-only signals', async () => {
+test('high-recall clickbait matching catches strong title and body signals', async () => {
   const api = await classifier();
   const titleMatch = api.classify(
     { title: "You won't believe this", description: '', headings: '', body: '' },
@@ -99,7 +99,8 @@ test('prominent clickbait signals are weighted more than body-only signals', asy
     { title: '', description: '', headings: '', body: "you won't believe" },
     { ...none, clickbait: true }
   );
-  assert.deepEqual(bodyOnly, []);
+  assert.equal(bodyOnly[0]?.category, 'clickbait');
+  assert.ok(titleMatch[0].score > bodyOnly[0].score);
 });
 
 test('content runtime is local-only and does not inspect form values', async () => {
