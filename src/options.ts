@@ -443,7 +443,7 @@ async function optionsApplyCosmetic(settings: OptionsSettings): Promise<void> {
       id: OPTIONS_COSMETIC_SPECIFIC_SCRIPT_ID,
       matches: OPTIONS_COSMETIC_ORIGINS,
       excludeMatches: optionsDomainExcludeMatches(settings.allowlist),
-      js: ["cosmetic-specific-rules.js", "cosmetic-specific-filter.js"],
+      js: ["content-category-domains.js", "cosmetic-specific-rules.js", "cosmetic-specific-filter.js", "ad-element-filter.js"],
       runAt: "document_start",
       allFrames: true,
       persistAcrossSessions: true
