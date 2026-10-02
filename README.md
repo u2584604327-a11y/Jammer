@@ -2,11 +2,13 @@
 
 # Jammer
 
-Jammer is a local-first Manifest V3 browser extension for network ad blocking, page-ad cleanup, and opt-in local content-block masking with explicit, reversible user controls.
+Jammer is a local-first Manifest V3 browser extension for ad blocking, tracker blocking, dangerous-domain navigation blocking, page-ad cleanup, and opt-in local content-block masking.
 
 ## Current capabilities
 
 - **Network ad blocking:** pinned EasyList source compiled at build time into deterministic `declarativeNetRequest` rules.
+- **Privacy / tracker blocking:** pinned EasyPrivacy tracking-server source compiled at build time; blocks known tracker scripts, pixels, XHR, pings, and embedded requests without runtime list download.
+- **Dangerous-site list:** user-managed local domain list blocks top-level and embedded navigation to listed domains, including redirects that land on a listed domain.
 - **Page ad cleanup:** optional CSS-only cosmetic filtering using packaged selectors.
 - **Content filtering:** opt-in local text matching for gambling, explicit sexual material, graphic violence, scam-like promotion, and clickbait/nuisance content; only matched page blocks are hidden, with local reveal/exit controls and matched signals.
 - **Bilingual UI:** Auto / 中文 / English.
@@ -14,6 +16,7 @@ Jammer is a local-first Manifest V3 browser extension for network ad blocking, p
 - **Local exceptions:** separate ad-block allowlist and content-filter exception list, both stored only in extension storage.
 - **Reversible permissions:** page cleanup and content filtering share optional site access; the permission is removed when neither feature needs it.
 - **No telemetry:** no analytics, account system, cloud sync, or runtime filter-list download.
+- **DNS boundary:** Jammer can block URL/domain requests but cannot detect a poisoned DNS answer that maps an otherwise allowed hostname to the wrong IP; browser Secure DNS remains a separate protection.
 
 ## Privacy policy
 
@@ -85,6 +88,7 @@ The audited files are written under `release/`. See [P5.4 release packaging](doc
 Jammer pins reviewed EasyList source files to a specific upstream commit and verifies source identity before product compilation. Generated product builds include:
 
 - `PROVENANCE.json`
+- `PRIVACY_PROVENANCE.json`
 - `COSMETIC_PROVENANCE.json`
 - `THIRD_PARTY_NOTICES.txt`
 
@@ -114,8 +118,9 @@ The extension does not update filter lists at runtime.
 - [P5.7 privacy policy](docs/P57_PRIVACY_POLICY.md)
 - [P6.0 local content filtering](docs/P60_CONTENT_FILTERING.md)
 - [P6.1 element-level content masking](docs/P61_ELEMENT_CONTENT_MASKING.md)
+- [P6.2 network privacy and navigation protection](docs/P62_NETWORK_PRIVACY.md)
 - [Security](SECURITY.md)
 
 ## Status
 
-The current Jammer 0.7.1 product build is intended for unpacked-extension testing and validation. Store publication remains a separate release step.
+The current Jammer 0.8.0 product build is intended for unpacked-extension testing and validation. Store publication remains a separate release step.
