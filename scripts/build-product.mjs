@@ -14,6 +14,7 @@ const phishingRulesSource = resolve('generated/phishing-active.rules.json');
 const phishingReportSource = resolve('generated/phishing-active.report.json');
 const cosmeticGeneralSource = resolve('generated/easylist-general-hide.css');
 const cosmeticSiteSource = resolve('generated/easylist-canyoublockit.css');
+const cosmeticSpecificSource = resolve('generated/easylist-specific-hide.rules.js');
 const cosmeticReportSource = resolve('generated/easylist-cosmetic.report.json');
 
 for (const path of [
@@ -27,6 +28,7 @@ for (const path of [
   phishingReportSource,
   cosmeticGeneralSource,
   cosmeticSiteSource,
+  cosmeticSpecificSource,
   cosmeticReportSource
 ]) {
   const info = await stat(path).catch(() => null);
@@ -61,6 +63,10 @@ if (phishingRules.length !== 64 || phishingReport.compiler.acceptedDomains !== 2
   throw new Error('Unexpected phishing navigation baseline');
 }
 
+if (cosmeticReport.output.specificRules !== 8606 || cosmeticReport.output.specificDomains !== 6552) {
+  throw new Error('Unexpected EasyList site-specific cosmetic baseline');
+}
+
 await rm('.build-js', { recursive: true, force: true });
 await rm('dist-product', { recursive: true, force: true });
 
@@ -79,6 +85,7 @@ await cp('src/cosmetic.css', 'dist-product/cosmetic.css');
 await cp(cosmeticGeneralSource, 'dist-product/cosmetic-easylist.css');
 await cp(cosmeticSiteSource, 'dist-product/cosmetic-canyoublockit.css');
 await cp('src/cosmetic-canyoublockit-local.css', 'dist-product/cosmetic-canyoublockit-local.css');
+await cp(cosmeticSpecificSource, 'dist-product/cosmetic-specific-rules.js');
 await cp('options.html', 'dist-product/options.html');
 
 let popupHtml = await readFile('popup.html', 'utf8');
@@ -187,7 +194,7 @@ Jammer does not download these filter lists at extension runtime.
 `;
 await writeFile('dist-product/THIRD_PARTY_NOTICES.txt', notice);
 
-for (const file of ['dist-product/popup.js', 'dist-product/options.js', 'dist-product/content-classifier.js', 'dist-product/content-filter.js']) {
+for (const file of ['dist-product/popup.js', 'dist-product/options.js', 'dist-product/content-classifier.js', 'dist-product/content-filter.js', 'dist-product/cosmetic-specific-filter.js', 'dist-product/cosmetic-specific-rules.js']) {
   const info = await stat(file);
   if (!info.isFile() || info.size === 0) throw new Error(`Missing runtime entry: ${file}`);
   const source = await readFile(file, 'utf8');
@@ -224,5 +231,5 @@ if (!phishingResource || phishingResource.path !== 'rules/phishing-active.json')
 }
 
 console.log(
-  `product-build: PASS version=0.9.0 adsDomains=${report.compiler.acceptedDomains} extendedRules=${extendedRules.length} privacyDomains=${privacyReport.compiler.acceptedDomains} phishingDomains=${phishingReport.compiler.acceptedDomains} adsRules=${rules.length} privacyRules=${privacyRules.length} phishingRules=${phishingRules.length} cosmetic=${cosmeticReport.output.genericSelectors}`
+  `product-build: PASS version=0.9.0 adsDomains=${report.compiler.acceptedDomains} extendedRules=${extendedRules.length} privacyDomains=${privacyReport.compiler.acceptedDomains} phishingDomains=${phishingReport.compiler.acceptedDomains} adsRules=${rules.length} privacyRules=${privacyRules.length} phishingRules=${phishingRules.length} cosmeticGeneric=${cosmeticReport.output.genericSelectors} cosmeticSpecific=${cosmeticReport.output.specificRules}`
 );
