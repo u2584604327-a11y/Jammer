@@ -213,3 +213,156 @@ export function validateMetadata(metadata) {
     throw new Error('runtime-remote-update-must-be-false');
   }
 }
+
+
+const NETWORK_RESOURCE_TYPE_MAP = {
+  script: 'script',
+  image: 'image',
+  stylesheet: 'stylesheet',
+  xmlhttprequest: 'xmlhttprequest',
+  subdocument: 'sub_frame',
+  document: 'main_frame',
+  font: 'font',
+  media: 'media',
+  object: 'object',
+  ping: 'ping',
+  websocket: 'websocket',
+  other: 'other'
+};
+
+function parseEasyListNetworkPatternLine(line) {
+  if (!line || line.startsWith('!') || /^\[.*\]$/.test(line)) return { kind: 'skip' };
+  if (line.startsWith('@@')) return { kind: 'reject', reason: 'exception-rule-not-supported' };
+  if (
+    line.includes('##') ||
+    line.includes('#@#') ||
+    line.includes('#?#') ||
+    line.includes('#$#')
+  ) {
+    return { kind: 'reject', reason: 'cosmetic-rule-not-supported' };
+  }
+  if (line.startsWith('/') && /^\/.*\/[a-z]*$/i.test(line)) {
+    return { kind: 'reject', reason: 'regex-rule-not-supported' };
+  }
+
+  const modifierIndex = line.indexOf('$');
+  const urlFilter = (modifierIndex >= 0 ? line.slice(0, modifierIndex) : line).trim();
+  const modifiers = (modifierIndex >= 0 ? line.slice(modifierIndex + 1) : '')
+    .split(',')
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (!urlFilter || urlFilter.length > 500 || /\s/.test(urlFilter)) {
+    return { kind: 'reject', reason: 'invalid-url-filter' };
+  }
+
+  const resourceTypes = [];
+  const excludedResourceTypes = [];
+  let domainType;
+  let priority = 1;
+  let isUrlFilterCaseSensitive = false;
+
+  for (const modifier of modifiers) {
+    if (modifier === 'third-party') {
+      domainType = 'thirdParty';
+      continue;
+    }
+    if (modifier === '~third-party') {
+      domainType = 'firstParty';
+      continue;
+    }
+    if (modifier === 'important') {
+      priority = 2;
+      continue;
+    }
+    if (modifier === 'match-case') {
+      isUrlFilterCaseSensitive = true;
+      continue;
+    }
+
+    const excluded = modifier.startsWith('~');
+    const key = excluded ? modifier.slice(1) : modifier;
+    const mapped = NETWORK_RESOURCE_TYPE_MAP[key];
+    if (mapped) {
+      (excluded ? excludedResourceTypes : resourceTypes).push(mapped);
+      continue;
+    }
+
+    return { kind: 'reject', reason: 'unsupported-modifier' };
+  }
+
+  const condition = { urlFilter };
+  if (isUrlFilterCaseSensitive) condition.isUrlFilterCaseSensitive = true;
+
+  const uniqueIncluded = [...new Set(resourceTypes)].sort();
+  const uniqueExcluded = [...new Set(excludedResourceTypes)].sort();
+
+  if (uniqueIncluded.length > 0) {
+    condition.resourceTypes = uniqueIncluded;
+  } else if (!uniqueExcluded.includes('main_frame')) {
+    uniqueExcluded.push('main_frame');
+  }
+
+  if (uniqueExcluded.length > 0) {
+    condition.excludedResourceTypes = uniqueExcluded.sort();
+  }
+  if (domainType) condition.domainType = domainType;
+
+  return {
+    kind: 'accept',
+    rule: {
+      priority,
+      action: { type: 'block' },
+      condition
+    }
+  };
+}
+
+export function compileEasyListNetworkPatternRules(sources) {
+  const accepted = new Map();
+  const rejected = [];
+  let skipped = 0;
+
+  for (const source of sources) {
+    const lines = String(source.text).replace(/\r\n?/g, '\n').split('\n');
+    for (let index = 0; index < lines.length; index += 1) {
+      const line = lines[index].trim();
+      const parsed = parseEasyListNetworkPatternLine(line);
+
+      if (parsed.kind === 'skip') {
+        skipped += 1;
+        continue;
+      }
+      if (parsed.kind === 'reject') {
+        rejected.push({
+          source: source.path,
+          lineNumber: index + 1,
+          reason: parsed.reason,
+          line
+        });
+        continue;
+      }
+
+      const key = JSON.stringify(parsed.rule);
+      if (!accepted.has(key)) accepted.set(key, parsed.rule);
+    }
+  }
+
+  const ordered = [...accepted.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([, rule], index) => ({
+      id: index + 1,
+      ...rule
+    }));
+
+  return {
+    rules: ordered,
+    report: {
+      mode: 'easylist-urlFilter-patterns',
+      emittedRules: ordered.length,
+      rejected: rejected.length,
+      skipped,
+      rejectedLines: rejected
+    }
+  };
+}
