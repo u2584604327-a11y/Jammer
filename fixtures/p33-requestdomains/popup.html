@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Jammer P3.3 diagnostics</title>
+  <style>
+    body { font-family: system-ui, sans-serif; min-width: 320px; margin: 0; padding: 14px; }
+    h1 { font-size: 18px; margin: 0 0 10px; }
+    p { margin: 6px 0 12px; }
+    button { width: 100%; margin: 5px 0; padding: 8px 10px; }
+    .muted { opacity: .72; }
+    #status { font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>Jammer P3.3 diagnostics</h1>
+  <p class="muted">Choose one DNR ruleset, then refresh https://example.com/</p>
+  <p>Enabled mode: <span id="status">Loading…</span></p>
+  <button data-mode="off">0. Off</button>
+  <button data-mode="urlfilter_baseline">1. urlFilter baseline</button>
+  <button data-mode="requestdomains_single">2. requestDomains ×1</button>
+  <button data-mode="requestdomains_batch">3. requestDomains ×204</button>
+  <p id="message" class="muted"></p>
+  <script src="popup.js"></script>
+</body>
+</html>
