@@ -103,3 +103,34 @@ The EasyList smoke profile must first pass real-world browsing tests for:
 - no unexpected permissions
 
 Only after that should P3.5 integrate the reviewed ruleset into the normal Jammer product build and wire the existing Protection / Ads controls to it.
+
+
+## Deterministic sentinel test
+
+Some user environments already block ad-network hostnames at DNS/VPN level. In that case a direct navigation to an EasyList ad domain can fail with `ERR_NAME_NOT_RESOLVED`, which does not prove Jammer blocked it.
+
+The smoke package therefore includes one repository-owned test-only sentinel ruleset:
+
+```text
+smoke_sentinel
+requestDomains = ["example.com"]
+resourceTypes = ["main_frame"]
+```
+
+This rule is enabled only in `dist-easylist-smoke/`.
+
+It is **not** present in Jammer's normal product manifest or product rules.
+
+Runtime acceptance:
+
+1. Disable the EasyList smoke extension.
+2. Confirm `https://example.com/` loads.
+3. Enable the EasyList smoke extension.
+4. Reload `https://example.com/`.
+5. Expected: browser extension block / `ERR_BLOCKED_BY_CLIENT`.
+6. Disable the smoke extension again.
+7. Expected: `example.com` loads normally again.
+
+This proves the smoke extension's DNR rulesets are actively loaded even when local DNS already suppresses real ad-network hostnames.
+
+The sentinel does not by itself prove real-world ad-removal quality. That remains a separate compatibility/effectiveness smoke test.
