@@ -169,10 +169,11 @@ async function optionsUnregisterCosmeticIfPresent(): Promise<void> {
 }
 
 function optionsAllowlistExcludeMatches(domains: string[]): string[] {
-  return domains.flatMap((domain) => [
-    `*://${domain}/*`,
-    `*://*.${domain}/*`
-  ]);
+  return domains.flatMap((domain) => {
+    const exact = `*://${domain}/*`;
+    if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(domain)) return [exact];
+    return [exact, `*://*.${domain}/*`];
+  });
 }
 
 async function optionsApplyCosmetic(settings: OptionsSettings): Promise<void> {
