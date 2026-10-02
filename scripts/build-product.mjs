@@ -219,7 +219,7 @@ Jammer does not download these filter lists at extension runtime.
 `;
 await writeFile('dist-product/THIRD_PARTY_NOTICES.txt', notice);
 
-for (const file of ['dist-product/popup.js', 'dist-product/options.js', 'dist-product/content-classifier.js', 'dist-product/content-filter.js', 'dist-product/cosmetic-specific-filter.js', 'dist-product/cosmetic-specific-rules.js', 'dist-product/content-category-domains.js']) {
+for (const file of ['dist-product/popup.js', 'dist-product/options.js', 'dist-product/content-classifier.js', 'dist-product/content-filter.js', 'dist-product/cosmetic-specific-filter.js', 'dist-product/ad-element-filter.js', 'dist-product/cosmetic-specific-rules.js', 'dist-product/content-category-domains.js']) {
   const info = await stat(file);
   if (!info.isFile() || info.size === 0) throw new Error(`Missing runtime entry: ${file}`);
   const source = await readFile(file, 'utf8');
