@@ -62,6 +62,12 @@ const privacyResource = manifest.declarative_net_request?.rule_resources?.find(
 if (!privacyResource || privacyResource.path !== 'rules/easyprivacy-tracking.json') {
   fail('privacy_static ruleset contract changed');
 }
+const privacyResource = manifest.declarative_net_request?.rule_resources?.find(
+  (item) => item.id === 'privacy_static'
+);
+if (!privacyResource || privacyResource.path !== 'rules/easyprivacy-tracking.json') {
+  fail('privacy_static ruleset contract changed');
+}
 
 const requiredFiles = [
   'manifest.json',
@@ -78,6 +84,7 @@ const requiredFiles = [
   'COSMETIC_PROVENANCE.json',
   'THIRD_PARTY_NOTICES.txt',
   'rules/easylist-adservers.json',
+  'rules/easyprivacy-tracking.json',
   'rules/easyprivacy-tracking.json',
   'icons/icon-16.png',
   'icons/icon-32.png',
