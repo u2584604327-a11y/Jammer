@@ -43,7 +43,7 @@ The policy documents:
 
 ## Version note
 
-Starting with P6.0, both development and product manifests use version `0.7.0` so browser extension pages no longer show a confusing older development version.
+Starting with P6.0, both development and product manifests use version `0.7.1` so browser extension pages no longer show a confusing older development version.
 
 The profiles are still distinguished by their build markers and rule resources. For normal use, load only `dist-product/`.
 
