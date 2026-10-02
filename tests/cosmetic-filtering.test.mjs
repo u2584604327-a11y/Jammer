@@ -25,7 +25,7 @@ test('cosmetic filtering is opt-in and CSS-only', async () => {
   assert.equal('host_permissions' in manifest, false);
   assert.equal('content_scripts' in manifest, false);
 
-  assert.match(options, /css: \["cosmetic\.css"\]/);
+  assert.match(options, /css: \["cosmetic\.css", "cosmetic-easylist\.css"\]/);
   assert.match(options, /permissions\.request/);
   assert.match(options, /permissions\.remove/);
   assert.match(options, /excludeMatches/);
@@ -47,6 +47,6 @@ test('popup can directly enable and disable cosmetic permission', async () => {
 
   assert.match(popup, /chrome\.permissions\.request/);
   assert.match(popup, /chrome\.permissions\.remove/);
-  assert.match(popup, /css: \["cosmetic\.css"\]/);
+  assert.match(popup, /css: \["cosmetic\.css", "cosmetic-easylist\.css"\]/);
   assert.match(popup, /cosmeticEnabled/);
 });
