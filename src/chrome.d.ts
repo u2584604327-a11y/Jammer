@@ -26,6 +26,16 @@ type JammerDnrRule = {
   };
 };
 
+type JammerContentScript = {
+  id: string;
+  matches: string[];
+  excludeMatches?: string[];
+  css?: string[];
+  runAt?: "document_start" | "document_end" | "document_idle";
+  allFrames?: boolean;
+  persistAcrossSessions?: boolean;
+};
+
 declare const chrome: {
   storage: {
     local: {
@@ -37,6 +47,28 @@ declare const chrome: {
       set(items: Record<string, unknown>): Promise<void>;
       set(items: Record<string, unknown>, callback: () => void): void;
     };
+  };
+  permissions: {
+    contains(
+      permissions: { permissions?: string[]; origins?: string[] },
+      callback: (result: boolean) => void
+    ): void;
+    request(
+      permissions: { permissions?: string[]; origins?: string[] },
+      callback: (granted: boolean) => void
+    ): void;
+    remove(
+      permissions: { permissions?: string[]; origins?: string[] },
+      callback: (removed: boolean) => void
+    ): void;
+  };
+  scripting: {
+    getRegisteredContentScripts(
+      filter: { ids?: string[] },
+      callback: (scripts: JammerContentScript[]) => void
+    ): void;
+    registerContentScripts(scripts: JammerContentScript[], callback: () => void): void;
+    unregisterContentScripts(filter: { ids?: string[] }, callback: () => void): void;
   };
   declarativeNetRequest: {
     getEnabledRulesets(): Promise<string[]>;
