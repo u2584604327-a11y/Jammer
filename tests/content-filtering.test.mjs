@@ -209,3 +209,20 @@ test('content-category domain sources are pinned and stay local', async () => {
   assert.match(script, /expectedGitBlobSha1/);
   assert.match(script, /content-category-domains\.js/);
 });
+
+
+test('classifier catches punctuation-obfuscated category signals without lowering global thresholds', async () => {
+  const api = await classifier();
+
+  const gambling = api.classify(
+    { title: '博 彩 平 台', description: '', headings: '', body: '' },
+    { ...none, gambling: true }
+  );
+  assert.equal(gambling[0]?.category, 'gambling');
+
+  const explicit = api.classify(
+    { title: '成.人.视.频', description: '', headings: '', body: '' },
+    { ...none, explicit: true }
+  );
+  assert.equal(explicit[0]?.category, 'explicit');
+});
