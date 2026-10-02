@@ -92,6 +92,44 @@ function jammerAdImageDimensions(image: HTMLImageElement): {
   };
 }
 
+function jammerAdDenseBannerStrip(anchor: HTMLAnchorElement): boolean {
+  const parent = anchor.parentElement;
+  if (!parent) return false;
+
+  const linkedImages = Array.from(parent.querySelectorAll<HTMLAnchorElement>("a[href]"))
+    .map((item) => ({ anchor: item, image: item.querySelector<HTMLImageElement>("img") }))
+    .filter((item): item is { anchor: HTMLAnchorElement; image: HTMLImageElement } => Boolean(item.image))
+    .slice(0, 20);
+
+  if (linkedImages.length < 3) return false;
+
+  let compactBannerCount = 0;
+  let externalDestinationCount = 0;
+
+  for (const item of linkedImages) {
+    const dimensions = jammerAdImageDimensions(item.image);
+    if (
+      dimensions.width >= 70 &&
+      dimensions.height >= 18 &&
+      dimensions.height <= 180 &&
+      dimensions.aspect >= 1.8
+    ) {
+      compactBannerCount += 1;
+    }
+
+    const href = jammerAdUrl(item.anchor.getAttribute("href"));
+    if (
+      href &&
+      href.hostname !== location.hostname &&
+      !href.hostname.endsWith("." + location.hostname)
+    ) {
+      externalDestinationCount += 1;
+    }
+  }
+
+  return compactBannerCount >= 3 && externalDestinationCount >= 2;
+}
+
 function jammerAdCandidateScore(anchor: HTMLAnchorElement): number {
   if (!anchor.isConnected) return 0;
   if (anchor.closest("nav,header,footer,[role='navigation'],[role='banner'],[role='contentinfo']")) {
@@ -147,6 +185,8 @@ function jammerAdCandidateScore(anchor: HTMLAnchorElement): number {
   ) {
     score += wideBanner ? 1 : 0;
   }
+
+  if (jammerAdDenseBannerStrip(anchor)) score += 2;
 
   return score;
 }
