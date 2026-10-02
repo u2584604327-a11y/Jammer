@@ -20,8 +20,8 @@
       "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easyprivacy/easyprivacy_specific.txt",
       "expectedGitBlobSha1": "f6924bcb57925e3fc3e5b2ff5ebd2520c83c3db5",
       "ruleIdBase": 14100000,
-      "expectedAccepted": 2491,
-      "expectedRejected": 4
+      "expectedAccepted": 2485,
+      "expectedRejected": 10
     },
     {
       "id": "thirdparty",
@@ -29,8 +29,8 @@
       "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easyprivacy/easyprivacy_thirdparty.txt",
       "expectedGitBlobSha1": "62fed1b0f55f28f3754174285345bf4134f8a0b6",
       "ruleIdBase": 14200000,
-      "expectedAccepted": 3424,
-      "expectedRejected": 4
+      "expectedAccepted": 3426,
+      "expectedRejected": 2
     },
     {
       "id": "email_trackers",
@@ -78,5 +78,5 @@
       "expectedRejected": 0
     }
   ],
-  "expectedTotalRules": 16116
+  "expectedTotalRules": 16112
 }
