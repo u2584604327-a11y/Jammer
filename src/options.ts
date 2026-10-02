@@ -461,7 +461,7 @@ async function optionsApplyContentFilter(settings: OptionsSettings): Promise<voi
       id: OPTIONS_CONTENT_SCRIPT_ID,
       matches: OPTIONS_COSMETIC_ORIGINS,
       excludeMatches: optionsDomainExcludeMatches(settings.contentAllowlist),
-      js: ["content-classifier.js", "content-filter.js"],
+      js: ["content-category-domains.js", "content-classifier.js", "content-filter.js"],
       runAt: "document_idle",
       allFrames: false,
       persistAcrossSessions: true
