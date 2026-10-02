@@ -10,6 +10,9 @@ test('product build keeps Jammer ruleset contract and adds optional cosmetic cap
   assert.match(source, /id: 'privacy_static'/);
   assert.match(source, /rules\/easyprivacy-tracking\.json/);
   assert.match(source, /PRIVACY_PROVENANCE\.json/);
+  assert.match(source, /id: 'privacy_static'/);
+  assert.match(source, /rules\/easyprivacy-tracking\.json/);
+  assert.match(source, /PRIVACY_PROVENANCE\.json/);
   assert.match(source, /rules\/easylist-adservers\.json/);
   assert.match(source, /PROVENANCE\.json/);
   assert.match(source, /THIRD_PARTY_NOTICES\.txt/);
