@@ -3,8 +3,9 @@ import { resolve } from 'node:path';
 
 const rulesSource = resolve('generated/easylist-adservers.rules.json');
 const reportSource = resolve('generated/easylist-adservers.report.json');
+const sentinelSource = resolve('fixtures/easylist-smoke/sentinel.json');
 
-for (const path of [rulesSource, reportSource]) {
+for (const path of [rulesSource, reportSource, sentinelSource]) {
   const info = await stat(path).catch(() => null);
   if (!info?.isFile()) {
     throw new Error('Missing generated EasyList rules. Run npm run rules:prepare:easylist first.');
@@ -33,11 +34,12 @@ await mkdir(resolve(out, 'rules'), { recursive: true });
 
 await cp(rulesSource, resolve(out, 'rules/easylist-adservers.json'));
 await cp(reportSource, resolve(out, 'PROVENANCE.json'));
+await cp(sentinelSource, resolve(out, 'rules/smoke-sentinel.json'));
 
 const manifest = {
   manifest_version: 3,
   name: 'Jammer EasyList smoke build',
-  version: '0.0.1',
+  version: '0.0.2',
   description: 'Pinned EasyList build-time smoke profile for Jammer validation.',
   permissions: ['declarativeNetRequest'],
   action: {
@@ -50,6 +52,11 @@ const manifest = {
         id: 'easylist_adservers',
         enabled: true,
         path: 'rules/easylist-adservers.json'
+      },
+      {
+        id: 'smoke_sentinel',
+        enabled: true,
+        path: 'rules/smoke-sentinel.json'
       }
     ]
   },
@@ -67,7 +74,7 @@ const popup = `<!doctype html>
 <p>Rules: ${rules.length} requestDomains buckets</p>
 <p>Accepted domains: ${report.compiler.acceptedDomains}</p>
 <p>Pinned commit:<br><code>${report.source.commit}</code></p>
-<p>Runtime network updates: none</p>
+<p>Runtime network updates: none</p>\n<p><strong>Sentinel test:</strong> with this smoke extension enabled, <code>https://example.com/</code> must be blocked. Disable the whole extension and it must load normally.</p>
 </body>
 </html>`;
 
@@ -88,7 +95,7 @@ The EasyList authors
 License information:
 https://easylist.to/pages/licence.html
 
-This smoke profile is for Jammer compatibility validation and is not the normal product build.
+This smoke profile is for Jammer compatibility validation and is not the normal product build.\n\nA repository-owned sentinel rule blocks example.com only in this smoke profile so local environments with DNS-level ad blocking can verify the ruleset deterministically.
 `;
 
 await writeFile(resolve(out, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
