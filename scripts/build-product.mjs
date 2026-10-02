@@ -82,14 +82,14 @@ await cp('src/cosmetic-canyoublockit-local.css', 'dist-product/cosmetic-canyoubl
 await cp('options.html', 'dist-product/options.html');
 
 let popupHtml = await readFile('popup.html', 'utf8');
-popupHtml = popupHtml.replace('Build: p64-secure-navigation-dev', 'Build: p64-secure-navigation-product');
+popupHtml = popupHtml.replace('Build: p65-high-coverage-dev', 'Build: p65-high-coverage-product');
 await writeFile('dist-product/popup.html', popupHtml);
 
 const manifest = {
   manifest_version: 3,
   name: 'Jammer',
-  version: '0.9.0',
-  description: 'Local-first ad, tracker, phishing-navigation, HTTPS-upgrade, and selective content filtering.',
+  version: '0.9.1',
+  description: 'Local-first high-coverage ad, tracker, phishing-navigation, HTTPS-upgrade, and selective content filtering.',
   icons: {
     '16': 'icons/icon-16.png',
     '32': 'icons/icon-32.png',
@@ -150,7 +150,7 @@ await cp(privacyReportSource, 'dist-product/PRIVACY_PROVENANCE.json');
 await cp(phishingReportSource, 'dist-product/PHISHING_PROVENANCE.json');
 await cp(cosmeticReportSource, 'dist-product/COSMETIC_PROVENANCE.json');
 
-const notice = `Jammer 0.9.0
+const notice = `Jammer 0.9.1
 
 Network ad-blocking rules are generated at build time from:
 EasyList repository: ${report.source.repository}
@@ -187,7 +187,7 @@ Jammer does not download these filter lists at extension runtime.
 `;
 await writeFile('dist-product/THIRD_PARTY_NOTICES.txt', notice);
 
-for (const file of ['dist-product/popup.js', 'dist-product/options.js', 'dist-product/content-classifier.js', 'dist-product/content-filter.js']) {
+for (const file of ['dist-product/popup.js', 'dist-product/options.js', 'dist-product/content-classifier.js', 'dist-product/content-filter.js', 'dist-product/ad-cleanup.js']) {
   const info = await stat(file);
   if (!info.isFile() || info.size === 0) throw new Error(`Missing runtime entry: ${file}`);
   const source = await readFile(file, 'utf8');
@@ -197,7 +197,7 @@ for (const file of ['dist-product/popup.js', 'dist-product/options.js', 'dist-pr
 }
 
 const builtManifest = JSON.parse(await readFile('dist-product/manifest.json', 'utf8'));
-if (builtManifest.version !== '0.9.0') throw new Error('Unexpected product version');
+if (builtManifest.version !== '0.9.1') throw new Error('Unexpected product version');
 if (builtManifest.declarative_net_request.rule_resources[0].id !== 'ads_static') {
   throw new Error('Product ruleset ID must remain ads_static for existing controls');
 }
@@ -224,5 +224,5 @@ if (!phishingResource || phishingResource.path !== 'rules/phishing-active.json')
 }
 
 console.log(
-  `product-build: PASS version=0.9.0 adsDomains=${report.compiler.acceptedDomains} extendedRules=${extendedRules.length} privacyDomains=${privacyReport.compiler.acceptedDomains} phishingDomains=${phishingReport.compiler.acceptedDomains} adsRules=${rules.length} privacyRules=${privacyRules.length} phishingRules=${phishingRules.length} cosmetic=${cosmeticReport.output.genericSelectors}`
+  `product-build: PASS version=0.9.1 adsDomains=${report.compiler.acceptedDomains} extendedRules=${extendedRules.length} privacyDomains=${privacyReport.compiler.acceptedDomains} phishingDomains=${phishingReport.compiler.acceptedDomains} adsRules=${rules.length} privacyRules=${privacyRules.length} phishingRules=${phishingRules.length} cosmetic=${cosmeticReport.output.genericSelectors}`
 );
