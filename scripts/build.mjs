@@ -2,16 +2,21 @@ import { cp, mkdir, readFile, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { runTsc } from './run-tsc.mjs';
 
+await import('./generate-brand-assets.mjs');
+
 await rm('.build-js', { recursive: true, force: true });
 await rm('dist', { recursive: true, force: true });
 
 runTsc(['-p', 'tsconfig.build.json']);
 
-await mkdir('dist', { recursive: true });
+await mkdir('dist/icons', { recursive: true });
 for (const file of ['manifest.json', 'popup.html', 'options.html']) {
   await cp(file, join('dist', file));
 }
 await cp('src/styles.css', 'dist/styles.css');
+for (const size of [16, 32, 48, 128]) {
+  await cp(`generated/brand/icon-${size}.png`, `dist/icons/icon-${size}.png`);
+}
 await cp('src/cosmetic.css', 'dist/cosmetic.css');
 await cp('src/cosmetic-easylist.css', 'dist/cosmetic-easylist.css');
 await cp('src/cosmetic-canyoublockit.css', 'dist/cosmetic-canyoublockit.css');
@@ -38,11 +43,11 @@ for (const file of ['dist/popup.html', 'dist/options.html']) {
 }
 
 const manifest = JSON.parse(await readFile('dist/manifest.json', 'utf8'));
-if (manifest.version !== '0.2.0') {
+if (manifest.version !== '0.2.1') {
   throw new Error('Unexpected dist manifest version');
 }
 const popupHtml = await readFile('dist/popup.html', 'utf8');
-if (!popupHtml.includes('Build: p51-ui-polish-dev')) {
+if (!popupHtml.includes('Build: p52-brand-icons-dev')) {
   throw new Error('Popup build marker missing from dist');
 }
 
