@@ -168,8 +168,12 @@ test('content runtime evaluates smaller blocks first and rescans dynamic feeds',
 
   assert.match(source, /jammerContentFilterElementDepth/);
   assert.match(source, /depthDelta/);
-  assert.match(source, /slice\(0, 300\)/);
+  assert.match(source, /JAMMER_CONTENT_FILTER_BATCH_SIZE/);
+  assert.match(source, /jammerContentPendingRoots/);
+  assert.match(source, /jammerContentFilterDrainScans/);
+  assert.doesNotMatch(source, /slice\(0, 300\)/);
   assert.match(source, /MutationObserver/);
+  assert.match(source, /characterData:\s*true/);
 });
 
 test('classifier recall uses repeated-signal scoring and expanded variants', async () => {
@@ -180,4 +184,35 @@ test('classifier recall uses repeated-signal scoring and expanded variants', asy
   assert.match(source, /成人视频/);
   assert.match(source, /冒充客服/);
   assert.match(source, /before it gets deleted/);
+  assert.match(source, /jammerDeobfuscateContent/);
+  assert.match(source, /jammerCompactContent/);
+  assert.match(source, /注册送彩金/);
+  assert.match(source, /adult webcam/);
+  assert.match(source, /导师带单/);
+});
+
+
+test('high-recall classifier catches obfuscated and repeated signals', async () => {
+  const api = await classifier();
+
+  const explicit = api.classify(
+    { title: '', description: '', headings: '', body: 'p.0.r.n video' },
+    { ...none, explicit: true }
+  );
+  assert.equal(explicit[0]?.category, 'explicit');
+
+  const gambling = api.classify(
+    { title: '', description: '', headings: '', body: '送彩金 彩金 盘口' },
+    { ...none, gambling: true }
+  );
+  assert.equal(gambling[0]?.category, 'gambling');
+});
+
+test('content runtime has no fixed page-wide candidate cap', async () => {
+  const source = await readFile('src/content-filter.ts', 'utf8');
+
+  assert.match(source, /for \(let index = 0; index < candidates\.length; index \+= 1\)/);
+  assert.match(source, /JAMMER_CONTENT_FILTER_BATCH_SIZE = 90/);
+  assert.match(source, /JAMMER_CONTENT_FILTER_PENDING_ROOT_LIMIT = 80/);
+  assert.doesNotMatch(source, /candidates\.slice\(0,\s*\d+\)/);
 });
