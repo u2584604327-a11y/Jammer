@@ -29,6 +29,7 @@ const OPTIONS_BLOCKED_RULE_ID_LIMIT = 2_999_999;
 const OPTIONS_HTTPS_UPGRADE_RULE_ID = 3_000_000;
 const OPTIONS_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
 const OPTIONS_COSMETIC_SITE_SCRIPT_ID = "jammer-cosmetic-canyoublockit";
+const OPTIONS_COSMETIC_SPECIFIC_SCRIPT_ID = "jammer-cosmetic-specific";
 const OPTIONS_CONTENT_SCRIPT_ID = "jammer-content-filter";
 const OPTIONS_COSMETIC_ORIGINS = ["http://*/*", "https://*/*"];
 
@@ -401,7 +402,7 @@ function optionsHasSelectedContentCategory(settings: OptionsSettings): boolean {
 
 async function optionsApplyCosmetic(settings: OptionsSettings): Promise<void> {
   const granted = await optionsPermissionContains();
-  const ids = [OPTIONS_COSMETIC_SCRIPT_ID, OPTIONS_COSMETIC_SITE_SCRIPT_ID];
+  const ids = [OPTIONS_COSMETIC_SCRIPT_ID, OPTIONS_COSMETIC_SITE_SCRIPT_ID, OPTIONS_COSMETIC_SPECIFIC_SCRIPT_ID];
   const shouldEnable = settings.enabled && settings.cosmeticEnabled && granted;
 
   if (!shouldEnable) {
@@ -425,6 +426,15 @@ async function optionsApplyCosmetic(settings: OptionsSettings): Promise<void> {
       matches: ["*://canyoublockit.com/*", "*://*.canyoublockit.com/*"],
       excludeMatches: optionsDomainExcludeMatches(settings.allowlist),
       css: ["cosmetic-canyoublockit.css", "cosmetic-canyoublockit-local.css"],
+      runAt: "document_start",
+      allFrames: true,
+      persistAcrossSessions: true
+    },
+    {
+      id: OPTIONS_COSMETIC_SPECIFIC_SCRIPT_ID,
+      matches: OPTIONS_COSMETIC_ORIGINS,
+      excludeMatches: optionsDomainExcludeMatches(settings.allowlist),
+      js: ["cosmetic-specific-rules.js", "cosmetic-specific-filter.js"],
       runAt: "document_start",
       allFrames: true,
       persistAcrossSessions: true
