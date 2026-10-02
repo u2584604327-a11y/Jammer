@@ -10,12 +10,16 @@ test('privacy policy documents actual local settings and permissions', async () 
   const documentedSettings = [
     ['enabled', /protection/i],
     ['adsEnabled', /network ad blocking/i],
+    ['privacyEnabled', /privacy \/ tracker blocking/i],
+    ['phishingEnabled', /phishing/i],
+    ['secureNavigationEnabled', /HTTPS/i],
     ['cosmeticEnabled', /page-ad cleanup/i],
     ['contentEnabled', /content filtering/i],
     ['contentCategories', /content categories/i],
     ['language', /language preference/i],
     ['allowlist', /allowlist/i],
-    ['contentAllowlist', /content-filter exceptions/i]
+    ['contentAllowlist', /content-filter exceptions/i],
+    ['blockedDomains', /dangerous-site block list/i]
   ];
 
   for (const [field, policyPattern] of documentedSettings) {
@@ -56,6 +60,9 @@ test('privacy policy reflects no-runtime-egress contract', async () => {
   assert.match(policy, /does not download EasyList/i);
   assert.match(policy, /processed transiently/i);
   assert.match(policy, /not upload scanned page text/i);
+  assert.match(policy, /phishing/i);
+  assert.match(policy, /HTTPS/i);
+  assert.match(policy, /does not directly inspect DNS/i);
 });
 
 test('standalone privacy page is self-contained and bilingual', async () => {
