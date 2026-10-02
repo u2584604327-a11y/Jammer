@@ -84,6 +84,7 @@ const requiredFiles = [
   'options.js',
   'content-classifier.js',
   'content-filter.js',
+  'ad-cleanup.js',
   'styles.css',
   'assets/jammer-cover.webp',
   'PROVENANCE.json',

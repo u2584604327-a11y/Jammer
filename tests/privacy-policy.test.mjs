@@ -51,13 +51,16 @@ test('privacy policy reflects no-runtime-egress contract', async () => {
   const popup = await readFile('src/popup.ts', 'utf8');
   const options = await readFile('src/options.ts', 'utf8');
   const contentFilter = await readFile('src/content-filter.ts', 'utf8');
+  const adCleanup = await readFile('src/ad-cleanup.ts', 'utf8');
 
   assert.match(manifest.content_security_policy.extension_pages, /connect-src 'none'/);
   assert.match(policy, /connect-src 'none'/);
   assert.equal(popup.includes('fetch('), false);
   assert.equal(options.includes('fetch('), false);
   assert.equal(contentFilter.includes('fetch('), false);
+  assert.equal(adCleanup.includes('fetch('), false);
   assert.match(policy, /does not download EasyList/i);
+  assert.match(policy, /heuristic ad-cleanup/i);
   assert.match(policy, /processed transiently/i);
   assert.match(policy, /not upload scanned page text/i);
   assert.match(policy, /phishing/i);

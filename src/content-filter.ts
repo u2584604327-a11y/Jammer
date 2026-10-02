@@ -22,7 +22,10 @@ const JAMMER_CONTENT_FILTER_CANDIDATE_SELECTOR = [
   "li",
   "section",
   "figure",
+  "blockquote",
+  "td",
   "p",
+  "div",
   "[class*='card' i]",
   "[class*='post' i]",
   "[class*='feed' i]",
@@ -67,10 +70,15 @@ const JAMMER_CONTENT_FILTER_DEFAULT_CATEGORIES: JammerContentFilterCategories = 
   clickbait: false
 };
 
+const JAMMER_CONTENT_FILTER_BATCH_SIZE = 90;
+const JAMMER_CONTENT_FILTER_PENDING_ROOT_LIMIT = 80;
+
 let jammerContentObserver: MutationObserver | undefined;
 let jammerContentScanQueued = false;
+let jammerContentScanRunning = false;
 let jammerContentMaskSequence = 0;
 let jammerContentDelayedTimers: number[] = [];
+const jammerContentPendingRoots = new Set<ParentNode>();
 
 function jammerContentFilterSanitizeSettings(value: unknown): JammerContentFilterSettings {
   const candidate = value && typeof value === "object"
@@ -178,20 +186,48 @@ function jammerContentFilterAttributeText(element: HTMLElement): string {
   const values: string[] = [];
 
   for (const node of Array.from(
-    element.querySelectorAll<HTMLElement>("[aria-label],[title],img[alt],a[title]")
-  ).slice(0, 40)) {
+    element.querySelectorAll<HTMLElement>("[aria-label],[title],img[alt],a[href],img[src],iframe[src]")
+  ).slice(0, 80)) {
     const aria = node.getAttribute("aria-label");
     const title = node.getAttribute("title");
     const alt = node instanceof HTMLImageElement ? node.alt : null;
     if (aria) values.push(aria);
     if (title) values.push(title);
     if (alt) values.push(alt);
+
+    const rawUrl =
+      node instanceof HTMLAnchorElement ? node.href :
+      node instanceof HTMLImageElement ? node.src :
+      node instanceof HTMLIFrameElement ? node.src :
+      "";
+    if (rawUrl) {
+      try {
+        const parsed = new URL(rawUrl, location.href);
+        values.push(parsed.hostname, parsed.pathname);
+      } catch {
+        // Ignore malformed page-provided URLs.
+      }
+    }
   }
 
   const selfAria = element.getAttribute("aria-label");
   const selfTitle = element.getAttribute("title");
   if (selfAria) values.push(selfAria);
   if (selfTitle) values.push(selfTitle);
+
+  const selfUrl =
+    element instanceof HTMLAnchorElement ? element.href :
+    element instanceof HTMLImageElement ? element.src :
+    element instanceof HTMLIFrameElement ? element.src :
+    "";
+  if (selfUrl) {
+    try {
+      const parsed = new URL(selfUrl, location.href);
+      values.push(parsed.hostname, parsed.pathname);
+    } catch {
+      // Ignore malformed page-provided URLs.
+    }
+  }
 
   return values.join(" ").replace(/\s+/g, " ").trim().slice(0, 4_000);
 }
@@ -208,7 +244,9 @@ function jammerContentFilterCandidateEligible(element: HTMLElement): boolean {
   if (element.closest(`[${JAMMER_CONTENT_FILTER_MASK_ATTR}="true"]`)) return false;
 
   const text = jammerContentFilterCandidateText(element);
-  if (text.length < 24 || text.length > 8_000) return false;
+  const attributes = jammerContentFilterAttributeText(element);
+  if (text.length < 10 && attributes.length < 8) return false;
+  if (text.length > 12_000) return false;
 
   const style = getComputedStyle(element);
   if (style.display === "none" || style.visibility === "hidden") return false;
@@ -220,7 +258,7 @@ function jammerContentFilterPromoteTarget(element: HTMLElement): HTMLElement {
     const container = element.closest<HTMLElement>(JAMMER_CONTENT_FILTER_CONTAINER_SELECTOR);
     if (container) {
       const text = jammerContentFilterCandidateText(container);
-      if (text.length >= 24 && text.length <= 8_000) return container;
+      if (text.length >= 10 && text.length <= 12_000) return container;
     }
   }
   return element;
@@ -240,7 +278,7 @@ function jammerContentFilterSampleForElement(element: HTMLElement): JammerConten
     title: "",
     description: jammerContentFilterAttributeText(element),
     headings: [selfHeading, headings].filter(Boolean).join(" "),
-    body: jammerContentFilterCandidateText(element).slice(0, 8_000)
+    body: jammerContentFilterCandidateText(element).slice(0, 12_000)
   };
 }
 
@@ -460,31 +498,63 @@ async function jammerContentFilterScan(root: ParentNode = document): Promise<voi
   }
 
   const classifier = jammerContentFilterClassifier();
-  const candidates = jammerContentFilterCollectCandidates(root).slice(0, 300);
+  const candidates = jammerContentFilterCollectCandidates(root);
 
-  for (const candidate of candidates) {
-    if (!jammerContentFilterCandidateEligible(candidate)) continue;
+  for (let index = 0; index < candidates.length; index += 1) {
+    const candidate = candidates[index];
+    if (jammerContentFilterCandidateEligible(candidate)) {
+      const matches = classifier.classify(
+        jammerContentFilterSampleForElement(candidate),
+        settings.contentCategories
+      );
 
-    const matches = classifier.classify(
-      jammerContentFilterSampleForElement(candidate),
-      settings.contentCategories
-    );
-    if (matches.length === 0) continue;
+      if (matches.length > 0) {
+        const target = jammerContentFilterPromoteTarget(candidate);
+        if (jammerContentFilterCandidateEligible(target)) {
+          jammerContentFilterMaskElement(target, settings, matches);
+        }
+      }
+    }
 
-    const target = jammerContentFilterPromoteTarget(candidate);
-    if (!jammerContentFilterCandidateEligible(target)) continue;
-    jammerContentFilterMaskElement(target, settings, matches);
+    if ((index + 1) % JAMMER_CONTENT_FILTER_BATCH_SIZE === 0) {
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+    }
+  }
+}
+
+async function jammerContentFilterDrainScans(): Promise<void> {
+  if (jammerContentScanRunning) return;
+  jammerContentScanRunning = true;
+
+  try {
+    while (jammerContentPendingRoots.size > 0) {
+      const roots = Array.from(jammerContentPendingRoots);
+      jammerContentPendingRoots.clear();
+
+      for (const root of roots) {
+        await jammerContentFilterScan(root);
+      }
+    }
+  } finally {
+    jammerContentScanRunning = false;
   }
 }
 
 function jammerContentFilterQueueScan(root: ParentNode = document): void {
+  if (jammerContentPendingRoots.size >= JAMMER_CONTENT_FILTER_PENDING_ROOT_LIMIT) {
+    jammerContentPendingRoots.clear();
+    jammerContentPendingRoots.add(document);
+  } else {
+    jammerContentPendingRoots.add(root);
+  }
+
   if (jammerContentScanQueued) return;
   jammerContentScanQueued = true;
 
   window.setTimeout(() => {
     jammerContentScanQueued = false;
-    void jammerContentFilterScan(root).catch(() => undefined);
-  }, 180);
+    void jammerContentFilterDrainScans().catch(() => undefined);
+  }, 120);
 }
 
 function jammerContentFilterStopDelayedScans(): void {
@@ -505,13 +575,20 @@ function jammerContentFilterStart(): void {
   jammerContentObserver?.disconnect();
   jammerContentObserver = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
+      if (mutation.type === "characterData") {
+        const parent = mutation.target.parentElement;
+        if (parent && !parent.closest(`[${JAMMER_CONTENT_FILTER_PLACEHOLDER_ATTR}]`)) {
+          jammerContentFilterQueueScan(parent);
+        }
+        continue;
+      }
+
       if (mutation.type !== "childList" || mutation.addedNodes.length === 0) continue;
 
       for (const added of Array.from(mutation.addedNodes)) {
         if (!(added instanceof HTMLElement)) continue;
         if (added.closest(`[${JAMMER_CONTENT_FILTER_PLACEHOLDER_ATTR}]`)) continue;
         jammerContentFilterQueueScan(added);
-        return;
       }
     }
   });
@@ -519,6 +596,7 @@ function jammerContentFilterStart(): void {
   if (document.body) {
     jammerContentObserver.observe(document.body, {
       childList: true,
+      characterData: true,
       subtree: true
     });
   }

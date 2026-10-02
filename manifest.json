@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Jammer",
-  "version": "0.9.0",
-  "description": "Local-first ad, tracker, phishing-navigation, HTTPS-upgrade, and selective content filtering.",
+  "version": "0.9.1",
+  "description": "Local-first high-coverage ad, tracker, phishing-navigation, HTTPS-upgrade, and selective content filtering.",
   "permissions": [
     "declarativeNetRequest",
     "storage"

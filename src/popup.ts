@@ -24,6 +24,7 @@ const POPUP_PRIVACY_RULESET_ID = "privacy_static";
 const POPUP_PHISHING_RULESET_ID = "phishing_static";
 const POPUP_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
 const POPUP_COSMETIC_SITE_SCRIPT_ID = "jammer-cosmetic-canyoublockit";
+const POPUP_AD_HEURISTIC_SCRIPT_ID = "jammer-ad-cleanup";
 const POPUP_CONTENT_SCRIPT_ID = "jammer-content-filter";
 const POPUP_SITE_ORIGINS = ["http://*/*", "https://*/*"];
 
@@ -64,7 +65,7 @@ const POPUP_STRINGS: Record<PopupResolvedLanguage, Record<string, string>> = {
     phishingOn: "Known phishing-site blocking is on.",
     phishingOff: "Known phishing-site blocking is off.",
     cosmetic: "Page ad cleanup",
-    cosmeticHint: "Hide explicit ad containers. Enabling requires website access.",
+    cosmeticHint: "Hide static, self-hosted, and dynamically inserted ads. Enabling requires website access.",
     cosmeticOn: "Page ad cleanup is on.",
     cosmeticOff: "Page ad cleanup is off.",
     content: "Content filtering",
@@ -93,7 +94,7 @@ const POPUP_STRINGS: Record<PopupResolvedLanguage, Record<string, string>> = {
     phishingOn: "已知钓鱼网站拦截已开启。",
     phishingOff: "已知钓鱼网站拦截已关闭。",
     cosmetic: "页面广告清理",
-    cosmeticHint: "隐藏明确的页面广告容器。启用时需要网站访问权限。",
+    cosmeticHint: "清理静态、自托管和动态插入的页面广告。启用时需要网站访问权限。",
     cosmeticOn: "页面广告清理已开启。",
     cosmeticOff: "页面广告清理已关闭。",
     content: "内容过滤",
@@ -278,7 +279,11 @@ function popupHasSelectedCategory(settings: PopupSettings): boolean {
 
 async function popupApplyCosmetic(settings: PopupSettings): Promise<void> {
   const granted = await popupPermissionContains();
-  const ids = [POPUP_COSMETIC_SCRIPT_ID, POPUP_COSMETIC_SITE_SCRIPT_ID];
+  const ids = [
+    POPUP_COSMETIC_SCRIPT_ID,
+    POPUP_COSMETIC_SITE_SCRIPT_ID,
+    POPUP_AD_HEURISTIC_SCRIPT_ID
+  ];
   const shouldEnable = settings.enabled && settings.cosmeticEnabled && granted;
 
   if (!shouldEnable) {
@@ -303,6 +308,15 @@ async function popupApplyCosmetic(settings: PopupSettings): Promise<void> {
       excludeMatches: popupDomainExcludeMatches(settings.allowlist),
       css: ["cosmetic-canyoublockit.css", "cosmetic-canyoublockit-local.css"],
       runAt: "document_start",
+      allFrames: true,
+      persistAcrossSessions: true
+    },
+    {
+      id: POPUP_AD_HEURISTIC_SCRIPT_ID,
+      matches: POPUP_SITE_ORIGINS,
+      excludeMatches: popupDomainExcludeMatches(settings.allowlist),
+      js: ["ad-cleanup.js"],
+      runAt: "document_idle",
       allFrames: true,
       persistAcrossSessions: true
     }

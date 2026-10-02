@@ -14,7 +14,7 @@ Jammer is a local-first Manifest V3 browser extension for blocking network adver
 
 Network blocking uses Chromium's declarativeNetRequest engine with EasyList-derived rules that are pinned, verified, and compiled at build time. Jammer does not download filter lists at runtime.
 
-Page ad cleanup is optional. When enabled, Jammer requests website access and injects packaged CSS-only cosmetic filtering. The permission is removed again when the feature is disabled. Jammer does not use that capability to read page text, forms, passwords, browsing history, or cookies.
+Page ad cleanup is optional. When enabled, Jammer requests website access and applies packaged cosmetic CSS plus local element heuristics for self-hosted and dynamically inserted ads. The permission is removed again when the feature is disabled. Jammer does not use that capability to read page text, forms, passwords, browsing history, or cookies.
 
 Jammer includes:
 - network ad blocking
