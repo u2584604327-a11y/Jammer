@@ -29,6 +29,8 @@ jobs:
         run: npm run rules:prepare:network-extended
       - name: Verify pinned EasyPrivacy tracking source
         run: npm run rules:prepare:privacy
+      - name: Verify pinned phishing-navigation source
+        run: npm run rules:prepare:phishing
       - name: Verify pinned EasyList cosmetic sources
         run: npm run rules:prepare:cosmetic
       - name: Build isolated EasyList smoke profile
@@ -44,9 +46,9 @@ jobs:
         with:
           name: jammer-release-candidate
           path: |
-            release/jammer-0.8.1-chromium.zip
-            release/jammer-0.8.1-chromium.zip.sha256
-            release/jammer-0.8.1.release.json
+            release/jammer-0.9.0-chromium.zip
+            release/jammer-0.9.0-chromium.zip.sha256
+            release/jammer-0.9.0.release.json
           if-no-files-found: error
       - name: Generate GitHub social preview
         run: npm run brand:preview

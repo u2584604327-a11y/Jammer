@@ -6,7 +6,7 @@ Jammer
 
 ## Short description
 
-Local-first ad blocking with optional page-ad cleanup and opt-in on-device content-block masking.
+Local-first ad/script and tracker blocking with known-phishing navigation protection, optional HTTPS upgrade, page cleanup, and selective content masking.
 
 ## Long description
 
@@ -19,6 +19,9 @@ Page ad cleanup is optional. When enabled, Jammer requests website access and in
 Jammer includes:
 - network ad blocking
 - packaged privacy / tracker blocking
+- packaged known-phishing navigation blocking
+- optional HTTP-to-HTTPS navigation upgrade
+- local manual dangerous-domain blocking
 - optional page ad cleanup
 - opt-in local content masking for gambling/betting promotion, explicit sexual material, graphic violence, scam-like promotion, and clickbait/nuisance content
 - explainable category and matched-signal placeholders with reveal and leave-page controls
@@ -33,7 +36,7 @@ Jammer includes:
 - no cloud sync
 - no remote code or runtime filter download
 
-Required permissions are limited to declarativeNetRequest and storage. Page ad cleanup and content filtering use optional scripting and HTTP/HTTPS site access only after the user enables one of those features. Content filtering processes limited visible page text locally and does not upload it to a Jammer server.
+Required permissions are limited to declarativeNetRequest and storage. Page ad cleanup/content filtering use optional scripting and HTTP/HTTPS site access only after explicit activation; HTTPS navigation upgrade uses optional HTTP/HTTPS site access without requiring scripting. Content filtering processes limited visible page text locally and does not upload it to a Jammer server.
 
 Jammer is designed around explicit controls, auditable filter provenance, and browser-native enforcement.
 
@@ -41,7 +44,7 @@ Jammer is designed around explicit controls, auditable filter provenance, and br
 
 Jammer stores settings locally in browser extension storage. It does not operate an account service, analytics service, telemetry endpoint, cloud synchronization service, or remote filter-update service.
 
-The optional website-access permission is used only to apply packaged CSS-based cosmetic filtering when Page ad cleanup is enabled.
+Optional website access is used for explicitly enabled page cleanup/content filtering or HTTPS navigation upgrade. It is not used for browsing-history collection.
 
 ## Suggested search terms
 

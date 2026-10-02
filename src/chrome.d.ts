@@ -18,10 +18,11 @@ type JammerResourceType =
 type JammerDnrRule = {
   id: number;
   priority: number;
-  action: { type: "allow" | "block" };
+  action: { type: "allow" | "block" | "upgradeScheme" };
   condition: {
     initiatorDomains?: string[];
     urlFilter?: string;
+    regexFilter?: string;
     resourceTypes?: JammerResourceType[];
   };
 };

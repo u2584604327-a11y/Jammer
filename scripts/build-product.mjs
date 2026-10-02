@@ -10,6 +10,8 @@ const extendedRulesSource = resolve('generated/easylist-network-extended.rules.j
 const extendedReportSource = resolve('generated/easylist-network-extended.report.json');
 const privacyRulesSource = resolve('generated/easyprivacy-tracking.rules.json');
 const privacyReportSource = resolve('generated/easyprivacy-tracking.report.json');
+const phishingRulesSource = resolve('generated/phishing-active.rules.json');
+const phishingReportSource = resolve('generated/phishing-active.report.json');
 const cosmeticGeneralSource = resolve('generated/easylist-general-hide.css');
 const cosmeticSiteSource = resolve('generated/easylist-canyoublockit.css');
 const cosmeticReportSource = resolve('generated/easylist-cosmetic.report.json');
@@ -21,6 +23,8 @@ for (const path of [
   extendedReportSource,
   privacyRulesSource,
   privacyReportSource,
+  phishingRulesSource,
+  phishingReportSource,
   cosmeticGeneralSource,
   cosmeticSiteSource,
   cosmeticReportSource
@@ -37,6 +41,8 @@ const extendedRules = JSON.parse(await readFile(extendedRulesSource, 'utf8'));
 const extendedReport = JSON.parse(await readFile(extendedReportSource, 'utf8'));
 const privacyRules = JSON.parse(await readFile(privacyRulesSource, 'utf8'));
 const privacyReport = JSON.parse(await readFile(privacyReportSource, 'utf8'));
+const phishingRules = JSON.parse(await readFile(phishingRulesSource, 'utf8'));
+const phishingReport = JSON.parse(await readFile(phishingReportSource, 'utf8'));
 const cosmeticReport = JSON.parse(await readFile(cosmeticReportSource, 'utf8'));
 
 if (rules.length !== 256 || report.compiler.acceptedDomains !== 42940) {
@@ -49,6 +55,10 @@ if (extendedRules.length !== 3718 || extendedReport.output.rules !== 3718) {
 
 if (privacyRules.length !== 64 || privacyReport.compiler.acceptedDomains !== 534) {
   throw new Error('Unexpected EasyPrivacy product baseline');
+}
+
+if (phishingRules.length !== 64 || phishingReport.compiler.acceptedDomains !== 21552) {
+  throw new Error('Unexpected phishing navigation baseline');
 }
 
 await rm('.build-js', { recursive: true, force: true });
@@ -72,14 +82,14 @@ await cp('src/cosmetic-canyoublockit-local.css', 'dist-product/cosmetic-canyoubl
 await cp('options.html', 'dist-product/options.html');
 
 let popupHtml = await readFile('popup.html', 'utf8');
-popupHtml = popupHtml.replace('Build: p63-enhanced-ad-dev', 'Build: p63-enhanced-ad-product');
+popupHtml = popupHtml.replace('Build: p64-secure-navigation-dev', 'Build: p64-secure-navigation-product');
 await writeFile('dist-product/popup.html', popupHtml);
 
 const manifest = {
   manifest_version: 3,
   name: 'Jammer',
-  version: '0.8.1',
-  description: 'Local-first ad, tracker, navigation, and content filtering with broader banner and ad-script blocking.',
+  version: '0.9.0',
+  description: 'Local-first ad, tracker, phishing-navigation, HTTPS-upgrade, and selective content filtering.',
   icons: {
     '16': 'icons/icon-16.png',
     '32': 'icons/icon-32.png',
@@ -116,6 +126,11 @@ const manifest = {
         id: 'privacy_static',
         enabled: true,
         path: 'rules/easyprivacy-tracking.json'
+      },
+      {
+        id: 'phishing_static',
+        enabled: true,
+        path: 'rules/phishing-active.json'
       }
     ]
   },
@@ -128,12 +143,14 @@ await writeFile('dist-product/manifest.json', JSON.stringify(manifest, null, 2) 
 await cp(rulesSource, 'dist-product/rules/easylist-adservers.json');
 await cp(extendedRulesSource, 'dist-product/rules/easylist-network-extended.json');
 await cp(privacyRulesSource, 'dist-product/rules/easyprivacy-tracking.json');
+await cp(phishingRulesSource, 'dist-product/rules/phishing-active.json');
 await cp(reportSource, 'dist-product/PROVENANCE.json');
 await cp(extendedReportSource, 'dist-product/AD_NETWORK_PROVENANCE.json');
 await cp(privacyReportSource, 'dist-product/PRIVACY_PROVENANCE.json');
+await cp(phishingReportSource, 'dist-product/PHISHING_PROVENANCE.json');
 await cp(cosmeticReportSource, 'dist-product/COSMETIC_PROVENANCE.json');
 
-const notice = `Jammer 0.8.1
+const notice = `Jammer 0.9.0
 
 Network ad-blocking rules are generated at build time from:
 EasyList repository: ${report.source.repository}
@@ -159,6 +176,13 @@ Pinned commit: ${privacyReport.source.commit}
 Source path: ${privacyReport.source.path}
 Git blob SHA-1: ${privacyReport.source.gitBlobSha1}
 
+Known-phishing navigation rules are generated at build time from:
+Repository: ${phishingReport.source.repository}
+Pinned commit: ${phishingReport.source.commit}
+Source path: ${phishingReport.source.path}
+Git blob SHA-1: ${phishingReport.source.gitBlobSha1}
+License: ${phishingReport.license}
+
 Jammer does not download these filter lists at extension runtime.
 `;
 await writeFile('dist-product/THIRD_PARTY_NOTICES.txt', notice);
@@ -173,7 +197,7 @@ for (const file of ['dist-product/popup.js', 'dist-product/options.js', 'dist-pr
 }
 
 const builtManifest = JSON.parse(await readFile('dist-product/manifest.json', 'utf8'));
-if (builtManifest.version !== '0.8.1') throw new Error('Unexpected product version');
+if (builtManifest.version !== '0.9.0') throw new Error('Unexpected product version');
 if (builtManifest.declarative_net_request.rule_resources[0].id !== 'ads_static') {
   throw new Error('Product ruleset ID must remain ads_static for existing controls');
 }
@@ -192,7 +216,13 @@ const privacyResource = builtManifest.declarative_net_request.rule_resources.fin
 if (!privacyResource || privacyResource.path !== 'rules/easyprivacy-tracking.json') {
   throw new Error('Product privacy ruleset path mismatch');
 }
+const phishingResource = builtManifest.declarative_net_request.rule_resources.find(
+  (item) => item.id === 'phishing_static'
+);
+if (!phishingResource || phishingResource.path !== 'rules/phishing-active.json') {
+  throw new Error('Product phishing ruleset path mismatch');
+}
 
 console.log(
-  `product-build: PASS version=0.8.1 adsDomains=${report.compiler.acceptedDomains} extendedRules=${extendedRules.length} privacyDomains=${privacyReport.compiler.acceptedDomains} adsRules=${rules.length} privacyRules=${privacyRules.length} cosmetic=${cosmeticReport.output.genericSelectors}`
+  `product-build: PASS version=0.9.0 adsDomains=${report.compiler.acceptedDomains} extendedRules=${extendedRules.length} privacyDomains=${privacyReport.compiler.acceptedDomains} phishingDomains=${phishingReport.compiler.acceptedDomains} adsRules=${rules.length} privacyRules=${privacyRules.length} phishingRules=${phishingRules.length} cosmetic=${cosmeticReport.output.genericSelectors}`
 );

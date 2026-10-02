@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Jammer",
-  "version": "0.8.1",
-  "description": "Local-first ad, tracker, navigation, and opt-in content filtering with broader script and banner blocking.",
+  "version": "0.9.0",
+  "description": "Local-first ad, tracker, phishing-navigation, HTTPS-upgrade, and selective content filtering.",
   "permissions": [
     "declarativeNetRequest",
     "storage"
@@ -41,6 +41,11 @@
         "id": "privacy_static",
         "enabled": true,
         "path": "rules/privacy.json"
+      },
+      {
+        "id": "phishing_static",
+        "enabled": true,
+        "path": "rules/phishing.json"
       }
     ]
   },

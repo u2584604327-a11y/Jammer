@@ -1,0 +1,11 @@
+[
+  {
+    "id": 3001,
+    "priority": 50,
+    "action": { "type": "block" },
+    "condition": {
+      "requestDomains": ["phishing-test.jammer.invalid"],
+      "resourceTypes": ["main_frame", "sub_frame"]
+    }
+  }
+]

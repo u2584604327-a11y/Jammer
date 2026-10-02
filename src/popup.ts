@@ -7,6 +7,8 @@ interface PopupSettings {
   enabled: boolean;
   adsEnabled: boolean;
   privacyEnabled: boolean;
+  phishingEnabled: boolean;
+  secureNavigationEnabled: boolean;
   cosmeticEnabled: boolean;
   contentEnabled: boolean;
   contentCategories: PopupContentCategories;
@@ -19,6 +21,7 @@ interface PopupSettings {
 const POPUP_STORAGE_KEY = "jammerSettings";
 const POPUP_ADS_RULESET_IDS = ["ads_static", "ads_extended"] as const;
 const POPUP_PRIVACY_RULESET_ID = "privacy_static";
+const POPUP_PHISHING_RULESET_ID = "phishing_static";
 const POPUP_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
 const POPUP_COSMETIC_SITE_SCRIPT_ID = "jammer-cosmetic-canyoublockit";
 const POPUP_CONTENT_SCRIPT_ID = "jammer-content-filter";
@@ -36,6 +39,8 @@ const POPUP_DEFAULT_SETTINGS: PopupSettings = {
   enabled: true,
   adsEnabled: true,
   privacyEnabled: true,
+  phishingEnabled: true,
+  secureNavigationEnabled: false,
   cosmeticEnabled: false,
   contentEnabled: false,
   contentCategories: { ...POPUP_DEFAULT_CATEGORIES },
@@ -54,6 +59,10 @@ const POPUP_STRINGS: Record<PopupResolvedLanguage, Record<string, string>> = {
     privacyHint: "Block packaged known tracking scripts and data-collection endpoints.",
     privacyOn: "Privacy / tracker blocking is on.",
     privacyOff: "Privacy / tracker blocking is off.",
+    phishing: "Known phishing-site blocking",
+    phishingHint: "Block navigation to domains in the pinned active phishing feed.",
+    phishingOn: "Known phishing-site blocking is on.",
+    phishingOff: "Known phishing-site blocking is off.",
     cosmetic: "Page ad cleanup",
     cosmeticHint: "Hide explicit ad containers. Enabling requires website access.",
     cosmeticOn: "Page ad cleanup is on.",
@@ -79,6 +88,10 @@ const POPUP_STRINGS: Record<PopupResolvedLanguage, Record<string, string>> = {
     privacyHint: "拦截扩展内置规则识别的跟踪脚本和数据收集端点。",
     privacyOn: "隐私 / 跟踪器拦截已开启。",
     privacyOff: "隐私 / 跟踪器拦截已关闭。",
+    phishing: "已知钓鱼网站拦截",
+    phishingHint: "阻止跳转到固定并校验过的活跃钓鱼域名。",
+    phishingOn: "已知钓鱼网站拦截已开启。",
+    phishingOff: "已知钓鱼网站拦截已关闭。",
     cosmetic: "页面广告清理",
     cosmeticHint: "隐藏明确的页面广告容器。启用时需要网站访问权限。",
     cosmeticOn: "页面广告清理已开启。",
@@ -170,6 +183,36 @@ function popupPermissionRemove(): Promise<boolean> {
       (removed) => {
         if (chrome.runtime.lastError) {
           reject(popupRuntimeError("Permission removal failed"));
+          return;
+        }
+        resolve(removed);
+      }
+    );
+  });
+}
+
+function popupScriptingPermissionContains(): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    chrome.permissions.contains(
+      { permissions: ["scripting"] },
+      (result) => {
+        if (chrome.runtime.lastError) {
+          reject(popupRuntimeError("Scripting permission check failed"));
+          return;
+        }
+        resolve(result);
+      }
+    );
+  });
+}
+
+function popupScriptingPermissionRemove(): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    chrome.permissions.remove(
+      { permissions: ["scripting"] },
+      (removed) => {
+        if (chrome.runtime.lastError) {
+          reject(popupRuntimeError("Scripting permission removal failed"));
           return;
         }
         resolve(removed);
@@ -295,6 +338,12 @@ async function popupApplyContentFilter(settings: PopupSettings): Promise<void> {
 
 async function popupMaybeRemoveSiteAccess(settings: PopupSettings): Promise<void> {
   if (settings.cosmeticEnabled || settings.contentEnabled) return;
+  if (settings.secureNavigationEnabled) {
+    if (await popupScriptingPermissionContains()) {
+      await popupScriptingPermissionRemove();
+    }
+    return;
+  }
   const granted = await popupPermissionContains();
   if (granted) await popupPermissionRemove();
 }
@@ -348,6 +397,9 @@ function popupSanitizeSettings(value: unknown): PopupSettings {
     enabled: typeof candidate.enabled === "boolean" ? candidate.enabled : true,
     adsEnabled: typeof candidate.adsEnabled === "boolean" ? candidate.adsEnabled : true,
     privacyEnabled: typeof candidate.privacyEnabled === "boolean" ? candidate.privacyEnabled : true,
+    phishingEnabled: typeof candidate.phishingEnabled === "boolean" ? candidate.phishingEnabled : true,
+    secureNavigationEnabled:
+      typeof candidate.secureNavigationEnabled === "boolean" ? candidate.secureNavigationEnabled : false,
     cosmeticEnabled: typeof candidate.cosmeticEnabled === "boolean" ? candidate.cosmeticEnabled : false,
     contentEnabled: typeof candidate.contentEnabled === "boolean" ? candidate.contentEnabled : false,
     contentCategories: {
@@ -392,8 +444,13 @@ async function popupApplyProtection(settings: PopupSettings): Promise<void> {
     for (const id of POPUP_ADS_RULESET_IDS) desired.add(id);
   }
   if (settings.enabled && settings.privacyEnabled) desired.add(POPUP_PRIVACY_RULESET_ID);
+  if (settings.enabled && settings.phishingEnabled) desired.add(POPUP_PHISHING_RULESET_ID);
 
-  const managed = [...POPUP_ADS_RULESET_IDS, POPUP_PRIVACY_RULESET_ID];
+  const managed = [
+    ...POPUP_ADS_RULESET_IDS,
+    POPUP_PRIVACY_RULESET_ID,
+    POPUP_PHISHING_RULESET_ID
+  ];
   const enableRulesetIds = managed.filter((id) => desired.has(id) && !enabled.includes(id));
   const disableRulesetIds = managed.filter((id) => !desired.has(id) && enabled.includes(id));
 
@@ -403,15 +460,19 @@ async function popupApplyProtection(settings: PopupSettings): Promise<void> {
 
 const protection = popupRequireElement<HTMLInputElement>("#protection");
 const popupPrivacyToggle = popupRequireElement<HTMLInputElement>("#privacy-enabled");
+const popupPhishingToggle = popupRequireElement<HTMLInputElement>("#phishing-enabled");
 const popupCosmeticToggle = popupRequireElement<HTMLInputElement>("#cosmetic-enabled");
 const popupContentToggle = popupRequireElement<HTMLInputElement>("#content-enabled");
 const statusElement = popupRequireElement<HTMLElement>("#status");
 const privacyStatus = popupRequireElement<HTMLElement>("#privacy-status");
+const phishingStatus = popupRequireElement<HTMLElement>("#phishing-status");
 const cosmeticStatus = popupRequireElement<HTMLElement>("#cosmetic-status");
 const contentStatus = popupRequireElement<HTMLElement>("#content-status");
 const protectionLabel = popupRequireElement<HTMLElement>("#protection-label");
 const popupPrivacyLabel = popupRequireElement<HTMLElement>("#privacy-label");
 const popupPrivacyHint = popupRequireElement<HTMLElement>("#privacy-hint");
+const popupPhishingLabel = popupRequireElement<HTMLElement>("#phishing-label");
+const popupPhishingHint = popupRequireElement<HTMLElement>("#phishing-hint");
 const popupCosmeticLabel = popupRequireElement<HTMLElement>("#cosmetic-label");
 const cosmeticHint = popupRequireElement<HTMLElement>("#cosmetic-hint");
 const popupContentLabel = popupRequireElement<HTMLElement>("#content-label");
@@ -427,6 +488,8 @@ function popupApplyTranslations(settings: PopupSettings): void {
   protectionLabel.textContent = strings.protection;
   popupPrivacyLabel.textContent = strings.privacy;
   popupPrivacyHint.textContent = strings.privacyHint;
+  popupPhishingLabel.textContent = strings.phishing;
+  popupPhishingHint.textContent = strings.phishingHint;
   popupCosmeticLabel.textContent = strings.cosmetic;
   cosmeticHint.textContent = strings.cosmeticHint;
   popupContentLabel.textContent = strings.content;
@@ -434,6 +497,7 @@ function popupApplyTranslations(settings: PopupSettings): void {
   optionsButton.textContent = strings.options;
   statusElement.textContent = settings.enabled ? strings.enabled : strings.disabled;
   privacyStatus.textContent = settings.privacyEnabled ? strings.privacyOn : strings.privacyOff;
+  phishingStatus.textContent = settings.phishingEnabled ? strings.phishingOn : strings.phishingOff;
   cosmeticStatus.textContent = settings.cosmeticEnabled ? strings.cosmeticOn : strings.cosmeticOff;
   contentStatus.textContent = settings.contentEnabled ? strings.contentOn : strings.contentOff;
 
@@ -446,11 +510,13 @@ async function popupRefresh(): Promise<void> {
   const settings = await popupLoadSettings();
   protection.checked = settings.enabled;
   popupPrivacyToggle.checked = settings.privacyEnabled;
+  popupPhishingToggle.checked = settings.phishingEnabled;
   popupCosmeticToggle.checked = settings.cosmeticEnabled;
   popupContentToggle.checked = settings.contentEnabled;
   popupApplyTranslations(settings);
   protection.disabled = false;
   popupPrivacyToggle.disabled = false;
+  popupPhishingToggle.disabled = false;
   popupCosmeticToggle.disabled = false;
   popupContentToggle.disabled = false;
   popupLanguageSelect.disabled = false;
@@ -458,6 +524,7 @@ async function popupRefresh(): Promise<void> {
 
 protection.disabled = true;
 popupPrivacyToggle.disabled = true;
+popupPhishingToggle.disabled = true;
 popupCosmeticToggle.disabled = true;
 popupContentToggle.disabled = true;
 popupLanguageSelect.disabled = true;
@@ -493,6 +560,22 @@ popupPrivacyToggle.addEventListener("change", () => {
     void popupRefresh().catch(() => undefined);
   }).finally(() => {
     popupPrivacyToggle.disabled = false;
+  });
+});
+
+popupPhishingToggle.addEventListener("change", () => {
+  popupPhishingToggle.disabled = true;
+  void popupLoadSettings().then(async (settings) => {
+    settings.phishingEnabled = popupPhishingToggle.checked;
+    await popupSaveSettings(settings);
+    await popupApplyProtection(settings);
+    popupApplyTranslations(settings);
+  }).catch((error) => {
+    phishingStatus.textContent =
+      error instanceof Error ? error.message : "Could not update phishing blocking.";
+    void popupRefresh().catch(() => undefined);
+  }).finally(() => {
+    popupPhishingToggle.disabled = false;
   });
 });
 
@@ -629,6 +712,7 @@ void popupLoadSettings().then(async (settings) => {
 
   protection.checked = settings.enabled;
   popupPrivacyToggle.checked = settings.privacyEnabled;
+  popupPhishingToggle.checked = settings.phishingEnabled;
   popupCosmeticToggle.checked = settings.cosmeticEnabled;
   popupContentToggle.checked = settings.contentEnabled;
   popupApplyTranslations(settings);
@@ -636,6 +720,7 @@ void popupLoadSettings().then(async (settings) => {
   await popupApplyProtection(settings);
   protection.disabled = false;
   popupPrivacyToggle.disabled = false;
+  popupPhishingToggle.disabled = false;
   popupCosmeticToggle.disabled = false;
   popupContentToggle.disabled = false;
   popupLanguageSelect.disabled = false;

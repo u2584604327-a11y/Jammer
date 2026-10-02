@@ -8,6 +8,8 @@ export interface JammerSettings {
   enabled: boolean;
   adsEnabled: boolean;
   privacyEnabled: boolean;
+  phishingEnabled: boolean;
+  secureNavigationEnabled: boolean;
   cosmeticEnabled: boolean;
   contentEnabled: boolean;
   contentCategories: JammerContentCategories;
@@ -21,6 +23,8 @@ export const DEFAULT_SETTINGS: JammerSettings = {
   enabled: true,
   adsEnabled: true,
   privacyEnabled: true,
+  phishingEnabled: true,
+  secureNavigationEnabled: false,
   cosmeticEnabled: false,
   contentEnabled: false,
   contentCategories: {
@@ -54,6 +58,9 @@ function sanitizeSettings(value: unknown): JammerSettings {
     enabled: typeof candidate.enabled === "boolean" ? candidate.enabled : true,
     adsEnabled: typeof candidate.adsEnabled === "boolean" ? candidate.adsEnabled : true,
     privacyEnabled: typeof candidate.privacyEnabled === "boolean" ? candidate.privacyEnabled : true,
+    phishingEnabled: typeof candidate.phishingEnabled === "boolean" ? candidate.phishingEnabled : true,
+    secureNavigationEnabled:
+      typeof candidate.secureNavigationEnabled === "boolean" ? candidate.secureNavigationEnabled : false,
     cosmeticEnabled: typeof candidate.cosmeticEnabled === "boolean" ? candidate.cosmeticEnabled : false,
     contentEnabled: typeof candidate.contentEnabled === "boolean" ? candidate.contentEnabled : false,
     contentCategories: {

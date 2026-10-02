@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Jammer Privacy Policy</title>
-  <meta name="description" content="Jammer privacy policy — local-first ad blocking, opt-in local content filtering, local settings, no telemetry.">
+  <meta name="description" content="Jammer privacy policy — local-first ad, tracker, phishing-navigation, HTTPS-upgrade, and selective content filtering.">
   <style>
     :root{color-scheme:light dark;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--bg:#f5f7fb;--panel:#fff;--text:#172033;--muted:#667085;--line:#d8dee9;--accent:#4f46e5}
     @media(prefers-color-scheme:dark){:root{--bg:#0c111b;--panel:#141b29;--text:#f4f7fb;--muted:#a6b0c2;--line:#2c374b;--accent:#8b83ff}}
@@ -20,29 +20,39 @@
 
   <section class="section" id="en">
     <h2>English</h2>
-    <p>Jammer is a local-first browser extension. It does not collect, sell, rent, upload, or transmit personal data to a Jammer-operated server.</p>
-    <p><strong>Local data.</strong> Jammer stores protection state, network-blocking state, page-ad-cleanup state, content-filter state and selected categories, language preference, ad-block allowlist domains, content-filter exception domains, privacy/tracker state, and dangerous-site block-list domains in local extension storage under <code>jammerSettings</code>.</p>
-    <p><strong>No telemetry.</strong> Jammer has no account system, analytics, telemetry, advertising SDK, cloud sync, remote configuration, or runtime filter-list download service.</p>
-    <p><strong>Network filtering.</strong> Network blocking uses Chromium <code>declarativeNetRequest</code> with packaged rules generated from pinned EasyList sources at build time. Jammer does not upload browsing or blocking logs.</p><p><strong>Privacy / tracker blocking.</strong> A separate packaged ruleset is compiled at build time from a pinned EasyPrivacy tracking-server source. It blocks known tracker resource requests such as scripts, pixels, XHR, pings, and embedded frames. It does not download lists at runtime.</p><p><strong>Dangerous-site list.</strong> User-entered domains are stored locally and blocked for top-level or embedded navigation. Redirects to a listed domain can be blocked. Jammer does not directly inspect DNS answers and cannot reliably detect DNS poisoning when the hostname itself remains unchanged.</p>
-    <p><strong>Optional page-ad cleanup.</strong> This feature is off by default. When enabled, Jammer requests optional <code>scripting</code> and HTTP/HTTPS site access to register packaged CSS-only cosmetic filtering.</p><p><strong>Optional content filtering.</strong> This feature and every category are off by default. When enabled, Jammer locally inspects a limited amount of the page title, description, headings, and visible body text and applies packaged weighted keyword rules for gambling, explicit sexual material, graphic violence, scam-like promotion, and clickbait/nuisance content. Page text and matched terms are not uploaded to a Jammer server. False positives and false negatives are possible.</p>
-    <p><strong>Permissions.</strong> Required: <code>declarativeNetRequest</code>, <code>storage</code>. Optional for page cleanup or content filtering: <code>scripting</code>, <code>http://*/*</code>, <code>https://*/*</code>.</p>
-    <p><strong>Retention.</strong> Jammer operates no backend user database. Local settings remain until changed, browser/extension storage is cleared, or Jammer is uninstalled.</p>
+    <p>Jammer is local-first. It has no account, analytics, telemetry, cloud sync, or runtime filter-update service, and does not upload personal browsing data to a Jammer-operated server.</p>
+    <p><strong>Local settings.</strong> <code>jammerSettings</code> can contain protection, ad-blocking, privacy/tracker, known-phishing, optional HTTPS-upgrade, page-cleanup and content-filter states; selected content categories; language preference; ad allowlist; content exceptions; and manually blocked domains.</p>
+    <p><strong>Ads and scripts.</strong> Packaged EasyList-derived DNR rules block known ad servers plus broader banner, path, script, image, frame, stylesheet, XHR and related ad requests. Lists are pinned and compiled at build time.</p>
+    <p><strong>Privacy / trackers.</strong> A separate EasyPrivacy-derived DNR ruleset blocks known tracking scripts, pixels, XHR, pings, frames and similar endpoints. Blocked-request logs are not uploaded.</p>
+    <p><strong>Known phishing.</strong> A pinned Phishing-Database active-domain snapshot is compiled into navigation-blocking rules. It blocks top-level and embedded navigation to listed domains, including redirects that land on them. The installed extension does not query the source at runtime.</p>
+    <p><strong>Manual dangerous-site list.</strong> User-entered domains are stored locally and blocked for top-level or embedded navigation.</p>
+    <p><strong>DNS boundary.</strong> Jammer does not inspect raw DNS answers and cannot reliably identify hostname-preserving DNS poisoning. Browser/OS Secure DNS or DNS-over-HTTPS remains a separate layer.</p>
+    <p><strong>Optional HTTPS upgrade.</strong> Disabled by default. If enabled, Jammer requests optional HTTP/HTTPS site access and installs a local <code>upgradeScheme</code> rule for page/frame navigation. Legacy HTTP-only sites may stop loading until this feature is disabled.</p>
+    <p><strong>Optional page cleanup.</strong> Disabled by default. When enabled, Jammer requests optional <code>scripting</code> plus site access to register packaged CSS-only cosmetic filters.</p>
+    <p><strong>Optional content filtering.</strong> Disabled by default. Selected categories are matched locally against bounded visible text and local labels. Only matched content blocks are hidden. Scanned page text and matched terms are not uploaded. False positives and false negatives are possible.</p>
+    <p><strong>Permissions.</strong> Required: <code>declarativeNetRequest</code>, <code>storage</code>. Optional: <code>scripting</code>, <code>http://*/*</code>, <code>https://*/*</code>. Jammer does not request tabs, history, cookies, webRequest, debugger, downloads, or nativeMessaging.</p>
+    <p><strong>Runtime egress.</strong> Jammer extension pages use <code>connect-src 'none'</code>. Rule-source network access happens in build scripts, not in the installed extension.</p>
     <p>Full policy: <a href="https://github.com/u2584604327-a11y/Jammer/blob/main/PRIVACY.md">PRIVACY.md</a>. Privacy questions: <a href="https://github.com/u2584604327-a11y/Jammer/issues">GitHub Issues</a>.</p>
   </section>
 
   <section class="section" id="zh">
     <h2>简体中文</h2>
-    <p>Jammer是一个本地优先的浏览器扩展。Jammer不会向Jammer运营的服务器收集、出售、出租、上传或传输个人数据。</p>
-    <p><strong>本地数据。</strong> Jammer仅在扩展本地存储的<code>jammerSettings</code>中保存总保护状态、网络广告拦截状态、页面广告清理状态、内容过滤状态与所选类别、语言偏好、广告白名单域名、内容过滤例外域名、隐私/跟踪器拦截状态及危险网站拦截列表域名。</p>
-    <p><strong>无遥测。</strong> Jammer没有账号系统、统计分析、遥测、广告SDK、云同步、远程配置或运行时过滤列表下载服务。</p>
-    <p><strong>网络过滤。</strong> 网络拦截使用Chromium <code>declarativeNetRequest</code>，规则在构建阶段根据固定并校验过的EasyList来源生成并随扩展打包。Jammer不会上传浏览或拦截日志。</p><p><strong>隐私 / 跟踪器拦截。</strong> 独立规则集在构建阶段根据固定的EasyPrivacy跟踪服务器来源生成，可阻止已知跟踪脚本、像素、XHR、Ping及嵌入框架等资源请求，运行时不下载规则列表。</p><p><strong>危险网站列表。</strong> 用户输入的域名只保存在本地，并被禁止作为顶层网页或嵌入页面打开；跳转到已列入域名时也可被阻止。Jammer不直接检查DNS解析结果，因此无法可靠识别主机名不变的DNS污染。</p>
-    <p><strong>可选页面广告清理。</strong> 该功能默认关闭。启用时会请求可选<code>scripting</code>及HTTP/HTTPS网站访问权限，以注册扩展内置CSS页面广告隐藏规则。</p><p><strong>可选内容过滤。</strong> 该功能和每个类别默认都关闭。启用后，Jammer会在设备本地检查有限范围的网页标题、描述、标题文字和可见正文，并使用扩展内置的加权关键词规则识别赌博/博彩推广、露骨色情、血腥/严重暴力、疑似诈骗诱导及标题党/诱导内容。网页正文和匹配词不会上传到Jammer服务器，且可能出现误判或漏判。</p>
-    <p><strong>权限。</strong> 必须：<code>declarativeNetRequest</code>、<code>storage</code>。页面清理或内容过滤可选：<code>scripting</code>、<code>http://*/*</code>、<code>https://*/*</code>。</p>
-    <p><strong>保留。</strong> Jammer不运营用户后端数据库。本地设置会保留到用户修改、清理浏览器/扩展存储或卸载Jammer为止。</p>
+    <p>Jammer坚持本地优先：没有账号、统计分析、遥测、云同步或运行时规则更新服务，也不会把个人浏览数据上传到Jammer运营的服务器。</p>
+    <p><strong>本地设置。</strong> <code>jammerSettings</code>可保存总保护、广告拦截、隐私/跟踪器、已知钓鱼网站、可选HTTPS升级、页面广告清理和内容过滤状态，以及所选类别、语言、广告白名单、内容过滤例外与手动危险域名。</p>
+    <p><strong>广告与广告脚本。</strong> 随扩展打包的EasyList衍生DNR规则会拦截已知广告域名，以及更广泛的横幅、路径、脚本、图片、框架、样式、XHR等广告请求；规则在构建阶段固定版本并编译。</p>
+    <p><strong>隐私 / 跟踪器。</strong> 独立EasyPrivacy衍生规则用于阻止已知跟踪脚本、像素、XHR、Ping、框架等端点，不上传拦截日志。</p>
+    <p><strong>已知钓鱼网站。</strong> 固定的Phishing-Database活跃域名快照会在构建阶段转换为导航拦截规则，阻止顶层/嵌入页面进入名单域名，包括最终落到名单域名的跳转。安装后的扩展不会运行时查询该数据源。</p>
+    <p><strong>手动危险网站列表。</strong> 用户输入的域名只保存在本地，并用于阻止顶层或嵌入页面导航。</p>
+    <p><strong>DNS边界。</strong> Jammer不检查原始DNS解析结果，无法可靠识别“主机名不变但被解析到恶意IP”的DNS污染。浏览器/操作系统的安全DNS或DoH仍是独立保护层。</p>
+    <p><strong>可选HTTPS升级。</strong> 默认关闭。启用后会请求可选HTTP/HTTPS网站访问权限，并仅对页面/框架导航使用本地<code>upgradeScheme</code>规则。仅支持HTTP的旧网站可能暂时无法打开。</p>
+    <p><strong>可选页面广告清理。</strong> 默认关闭。启用时请求可选<code>scripting</code>和网站访问权限，以注册扩展内置CSS过滤。</p>
+    <p><strong>可选内容过滤。</strong> 默认关闭。所选类别仅在本地匹配有限可见文字和标签，只隐藏命中的内容块；网页正文和匹配词不会上传，可能存在误判或漏判。</p>
+    <p><strong>权限。</strong> 必须：<code>declarativeNetRequest</code>、<code>storage</code>。可选：<code>scripting</code>、<code>http://*/*</code>、<code>https://*/*</code>。Jammer不请求tabs、history、cookies、webRequest、debugger、downloads或nativeMessaging。</p>
+    <p><strong>运行时联网边界。</strong> Jammer扩展页面使用<code>connect-src 'none'</code>。第三方规则来源只由构建脚本获取，不由安装后的扩展获取。</p>
     <p>完整政策：<a href="https://github.com/u2584604327-a11y/Jammer/blob/main/PRIVACY.md">PRIVACY.md</a>。隐私问题：<a href="https://github.com/u2584604327-a11y/Jammer/issues">GitHub Issues</a>。</p>
   </section>
 
-  <div class="footer">Jammer · local-first ad blocking · no telemetry</div>
+  <div class="footer">Jammer · local-first protection · no telemetry</div>
 </main>
 </body>
 </html>

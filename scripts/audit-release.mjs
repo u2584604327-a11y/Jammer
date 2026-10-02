@@ -69,6 +69,12 @@ const privacyResource = manifest.declarative_net_request?.rule_resources?.find(
 if (!privacyResource || privacyResource.path !== 'rules/easyprivacy-tracking.json') {
   fail('privacy_static ruleset contract changed');
 }
+const phishingResource = manifest.declarative_net_request?.rule_resources?.find(
+  (item) => item.id === 'phishing_static'
+);
+if (!phishingResource || phishingResource.path !== 'rules/phishing-active.json') {
+  fail('phishing_static ruleset contract changed');
+}
 
 const requiredFiles = [
   'manifest.json',
@@ -83,11 +89,13 @@ const requiredFiles = [
   'PROVENANCE.json',
   'AD_NETWORK_PROVENANCE.json',
   'PRIVACY_PROVENANCE.json',
+  'PHISHING_PROVENANCE.json',
   'COSMETIC_PROVENANCE.json',
   'THIRD_PARTY_NOTICES.txt',
   'rules/easylist-adservers.json',
   'rules/easylist-network-extended.json',
   'rules/easyprivacy-tracking.json',
+  'rules/phishing-active.json',
   'icons/icon-16.png',
   'icons/icon-32.png',
   'icons/icon-48.png',
@@ -130,6 +138,9 @@ if (zipNames.some((name) => name.endsWith('.ts') || name.endsWith('.map'))) {
 
 if (zipNames.some((name) => /easy(?:list|privacy).*\.txt$/i.test(name))) {
   fail('raw EasyList text leaked into archive or raw EasyPrivacy text leaked into archive');
+}
+if (zipNames.some((name) => /phishing.*\.txt$/i.test(name))) {
+  fail('raw phishing source leaked into archive');
 }
 
 if (metadata.version !== version) fail('release metadata version mismatch');

@@ -6,11 +6,11 @@ This phase prepares Jammer for manual browser-store submission without publishin
 
 Main product version:
 
-`0.8.1`
+`0.9.0`
 
 Release candidate:
 
-`jammer-0.8.1-chromium.zip`
+`jammer-0.9.0-chromium.zip`
 
 ## Store visual assets
 
@@ -43,7 +43,7 @@ See:
 
 ## Manual items still required before public submission
 
-1. Capture real browser screenshots from the final 0.8.1 build.
+1. Capture real browser screenshots from the final 0.9.0 build.
 2. Privacy policy is prepared at `PRIVACY.md`; use the public repository URL if a store submission is ever resumed.
 3. Choose publisher/developer identity.
 4. Review store-specific declarations and category.
@@ -55,7 +55,7 @@ See:
 Recommended screenshot set:
 
 1. Popup — Protection + Page ad cleanup enabled.
-2. Options — bilingual controls, content categories, ad-block allowlist, and content-filter exceptions.
+2. Options — bilingual ad/script, tracker, phishing, HTTPS-upgrade, content-category, allowlist, exception, and dangerous-domain controls.
 3. Local content-per-element placeholder showing the matched category and signals.
 4. Permission prompt / explicit optional site-access flow.
 5. Dark-mode UI.
