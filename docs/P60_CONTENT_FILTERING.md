@@ -43,7 +43,7 @@ It is intentionally not described as AI or semantic understanding.
 
 ## Warning model
 
-When a selected category crosses its threshold, Jammer displays a full-page warning overlay.
+When a selected category crosses its threshold, Jammer displays a full-page per-element placeholder.
 
 The warning:
 
@@ -59,7 +59,7 @@ Jammer does not delete the underlying page or permanently block navigation.
 
 Content-filter exceptions are separate from the existing ad-block allowlist.
 
-This means a user can allow page content warnings to be skipped for a site while keeping normal ad blocking active.
+This means a user can allow page content masking to be skipped for a site while keeping normal ad blocking active.
 
 ## Permissions
 
@@ -111,11 +111,11 @@ It does not claim to:
 
 Development manifest:
 
-`0.7.0`
+`0.7.1`
 
 Product build:
 
-`0.7.0`
+`0.7.1`
 
 Development and product builds are distinguished by build markers instead of presenting different visible version numbers.
 
