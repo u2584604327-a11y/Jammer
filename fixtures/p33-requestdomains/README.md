@@ -1,82 +1,97 @@
-# P3.3 requestDomains runtime fixture
+# P3.3 DNR runtime diagnostics
 
 This is an **isolated validation extension**, not the Jammer product extension.
 
-Purpose: verify that Edge/Chrome accepts and enforces a realistic `requestDomains` array size before Jammer considers shipping batched EasyList-derived rules.
+Purpose: identify why the first 204-entry `requestDomains` fixture did not block `example.com` in Edge.
 
-## Fixture shape
+## Diagnostic modes
 
-- Manifest V3
-- permission: `declarativeNetRequest` only
-- one enabled static ruleset
-- one block rule
-- `requestDomains` entries: 204
-- includes `example.com`
-- remaining entries use reserved `.invalid` domains
+The popup can switch between four modes:
 
-The 204-entry size matches the largest bucket observed in the P3.1 EasyList projection using 256 hash buckets.
+1. **Off** — all fixture rulesets disabled.
+2. **urlFilter baseline** — one rule blocks `example.com` via `urlFilter`.
+3. **requestDomains ×1** — one rule blocks `example.com` via a single-entry `requestDomains` array.
+4. **requestDomains ×204** — one rule contains 204 `requestDomains` entries, including `example.com`.
 
-## Build
+All rules explicitly target `main_frame`.
 
-No build step is required for this isolated fixture.
+## Why this isolates the failure
 
-Load this directory directly as an unpacked extension:
+Interpretation:
 
-```text
-fixtures/p33-requestdomains/
-```
+| Result | Meaning |
+| --- | --- |
+| urlFilter FAIL | General DNR/navigation issue; do not blame requestDomains batching |
+| urlFilter PASS, ×1 FAIL | Edge requestDomains behavior/integration issue |
+| ×1 PASS, ×204 FAIL | Large requestDomains array is the problem |
+| ×1 PASS, ×204 PASS | First fixture failure came from its previous shape/load state, not array size |
 
-Do **not** select Jammer's normal `dist/` directory for this test.
+## Load
 
-## Runtime test
+No build is required.
 
-1. Confirm `https://example.com/` loads normally before installing the fixture.
-2. Open `edge://extensions` or `chrome://extensions`.
-3. Enable Developer mode.
-4. Choose **Load unpacked**.
-5. Select `fixtures/p33-requestdomains/`.
-6. Confirm the fixture extension loads without a ruleset error.
-7. Open `https://example.com/`.
+1. Fetch PR #8 branch.
+2. Open `edge://extensions`.
+3. Remove the older P3.3 fixture if present.
+4. **Load unpacked**:
+   `fixtures/p33-requestdomains/`
+5. Confirm version is `0.0.2`.
+6. The extension is now clickable because it has a diagnostic popup.
 
-Expected while fixture is enabled:
+## Test sequence
 
-```text
-example.com is blocked by the browser extension / ERR_BLOCKED_BY_CLIENT
-```
+Start with `https://example.com/` loading normally.
 
-8. Disable or remove the fixture extension.
-9. Reload `https://example.com/`.
+### Mode 0 — Off
 
-Expected:
+Open popup → **0. Off** → refresh example.com.
 
-```text
-example.com loads normally
-```
+Expected: loads normally.
+
+### Mode 1 — urlFilter baseline
+
+Open popup → **1. urlFilter baseline** → refresh example.com.
+
+Expected: blocked / `ERR_BLOCKED_BY_CLIENT`.
+
+### Mode 2 — requestDomains ×1
+
+Open popup → **2. requestDomains ×1** → refresh example.com.
+
+Expected: blocked.
+
+### Mode 3 — requestDomains ×204
+
+Open popup → **3. requestDomains ×204** → refresh example.com.
+
+Expected: blocked if realistic bucket size is supported.
 
 ## Acceptance record
 
 ```text
 BROWSER_NAME=
 BROWSER_VERSION=
+FIXTURE_VERSION=0.0.2
 FIXTURE_LOAD=
+MODE_OFF=
+MODE_URLFILTER=
+MODE_REQUESTDOMAINS_1=
+MODE_REQUESTDOMAINS_204=
 RULESET_ERROR=
-REQUESTDOMAINS_COUNT=204
-EXAMPLE_COM_BEFORE=
-EXAMPLE_COM_WITH_FIXTURE=
-EXAMPLE_COM_AFTER_DISABLE=
 PERMISSIONS_RUNTIME=
 BLOCKED=
 ```
 
 ## Security
 
-The fixture:
-- does not use host permissions
-- does not use content scripts
-- does not use background/service workers
-- does not use webRequest
-- does not make network requests of its own
-- is not copied into Jammer's production `dist/`
-- must not be published as a standalone extension
+The fixture still has:
 
-P3.3 remains blocked until a real Edge/Chrome runtime test passes.
+- `declarativeNetRequest` only
+- no host permissions
+- no content scripts
+- no background/service worker
+- no webRequest
+- no telemetry
+- no remote requests
+
+The fixture is not copied into Jammer's production `dist/` and must not be published.
