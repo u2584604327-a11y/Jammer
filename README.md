@@ -14,6 +14,12 @@ Jammer is a local-first Manifest V3 browser extension for blocking network ads a
 - **Reversible permissions:** page cleanup requests optional site access only when enabled and removes it when disabled.
 - **No telemetry:** no analytics, account system, cloud sync, or runtime filter-list download.
 
+## Privacy policy
+
+Public bilingual policy: [PRIVACY.md](PRIVACY.md)
+
+Standalone page source: [`docs/privacy/index.html`](docs/privacy/index.html)
+
 ## Privacy and permission model
 
 Required permissions:
@@ -104,6 +110,7 @@ The extension does not update filter lists at runtime.
 - [P4.3 EasyList cosmetic filtering](docs/P43_EASYLIST_COSMETIC.md)
 - [P5.5 cover integration](docs/P55_COVER_INTEGRATION.md)
 - [P5.6 store listing preparation](docs/P56_STORE_LISTING.md)
+- [P5.7 privacy policy](docs/P57_PRIVACY_POLICY.md)
 - [Security](SECURITY.md)
 
 ## Status

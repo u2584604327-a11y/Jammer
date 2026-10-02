@@ -44,7 +44,7 @@ See:
 ## Manual items still required before public submission
 
 1. Capture real browser screenshots from the final 0.6.0 build.
-2. Provide a public privacy-policy URL.
+2. Privacy policy is prepared at `PRIVACY.md`; use the public repository URL if a store submission is ever resumed.
 3. Choose publisher/developer identity.
 4. Review store-specific declarations and category.
 5. Upload the audited ZIP and visual assets manually.
@@ -68,5 +68,5 @@ Do not manufacture screenshots that imply functionality the extension does not p
 P5.6 does not:
 - publish to a store
 - create or accept store legal declarations on the user's behalf
-- create a public privacy URL
+- submit the privacy URL to a store
 - enable automatic updates
