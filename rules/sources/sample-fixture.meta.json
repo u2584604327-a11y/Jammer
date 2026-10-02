@@ -1,0 +1,10 @@
+{
+  "id": "jammer-p2-sample",
+  "title": "Jammer P2 repository-owned sample",
+  "format": "mixed-domain",
+  "provenance": "repository-owned-test-fixture",
+  "sourceUrl": null,
+  "homepageUrl": null,
+  "license": "project-owned",
+  "remoteUpdate": false
+}
