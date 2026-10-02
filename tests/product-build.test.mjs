@@ -5,12 +5,15 @@ import { readFile } from 'node:fs/promises';
 test('product build keeps Jammer ruleset contract and adds optional cosmetic capability', async () => {
   const source = await readFile('scripts/build-product.mjs', 'utf8');
 
-  assert.match(source, /version: '0\.8\.1'/);
+  assert.match(source, /version: '0\.9\.0'/);
   assert.match(source, /id: 'ads_static'/);
   assert.match(source, /id: 'ads_extended'/);
   assert.match(source, /rules\/easylist-network-extended\.json/);
   assert.match(source, /AD_NETWORK_PROVENANCE\.json/);
   assert.match(source, /id: 'privacy_static'/);
+  assert.match(source, /id: 'phishing_static'/);
+  assert.match(source, /rules\/phishing-active\.json/);
+  assert.match(source, /PHISHING_PROVENANCE\.json/);
   assert.match(source, /rules\/easyprivacy-tracking\.json/);
   assert.match(source, /PRIVACY_PROVENANCE\.json/);
   assert.match(source, /id: 'privacy_static'/);
