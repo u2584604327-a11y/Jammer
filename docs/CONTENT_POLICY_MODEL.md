@@ -4,35 +4,67 @@ Jammer must not treat "undesirable content" as one opaque category.
 
 ## Model
 
-Content controls are explicit user preferences. Future categories may include, for example:
+Content controls are explicit user preferences. Current local categories are:
 
-- intrusive ads
-- scam/phishing domains
-- gambling promotion
+- gambling / betting promotion
 - explicit sexual material
 - graphic violence
-- clickbait or nuisance overlays
+- scam-like promotion
+- clickbait / nuisance content
 
-A category must not be enabled silently merely because it exists.
+Every category is disabled by default. Enabling the content-filter master switch without selecting a category is not sufficient to activate scanning.
 
-## P1
+## P6.0 implementation
 
-Only ad/network blocking is implemented.
+P6.0 implements local-first, opt-in page-text classification.
 
-No page text, images, search queries, messages, or form contents are read.
+When enabled, Jammer:
 
-## Future category-filtering requirements
+- requests the existing optional `scripting` + HTTP/HTTPS site-access capability;
+- registers packaged content scripts dynamically;
+- reads a limited amount of page title, description, headings, and visible body text;
+- normalizes text locally;
+- scores only user-selected categories using packaged weighted keyword signals;
+- shows a full-page warning when a category reaches its threshold;
+- shows the responsible category and matched signals;
+- lets the user reveal the page immediately;
+- lets the user add the current site to a separate local content-filter exception list;
+- does not upload page contents or matched terms to a Jammer server.
 
-A future category filter must:
+The content classifier is not an AI service and does not claim semantic understanding.
 
-- be opt-in except for clearly documented security lists
-- show the category responsible for a block/warning
-- support per-site exceptions
-- support immediate disable
-- keep classification local when practical
-- document false-positive expectations
-- avoid transmitting page contents to a remote service by default
+## False-positive model
 
-## Security lists
+P6.0 deliberately prefers a warning overlay over destructive removal or navigation blocking.
 
-Phishing/malware protection, if added later, is a separate security feature from subjective content categories and must have independent provenance, update, and false-positive handling.
+This means:
+
+- the underlying page is not deleted;
+- the user can dismiss the warning for the current page;
+- site exceptions are reversible;
+- false positives do not make the page inaccessible;
+- false negatives remain possible.
+
+Weighted thresholds reduce accidental matching from isolated generic words, but do not eliminate false positives.
+
+## Category boundaries
+
+The scam-like category is a local warning heuristic, not a phishing/malware security guarantee.
+
+Jammer does not claim to identify all fraud, phishing, malware, illegal material, or unsafe sites.
+
+A future security-list feature would require separate provenance, update, and false-positive handling.
+
+## Permission boundary
+
+Page-text classification requires DOM access and therefore uses the same optional site-access capability already used by page-ad cleanup.
+
+The permission remains optional and is removed when neither page-ad cleanup nor content filtering needs it.
+
+Jammer does not request `tabs`, `history`, `cookies`, `webRequest`, `debugger`, `downloads`, or `nativeMessaging`.
+
+## Data boundary
+
+P6.0 does not intentionally read form field values, password values, cookies, browser history, or search history.
+
+Visible page text used for classification is processed transiently in the page and is not stored as browsing history or transmitted to a Jammer server.
