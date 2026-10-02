@@ -15,7 +15,10 @@
     "path": "easylist/easylist_specific_hide.txt",
     "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easylist/easylist_specific_hide.txt",
     "expectedSizeBytes": 437250,
-    "expectedGitBlobSha1": "49e3937b6ca2cce86da30bb5a47162f3af7d042b"
+    "expectedGitBlobSha1": "49e3937b6ca2cce86da30bb5a47162f3af7d042b",
+    "expectedSafeRules": 8606,
+    "expectedUniqueDomains": 6552,
+    "expectedRejected": 293
   },
   "runtimeUpdate": false
 }
