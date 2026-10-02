@@ -7,9 +7,17 @@ test('privacy policy documents actual local settings and permissions', async () 
   const config = await readFile('src/core/config.ts', 'utf8');
   const manifest = JSON.parse(await readFile('manifest.json', 'utf8'));
 
-  for (const field of ['enabled', 'adsEnabled', 'cosmeticEnabled', 'language', 'allowlist']) {
+  const documentedSettings = [
+    ['enabled', /protection/i],
+    ['adsEnabled', /network ad blocking/i],
+    ['cosmeticEnabled', /page-ad cleanup/i],
+    ['language', /language preference/i],
+    ['allowlist', /allowlist/i]
+  ];
+
+  for (const [field, policyPattern] of documentedSettings) {
     assert.match(config, new RegExp(field));
-    assert.match(policy, new RegExp(field === 'enabled' ? 'protection' : field, 'i'));
+    assert.match(policy, policyPattern);
   }
 
   assert.deepEqual(manifest.permissions.sort(), ['declarativeNetRequest', 'storage'].sort());
