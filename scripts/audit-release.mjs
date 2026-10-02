@@ -63,6 +63,8 @@ const requiredFiles = [
   'popup.js',
   'options.html',
   'options.js',
+  'content-classifier.js',
+  'content-filter.js',
   'styles.css',
   'assets/jammer-cover.webp',
   'PROVENANCE.json',
