@@ -75,6 +75,12 @@ const phishingResource = manifest.declarative_net_request?.rule_resources?.find(
 if (!phishingResource || phishingResource.path !== 'rules/phishing-active.json') {
   fail('phishing_static ruleset contract changed');
 }
+const securityResource = manifest.declarative_net_request?.rule_resources?.find(
+  (item) => item.id === 'security_static'
+);
+if (!securityResource || securityResource.path !== 'rules/ublock-security.json') {
+  fail('security_static ruleset contract changed');
+}
 
 const requiredFiles = [
   'manifest.json',
@@ -84,18 +90,24 @@ const requiredFiles = [
   'options.js',
   'content-classifier.js',
   'content-filter.js',
+  'content-category-domains.js',
+  'cosmetic-specific-rules.js',
+  'cosmetic-specific-filter.js',
+  'ad-element-filter.js',
   'styles.css',
   'assets/jammer-cover.webp',
   'PROVENANCE.json',
   'AD_NETWORK_PROVENANCE.json',
   'PRIVACY_PROVENANCE.json',
   'PHISHING_PROVENANCE.json',
+  'SECURITY_PROVENANCE.json',
   'COSMETIC_PROVENANCE.json',
   'THIRD_PARTY_NOTICES.txt',
   'rules/easylist-adservers.json',
   'rules/easylist-network-extended.json',
   'rules/easyprivacy-tracking.json',
   'rules/phishing-active.json',
+  'rules/ublock-security.json',
   'icons/icon-16.png',
   'icons/icon-32.png',
   'icons/icon-48.png',
@@ -141,6 +153,9 @@ if (zipNames.some((name) => /easy(?:list|privacy).*\.txt$/i.test(name))) {
 }
 if (zipNames.some((name) => /phishing.*\.txt$/i.test(name))) {
   fail('raw phishing source leaked into archive');
+}
+if (zipNames.some((name) => /(?:badware|resource-abuse|gambling-only|porn-only).*\.txt$/i.test(name))) {
+  fail('raw security/content-category source leaked into archive');
 }
 
 if (metadata.version !== version) fail('release metadata version mismatch');
