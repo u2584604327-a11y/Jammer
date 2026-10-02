@@ -51,6 +51,8 @@ test('stubborn-banner heuristic stays local and requires multiple ad signals', a
   assert.match(source, /JAMMER_AD_URL_RE/);
   assert.match(source, /jammerAdDomainListed/);
   assert.match(source, /dimensions\.aspect >= 2\.2/);
+  assert.match(source, /jammerAdDenseBannerStrip/);
+  assert.match(source, /compactBannerCount >= 3 && externalDestinationCount >= 2/);
   assert.match(source, /jammerAdCandidateScore\(anchor\) < 5/);
   assert.match(source, /MutationObserver/);
 
