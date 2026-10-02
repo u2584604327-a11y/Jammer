@@ -1,0 +1,30 @@
+{
+  "id": "easyprivacy-tracking-pinned-2026-10-02",
+  "title": "EasyPrivacy tracking servers pinned snapshot",
+  "format": "mixed-domain",
+  "provenance": "easylist/easylist pinned Git commit",
+  "license": "GPL-3.0-or-later OR CC-BY-SA-3.0-or-later",
+  "remoteUpdate": false,
+  "source": {
+    "repository": "easylist/easylist",
+    "commit": "3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8",
+    "commitTimestamp": "2026-10-02T03:16:00Z",
+    "path": "easyprivacy/easyprivacy_trackingservers_general.txt",
+    "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easyprivacy/easyprivacy_trackingservers_general.txt",
+    "expectedGitBlobSha1": "1b597e69051308fc4a4ed57a023df6ec33b61161",
+    "expectedSizeBytes": 9428
+  },
+  "attribution": {
+    "name": "The EasyList/EasyPrivacy authors",
+    "licensePage": "https://easylist.to/pages/licence.html",
+    "repository": "https://github.com/easylist/easylist"
+  },
+  "compiler": {
+    "bucketCount": 64,
+    "ruleIdBase": 11000000,
+    "expectedAcceptedDomains": 534,
+    "expectedRejectedRules": 3,
+    "expectedDuplicates": 0,
+    "expectedEmittedRules": 64
+  }
+}
