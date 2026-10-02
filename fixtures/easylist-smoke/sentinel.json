@@ -1,0 +1,11 @@
+[
+  {
+    "id": 2147483000,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "requestDomains": ["example.com"],
+      "resourceTypes": ["main_frame"]
+    }
+  }
+]
