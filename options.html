@@ -13,7 +13,7 @@
       <span class="brand-mark" aria-hidden="true"><span>J</span></span>
       <div>
         <h1 id="options-title">Jammer Options</h1>
-        <p class="build-id">Jammer 0.8.1</p>
+        <p class="build-id">Jammer 0.9.0</p>
       </div>
     </div>
     <select id="language-select" class="compact-select" aria-label="Language">
@@ -43,6 +43,18 @@
       <input id="privacy-enabled" class="switch" type="checkbox">
     </div>
     <p id="privacy-description" class="muted">Blocks packaged known tracking endpoints for scripts, pixels, XHR, pings, and embedded frames.</p>
+    <div class="divider"></div>
+    <div class="feature-row">
+      <label id="phishing-label" for="phishing-enabled">Known phishing-site blocking</label>
+      <input id="phishing-enabled" class="switch" type="checkbox">
+    </div>
+    <p id="phishing-description" class="muted">Blocks top-level and embedded navigation to domains from a pinned active phishing feed.</p>
+    <div class="divider"></div>
+    <div class="feature-row">
+      <label id="secure-navigation-label" for="secure-navigation-enabled">Upgrade HTTP navigation to HTTPS</label>
+      <input id="secure-navigation-enabled" class="switch" type="checkbox">
+    </div>
+    <p id="secure-navigation-description" class="muted">Optional. Upgrades HTTP page/frame navigation to HTTPS. Some legacy HTTP-only sites may fail.</p>
   </section>
 
   <section class="card settings-card">
