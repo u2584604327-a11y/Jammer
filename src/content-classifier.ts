@@ -196,7 +196,14 @@ function jammerClassifyContent(
   return matches.sort((a, b) => b.score - a.score || a.category.localeCompare(b.category));
 }
 
-globalThis.JammerContentClassifier = {
+const jammerClassifierGlobal = globalThis as unknown as {
+  JammerContentClassifier: {
+    classify: typeof jammerClassifyContent;
+    definitions: typeof JAMMER_CONTENT_DEFINITIONS;
+  };
+};
+
+jammerClassifierGlobal.JammerContentClassifier = {
   classify: jammerClassifyContent,
   definitions: JAMMER_CONTENT_DEFINITIONS
 };
