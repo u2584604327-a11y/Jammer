@@ -30,7 +30,12 @@ const JAMMER_CONTENT_FILTER_CANDIDATE_SELECTOR = [
   "[class*='result' i]",
   "[class*='entry' i]",
   "[class*='comment' i]",
-  "[class*='tile' i]"
+  "[class*='tile' i]",
+  "[class*='item' i]",
+  "[class*='recommend' i]",
+  "[class*='video' i]",
+  "[class*='news' i]",
+  "[class*='content' i]"
 ].join(",");
 
 const JAMMER_CONTENT_FILTER_CONTAINER_SELECTOR = [
@@ -46,7 +51,12 @@ const JAMMER_CONTENT_FILTER_CONTAINER_SELECTOR = [
   "[class*='result' i]",
   "[class*='entry' i]",
   "[class*='comment' i]",
-  "[class*='tile' i]"
+  "[class*='tile' i]",
+  "[class*='item' i]",
+  "[class*='recommend' i]",
+  "[class*='video' i]",
+  "[class*='news' i]",
+  "[class*='content' i]"
 ].join(",");
 
 const JAMMER_CONTENT_FILTER_DEFAULT_CATEGORIES: JammerContentFilterCategories = {
@@ -164,6 +174,28 @@ function jammerContentFilterCandidateText(element: HTMLElement): string {
   return (element.innerText ?? "").replace(/\s+/g, " ").trim();
 }
 
+function jammerContentFilterAttributeText(element: HTMLElement): string {
+  const values: string[] = [];
+
+  for (const node of Array.from(
+    element.querySelectorAll<HTMLElement>("[aria-label],[title],img[alt],a[title]")
+  ).slice(0, 40)) {
+    const aria = node.getAttribute("aria-label");
+    const title = node.getAttribute("title");
+    const alt = node instanceof HTMLImageElement ? node.alt : null;
+    if (aria) values.push(aria);
+    if (title) values.push(title);
+    if (alt) values.push(alt);
+  }
+
+  const selfAria = element.getAttribute("aria-label");
+  const selfTitle = element.getAttribute("title");
+  if (selfAria) values.push(selfAria);
+  if (selfTitle) values.push(selfTitle);
+
+  return values.join(" ").replace(/\s+/g, " ").trim().slice(0, 4_000);
+}
+
 function jammerContentFilterCandidateEligible(element: HTMLElement): boolean {
   if (!element.isConnected) return false;
   if (element.hasAttribute(JAMMER_CONTENT_FILTER_REVEALED_ATTR)) return false;
@@ -206,7 +238,7 @@ function jammerContentFilterSampleForElement(element: HTMLElement): JammerConten
 
   return {
     title: "",
-    description: "",
+    description: jammerContentFilterAttributeText(element),
     headings: [selfHeading, headings].filter(Boolean).join(" "),
     body: jammerContentFilterCandidateText(element).slice(0, 8_000)
   };
@@ -310,6 +342,36 @@ function jammerContentFilterCreatePlaceholder(
     jammerContentFilterRestoreElement(element);
   });
 
+  const exitPage = document.createElement("button");
+  exitPage.type = "button";
+  exitPage.textContent = language === "zh-CN" ? "退出此网页" : "Leave this page";
+  exitPage.style.cssText = [
+    "border:1px solid #7f1d1d",
+    "border-radius:9px",
+    "padding:7px 11px",
+    "cursor:pointer",
+    "font:inherit",
+    "font-size:12px",
+    "font-weight:700",
+    "background:#450a0a",
+    "color:#fee2e2"
+  ].join(";");
+  exitPage.addEventListener("click", () => {
+    if (window !== window.top) return;
+    if (history.length > 1) {
+      history.back();
+      window.setTimeout(() => {
+        try {
+          location.replace("about:blank");
+        } catch {
+          // Navigation may already be in progress.
+        }
+      }, 700);
+      return;
+    }
+    location.replace("about:blank");
+  });
+
   const allowSite = document.createElement("button");
   allowSite.type = "button";
   allowSite.textContent = language === "zh-CN" ? "此网站不做内容过滤" : "Skip content filtering on this site";
@@ -341,7 +403,9 @@ function jammerContentFilterCreatePlaceholder(
     : "Matched on-device; page text is not sent to a Jammer server.";
   privacy.style.cssText = "font-size:10px;color:#94a3b8;margin-top:9px;";
 
-  actions.append(reveal, allowSite);
+  actions.append(reveal);
+  if (window === window.top) actions.append(exitPage);
+  actions.append(allowSite);
   placeholder.append(title, detail, actions, privacy);
   return placeholder;
 }
