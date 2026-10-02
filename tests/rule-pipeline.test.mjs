@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { compileDnrRules, normalizeRuleDomain, parseRuleSource } from '../scripts/rule-pipeline.mjs';
+import {
+  bucketDomains,
+  compileDnrRequestDomainBuckets,
+  compileDnrRules,
+  normalizeRuleDomain,
+  parseRuleSource
+} from '../scripts/rule-pipeline.mjs';
 
 const metadata = {
   id: 'test-source',
@@ -78,4 +84,45 @@ test('metadata requires explicit local-only remote update policy', () => {
   assert.throws(() =>
     compileDnrRules('||ads.example.com^', { ...metadata, remoteUpdate: true })
   );
+});
+
+test('requestDomains buckets are deterministic across input ordering', () => {
+  const a = compileDnrRequestDomainBuckets(
+    '||c.example.com^\n||a.example.com^\n||b.example.com^',
+    metadata,
+    { bucketCount: 4 }
+  );
+  const b = compileDnrRequestDomainBuckets(
+    '||b.example.com^\n||c.example.com^\n||a.example.com^',
+    metadata,
+    { bucketCount: 4 }
+  );
+  assert.deepEqual(a.rules, b.rules);
+});
+
+test('requestDomains bucket compiler emits block-only domain arrays', () => {
+  const compiled = compileDnrRequestDomainBuckets(
+    '||ads.example.com^\n||tracker.example.com^\n||beacon.example.com^',
+    metadata,
+    { bucketCount: 2, ruleIdBase: 2000 }
+  );
+
+  assert.ok(compiled.rules.length >= 1 && compiled.rules.length <= 2);
+  const flattened = compiled.rules.flatMap((rule) => rule.condition.requestDomains).sort();
+  assert.deepEqual(flattened, ['ads.example.com', 'beacon.example.com', 'tracker.example.com']);
+
+  for (const rule of compiled.rules) {
+    assert.equal(rule.action.type, 'block');
+    assert.equal('urlFilter' in rule.condition, false);
+    assert.equal('regexFilter' in rule.condition, false);
+    assert.ok(Array.isArray(rule.condition.requestDomains));
+    assert.ok(rule.condition.requestDomains.length > 0);
+  }
+});
+
+test('bucket assignment is stable and validates bucket count', () => {
+  const domains = ['a.example.com', 'b.example.com', 'c.example.com'];
+  assert.deepEqual(bucketDomains(domains, 8), bucketDomains([...domains].reverse(), 8));
+  assert.throws(() => bucketDomains(domains, 0));
+  assert.throws(() => bucketDomains(domains, 5000));
 });
