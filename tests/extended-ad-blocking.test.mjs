@@ -33,10 +33,22 @@ test('normal ad toggle controls base and extended ad rulesets together', async (
   const options = await readFile('src/options.ts', 'utf8');
   const popup = await readFile('src/popup.ts', 'utf8');
 
-  assert.match(options, /OPTIONS_ADS_RULESET_IDS = ["ads_static", "ads_extended"]/);
-  assert.match(options, /for (const id of OPTIONS_ADS_RULESET_IDS) desired.add(id)/);
-  assert.match(popup, /POPUP_ADS_RULESET_IDS = ["ads_static", "ads_extended"]/);
-  assert.match(popup, /for (const id of POPUP_ADS_RULESET_IDS) desired.add(id)/);
+  assert.equal(
+    options.includes('const OPTIONS_ADS_RULESET_IDS = ["ads_static", "ads_extended"] as const;'),
+    true
+  );
+  assert.equal(
+    options.includes('for (const id of OPTIONS_ADS_RULESET_IDS) desired.add(id);'),
+    true
+  );
+  assert.equal(
+    popup.includes('const POPUP_ADS_RULESET_IDS = ["ads_static", "ads_extended"] as const;'),
+    true
+  );
+  assert.equal(
+    popup.includes('for (const id of POPUP_ADS_RULESET_IDS) desired.add(id);'),
+    true
+  );
 });
 
 test('extended ad rules stay separate from privacy/tracker controls', async () => {
