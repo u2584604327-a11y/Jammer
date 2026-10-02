@@ -1,0 +1,30 @@
+{
+  "id": "ublock-security-pinned-2026-10-02",
+  "repository": "uBlockOrigin/uAssets",
+  "commit": "27d3927bd59fcfde571ecba3621bb78c950dcb9d",
+  "license": "GPL-3.0",
+  "runtimeUpdate": false,
+  "sources": [
+    {
+      "id": "badware",
+      "path": "filters/badware.txt",
+      "url": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/27d3927bd59fcfde571ecba3621bb78c950dcb9d/filters/badware.txt",
+      "expectedGitBlobSha1": "3e1dc6ef4a3f07997949987d02d93d6263715126",
+      "expectedSizeBytes": 260240,
+      "ruleIdBase": 14000000,
+      "expectedAccepted": 4329,
+      "expectedRejected": 65
+    },
+    {
+      "id": "resource_abuse",
+      "path": "filters/resource-abuse.txt",
+      "url": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/27d3927bd59fcfde571ecba3621bb78c950dcb9d/filters/resource-abuse.txt",
+      "expectedGitBlobSha1": "8f8a0bc7d2c324daf6b63114e587e03fd2a30c15",
+      "expectedSizeBytes": 9223,
+      "ruleIdBase": 14100000,
+      "expectedAccepted": 60,
+      "expectedRejected": 18
+    }
+  ],
+  "expectedTotalRules": 4389
+}
