@@ -12,7 +12,10 @@
     "rules:compile": "node scripts/compile-rules.mjs",
     "rules:compile:sample": "node scripts/compile-rules.mjs rules/sources/sample-fixture.txt rules/sources/sample-fixture.meta.json generated/sample-rules.json generated/sample-report.json",
     "rules:compile:buckets": "node scripts/compile-domain-buckets.mjs",
-    "rules:compile:buckets:sample": "node scripts/compile-domain-buckets.mjs rules/sources/sample-fixture.txt rules/sources/sample-fixture.meta.json generated/sample-bucket-rules.json generated/sample-bucket-report.json 16"
+    "rules:compile:buckets:sample": "node scripts/compile-domain-buckets.mjs rules/sources/sample-fixture.txt rules/sources/sample-fixture.meta.json generated/sample-bucket-rules.json generated/sample-bucket-report.json 16",
+    "rules:prepare:easylist": "node scripts/prepare-easylist.mjs",
+    "build:easylist-smoke": "node scripts/build-easylist-smoke.mjs",
+    "smoke:easylist": "npm run rules:prepare:easylist && npm run build:easylist-smoke"
   },
   "engines": {
     "node": ">=22"
