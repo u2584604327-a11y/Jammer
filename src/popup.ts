@@ -111,6 +111,7 @@ const protection = popupRequireElement<HTMLInputElement>("#protection");
 const statusElement = popupRequireElement<HTMLElement>("#status");
 const optionsButton = popupRequireElement<HTMLButtonElement>("#open-options");
 
+statusElement.textContent = "Starting…";
 protection.disabled = true;
 
 async function popupRefresh(): Promise<void> {
