@@ -14,6 +14,7 @@ const OPTIONS_ADS_RULESET_ID = "ads_static";
 const OPTIONS_ALLOWLIST_RULE_ID_BASE = 1_000_000;
 const OPTIONS_ALLOWLIST_RULE_ID_LIMIT = 1_999_999;
 const OPTIONS_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
+const OPTIONS_COSMETIC_SITE_SCRIPT_ID = "jammer-cosmetic-canyoublockit";
 const OPTIONS_COSMETIC_ORIGINS = ["http://*/*", "https://*/*"];
 
 const OPTIONS_DEFAULT_SETTINGS: OptionsSettings = {
@@ -183,7 +184,7 @@ function optionsPermissionRemove(): Promise<boolean> {
 function optionsGetRegisteredCosmetic(): Promise<JammerContentScript[]> {
   return new Promise((resolve, reject) => {
     chrome.scripting.getRegisteredContentScripts(
-      { ids: [OPTIONS_COSMETIC_SCRIPT_ID] },
+      { ids: [OPTIONS_COSMETIC_SCRIPT_ID, OPTIONS_COSMETIC_SITE_SCRIPT_ID] },
       (scripts) => {
         if (chrome.runtime.lastError) {
           reject(optionsRuntimeError("Cosmetic registration read failed"));
@@ -210,7 +211,7 @@ function optionsRegisterContentScript(script: JammerContentScript): Promise<void
 function optionsUnregisterContentScript(): Promise<void> {
   return new Promise((resolve, reject) => {
     chrome.scripting.unregisterContentScripts(
-      { ids: [OPTIONS_COSMETIC_SCRIPT_ID] },
+      { ids: [OPTIONS_COSMETIC_SCRIPT_ID, OPTIONS_COSMETIC_SITE_SCRIPT_ID] },
       () => {
         if (chrome.runtime.lastError) {
           reject(optionsRuntimeError("Cosmetic unregister failed"));
@@ -251,7 +252,16 @@ async function optionsApplyCosmetic(settings: OptionsSettings): Promise<void> {
     id: OPTIONS_COSMETIC_SCRIPT_ID,
     matches: OPTIONS_COSMETIC_ORIGINS,
     excludeMatches: optionsAllowlistExcludeMatches(settings.allowlist),
-    css: ["cosmetic.css"],
+    css: ["cosmetic.css", "cosmetic-easylist.css"],
+    runAt: "document_start",
+    allFrames: true,
+    persistAcrossSessions: true
+  });
+  await optionsRegisterContentScript({
+    id: OPTIONS_COSMETIC_SITE_SCRIPT_ID,
+    matches: ["*://canyoublockit.com/*", "*://*.canyoublockit.com/*"],
+    excludeMatches: optionsAllowlistExcludeMatches(settings.allowlist),
+    css: ["cosmetic-canyoublockit.css"],
     runAt: "document_start",
     allFrames: true,
     persistAcrossSessions: true
