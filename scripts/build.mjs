@@ -38,11 +38,11 @@ for (const file of ['dist/popup.html', 'dist/options.html']) {
 }
 
 const manifest = JSON.parse(await readFile('dist/manifest.json', 'utf8'));
-if (manifest.version !== '0.1.5') {
+if (manifest.version !== '0.2.0') {
   throw new Error('Unexpected dist manifest version');
 }
 const popupHtml = await readFile('dist/popup.html', 'utf8');
-if (!popupHtml.includes('Build: p431-canyoublockit-cleanup-dev')) {
+if (!popupHtml.includes('Build: p51-ui-polish-dev')) {
   throw new Error('Popup build marker missing from dist');
 }
 
