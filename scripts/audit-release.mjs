@@ -56,6 +56,12 @@ if (!manifest.content_security_policy?.extension_pages?.includes("connect-src 'n
 if (manifest.declarative_net_request?.rule_resources?.[0]?.id !== 'ads_static') {
   fail('ads_static ruleset contract changed');
 }
+const privacyResource = manifest.declarative_net_request?.rule_resources?.find(
+  (item) => item.id === 'privacy_static'
+);
+if (!privacyResource || privacyResource.path !== 'rules/easyprivacy-tracking.json') {
+  fail('privacy_static ruleset contract changed');
+}
 
 const requiredFiles = [
   'manifest.json',
@@ -68,9 +74,11 @@ const requiredFiles = [
   'styles.css',
   'assets/jammer-cover.webp',
   'PROVENANCE.json',
+  'PRIVACY_PROVENANCE.json',
   'COSMETIC_PROVENANCE.json',
   'THIRD_PARTY_NOTICES.txt',
   'rules/easylist-adservers.json',
+  'rules/easyprivacy-tracking.json',
   'icons/icon-16.png',
   'icons/icon-32.png',
   'icons/icon-48.png',
@@ -111,8 +119,8 @@ if (zipNames.some((name) => name.endsWith('.ts') || name.endsWith('.map'))) {
   fail('source TypeScript or source maps leaked into archive');
 }
 
-if (zipNames.some((name) => /easylist.*\.txt$/i.test(name))) {
-  fail('raw EasyList text leaked into archive');
+if (zipNames.some((name) => /easy(?:list|privacy).*\.txt$/i.test(name))) {
+  fail('raw EasyList/EasyPrivacy text leaked into archive');
 }
 
 if (metadata.version !== version) fail('release metadata version mismatch');
