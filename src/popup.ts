@@ -6,16 +6,19 @@ type PopupContentCategories = Record<PopupContentCategory, boolean>;
 interface PopupSettings {
   enabled: boolean;
   adsEnabled: boolean;
+  privacyEnabled: boolean;
   cosmeticEnabled: boolean;
   contentEnabled: boolean;
   contentCategories: PopupContentCategories;
   language: PopupLanguagePreference;
   allowlist: string[];
   contentAllowlist: string[];
+  blockedDomains: string[];
 }
 
 const POPUP_STORAGE_KEY = "jammerSettings";
 const POPUP_ADS_RULESET_ID = "ads_static";
+const POPUP_PRIVACY_RULESET_ID = "privacy_static";
 const POPUP_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
 const POPUP_COSMETIC_SITE_SCRIPT_ID = "jammer-cosmetic-canyoublockit";
 const POPUP_CONTENT_SCRIPT_ID = "jammer-content-filter";
@@ -32,12 +35,14 @@ const POPUP_DEFAULT_CATEGORIES: PopupContentCategories = {
 const POPUP_DEFAULT_SETTINGS: PopupSettings = {
   enabled: true,
   adsEnabled: true,
+  privacyEnabled: true,
   cosmeticEnabled: false,
   contentEnabled: false,
   contentCategories: { ...POPUP_DEFAULT_CATEGORIES },
   language: "auto",
   allowlist: [],
-  contentAllowlist: []
+  contentAllowlist: [],
+  blockedDomains: []
 };
 
 const POPUP_STRINGS: Record<PopupResolvedLanguage, Record<string, string>> = {
@@ -45,6 +50,10 @@ const POPUP_STRINGS: Record<PopupResolvedLanguage, Record<string, string>> = {
     protection: "Protection",
     enabled: "Enabled",
     disabled: "Disabled",
+    privacy: "Privacy / tracker blocking",
+    privacyHint: "Block packaged known tracking scripts and data-collection endpoints.",
+    privacyOn: "Privacy / tracker blocking is on.",
+    privacyOff: "Privacy / tracker blocking is off.",
     cosmetic: "Page ad cleanup",
     cosmeticHint: "Hide explicit ad containers. Enabling requires website access.",
     cosmeticOn: "Page ad cleanup is on.",
@@ -66,6 +75,10 @@ const POPUP_STRINGS: Record<PopupResolvedLanguage, Record<string, string>> = {
     protection: "总保护",
     enabled: "已启用",
     disabled: "已停用",
+    privacy: "隐私 / 跟踪器拦截",
+    privacyHint: "拦截扩展内置规则识别的跟踪脚本和数据收集端点。",
+    privacyOn: "隐私 / 跟踪器拦截已开启。",
+    privacyOff: "隐私 / 跟踪器拦截已关闭。",
     cosmetic: "页面广告清理",
     cosmeticHint: "隐藏明确的页面广告容器。启用时需要网站访问权限。",
     cosmeticOn: "页面广告清理已开启。",
@@ -334,6 +347,7 @@ function popupSanitizeSettings(value: unknown): PopupSettings {
   return {
     enabled: typeof candidate.enabled === "boolean" ? candidate.enabled : true,
     adsEnabled: typeof candidate.adsEnabled === "boolean" ? candidate.adsEnabled : true,
+    privacyEnabled: typeof candidate.privacyEnabled === "boolean" ? candidate.privacyEnabled : true,
     cosmeticEnabled: typeof candidate.cosmeticEnabled === "boolean" ? candidate.cosmeticEnabled : false,
     contentEnabled: typeof candidate.contentEnabled === "boolean" ? candidate.contentEnabled : false,
     contentCategories: {
@@ -349,6 +363,9 @@ function popupSanitizeSettings(value: unknown): PopupSettings {
       : [],
     contentAllowlist: Array.isArray(candidate.contentAllowlist)
       ? candidate.contentAllowlist.filter((item): item is string => typeof item === "string")
+      : [],
+    blockedDomains: Array.isArray(candidate.blockedDomains)
+      ? candidate.blockedDomains.filter((item): item is string => typeof item === "string")
       : []
   };
 }
@@ -368,25 +385,31 @@ async function popupSaveSettings(settings: PopupSettings): Promise<void> {
 }
 
 async function popupApplyProtection(settings: PopupSettings): Promise<void> {
-  const shouldEnable = settings.enabled && settings.adsEnabled;
   const enabled = await popupGetEnabledRulesets();
-  const isEnabled = enabled.includes(POPUP_ADS_RULESET_ID);
-  if (shouldEnable === isEnabled) return;
+  const desired = new Set<string>();
 
-  await popupUpdateEnabledRulesets(
-    shouldEnable
-      ? { enableRulesetIds: [POPUP_ADS_RULESET_ID] }
-      : { disableRulesetIds: [POPUP_ADS_RULESET_ID] }
-  );
+  if (settings.enabled && settings.adsEnabled) desired.add(POPUP_ADS_RULESET_ID);
+  if (settings.enabled && settings.privacyEnabled) desired.add(POPUP_PRIVACY_RULESET_ID);
+
+  const managed = [POPUP_ADS_RULESET_ID, POPUP_PRIVACY_RULESET_ID];
+  const enableRulesetIds = managed.filter((id) => desired.has(id) && !enabled.includes(id));
+  const disableRulesetIds = managed.filter((id) => !desired.has(id) && enabled.includes(id));
+
+  if (enableRulesetIds.length === 0 && disableRulesetIds.length === 0) return;
+  await popupUpdateEnabledRulesets({ enableRulesetIds, disableRulesetIds });
 }
 
 const protection = popupRequireElement<HTMLInputElement>("#protection");
+const popupPrivacyToggle = popupRequireElement<HTMLInputElement>("#privacy-enabled");
 const popupCosmeticToggle = popupRequireElement<HTMLInputElement>("#cosmetic-enabled");
 const popupContentToggle = popupRequireElement<HTMLInputElement>("#content-enabled");
 const statusElement = popupRequireElement<HTMLElement>("#status");
+const privacyStatus = popupRequireElement<HTMLElement>("#privacy-status");
 const cosmeticStatus = popupRequireElement<HTMLElement>("#cosmetic-status");
 const contentStatus = popupRequireElement<HTMLElement>("#content-status");
 const protectionLabel = popupRequireElement<HTMLElement>("#protection-label");
+const popupPrivacyLabel = popupRequireElement<HTMLElement>("#privacy-label");
+const popupPrivacyHint = popupRequireElement<HTMLElement>("#privacy-hint");
 const popupCosmeticLabel = popupRequireElement<HTMLElement>("#cosmetic-label");
 const cosmeticHint = popupRequireElement<HTMLElement>("#cosmetic-hint");
 const popupContentLabel = popupRequireElement<HTMLElement>("#content-label");
@@ -400,12 +423,15 @@ function popupApplyTranslations(settings: PopupSettings): void {
 
   document.documentElement.lang = language;
   protectionLabel.textContent = strings.protection;
+  popupPrivacyLabel.textContent = strings.privacy;
+  popupPrivacyHint.textContent = strings.privacyHint;
   popupCosmeticLabel.textContent = strings.cosmetic;
   cosmeticHint.textContent = strings.cosmeticHint;
   popupContentLabel.textContent = strings.content;
   popupContentHint.textContent = strings.contentHint;
   optionsButton.textContent = strings.options;
   statusElement.textContent = settings.enabled ? strings.enabled : strings.disabled;
+  privacyStatus.textContent = settings.privacyEnabled ? strings.privacyOn : strings.privacyOff;
   cosmeticStatus.textContent = settings.cosmeticEnabled ? strings.cosmeticOn : strings.cosmeticOff;
   contentStatus.textContent = settings.contentEnabled ? strings.contentOn : strings.contentOff;
 
@@ -417,16 +443,19 @@ function popupApplyTranslations(settings: PopupSettings): void {
 async function popupRefresh(): Promise<void> {
   const settings = await popupLoadSettings();
   protection.checked = settings.enabled;
+  popupPrivacyToggle.checked = settings.privacyEnabled;
   popupCosmeticToggle.checked = settings.cosmeticEnabled;
   popupContentToggle.checked = settings.contentEnabled;
   popupApplyTranslations(settings);
   protection.disabled = false;
+  popupPrivacyToggle.disabled = false;
   popupCosmeticToggle.disabled = false;
   popupContentToggle.disabled = false;
   popupLanguageSelect.disabled = false;
 }
 
 protection.disabled = true;
+popupPrivacyToggle.disabled = true;
 popupCosmeticToggle.disabled = true;
 popupContentToggle.disabled = true;
 popupLanguageSelect.disabled = true;
@@ -447,6 +476,22 @@ protection.addEventListener("change", async () => {
   } finally {
     protection.disabled = false;
   }
+});
+
+popupPrivacyToggle.addEventListener("change", () => {
+  popupPrivacyToggle.disabled = true;
+  void popupLoadSettings().then(async (settings) => {
+    settings.privacyEnabled = popupPrivacyToggle.checked;
+    await popupSaveSettings(settings);
+    await popupApplyProtection(settings);
+    popupApplyTranslations(settings);
+  }).catch((error) => {
+    privacyStatus.textContent =
+      error instanceof Error ? error.message : "Could not update privacy blocking.";
+    void popupRefresh().catch(() => undefined);
+  }).finally(() => {
+    popupPrivacyToggle.disabled = false;
+  });
 });
 
 popupCosmeticToggle.addEventListener("change", () => {
@@ -581,11 +626,14 @@ void popupLoadSettings().then(async (settings) => {
   }
 
   protection.checked = settings.enabled;
+  popupPrivacyToggle.checked = settings.privacyEnabled;
   popupCosmeticToggle.checked = settings.cosmeticEnabled;
   popupContentToggle.checked = settings.contentEnabled;
   popupApplyTranslations(settings);
 
+  await popupApplyProtection(settings);
   protection.disabled = false;
+  popupPrivacyToggle.disabled = false;
   popupCosmeticToggle.disabled = false;
   popupContentToggle.disabled = false;
   popupLanguageSelect.disabled = false;
@@ -597,6 +645,7 @@ void popupLoadSettings().then(async (settings) => {
 }).catch((error) => {
   statusElement.textContent = error instanceof Error ? error.message : "Could not load settings";
   protection.disabled = false;
+  popupPrivacyToggle.disabled = false;
   popupCosmeticToggle.disabled = false;
   popupContentToggle.disabled = false;
   popupLanguageSelect.disabled = false;
