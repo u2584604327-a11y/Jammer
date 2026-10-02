@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Jammer P3.3 requestDomains fixture",
+  "version": "0.0.1",
+  "description": "Isolated runtime fixture for validating realistic requestDomains array sizes.",
+  "permissions": ["declarativeNetRequest"],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "batch_fixture",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  }
+}
