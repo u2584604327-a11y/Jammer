@@ -13,7 +13,7 @@ test('cosmetic stylesheet is local CSS only', async () => {
   assert.doesNotMatch(css, /javascript:/i);
 });
 
-test('cosmetic filtering is opt-in and CSS-only', async () => {
+test('cosmetic filtering is opt-in; generic layer stays CSS-only and packaged high-coverage helpers are explicit', async () => {
   const manifest = JSON.parse(await readFile('manifest.json', 'utf8'));
   const options = await readFile('src/options.ts', 'utf8');
 
@@ -35,9 +35,14 @@ test('cosmetic filtering is opt-in and CSS-only', async () => {
   );
   assert.match(
     options,
-    /id:\s*OPTIONS_CONTENT_SCRIPT_ID[\s\S]*?js:\s*\["content-classifier\.js", "content-filter\.js"\]/
+    /id:\s*OPTIONS_CONTENT_SCRIPT_ID[\s\S]*?js:\s*\["content-category-domains\.js", "content-classifier\.js", "content-filter\.js"\]/
+  );
+  assert.match(
+    options,
+    /id:\s*OPTIONS_COSMETIC_SPECIFIC_SCRIPT_ID[\s\S]*?js:\s*\["content-category-domains\.js", "cosmetic-specific-rules\.js", "cosmetic-specific-filter\.js", "ad-element-filter\.js"\]/
   );
   assert.equal(options.includes('executeScript'), false);
+  assert.equal(options.includes('fetch('), false);
 });
 
 test('allowlist domains are converted into cosmetic exclusions', async () => {
