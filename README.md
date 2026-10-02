@@ -2,16 +2,17 @@
 
 # Jammer
 
-Jammer is a local-first Manifest V3 browser extension for blocking network ads and hiding page ad containers with explicit, reversible user controls.
+Jammer is a local-first Manifest V3 browser extension for network ad blocking, page-ad cleanup, and opt-in local content-category warnings with explicit, reversible user controls.
 
 ## Current capabilities
 
 - **Network ad blocking:** pinned EasyList source compiled at build time into deterministic `declarativeNetRequest` rules.
 - **Page ad cleanup:** optional CSS-only cosmetic filtering using packaged selectors.
+- **Content filtering:** opt-in local text matching for gambling, explicit sexual material, graphic violence, scam-like promotion, and clickbait/nuisance content; warnings show the matched category and signals.
 - **Bilingual UI:** Auto / 中文 / English.
 - **Branded options cover:** packaged Jammer artwork shown locally inside the extension settings UI.
-- **Local allowlist:** exact-domain and subdomain exclusions stored only in extension storage.
-- **Reversible permissions:** page cleanup requests optional site access only when enabled and removes it when disabled.
+- **Local exceptions:** separate ad-block allowlist and content-filter exception list, both stored only in extension storage.
+- **Reversible permissions:** page cleanup and content filtering share optional site access; the permission is removed when neither feature needs it.
 - **No telemetry:** no analytics, account system, cloud sync, or runtime filter-list download.
 
 ## Privacy policy
@@ -29,7 +30,7 @@ declarativeNetRequest
 storage
 ```
 
-Optional permissions used only for page ad cleanup:
+Optional permissions used only for page ad cleanup or content filtering:
 
 ```text
 scripting
@@ -111,8 +112,9 @@ The extension does not update filter lists at runtime.
 - [P5.5 cover integration](docs/P55_COVER_INTEGRATION.md)
 - [P5.6 store listing preparation](docs/P56_STORE_LISTING.md)
 - [P5.7 privacy policy](docs/P57_PRIVACY_POLICY.md)
+- [P6.0 local content filtering](docs/P60_CONTENT_FILTERING.md)
 - [Security](SECURITY.md)
 
 ## Status
 
-The current product build is intended for unpacked-extension testing and validation. Store publication remains a separate release step.
+The current Jammer 0.7.0 product build is intended for unpacked-extension testing and validation. Store publication remains a separate release step.

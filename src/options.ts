@@ -1,12 +1,17 @@
 type OptionsLanguagePreference = "auto" | "zh-CN" | "en";
 type OptionsResolvedLanguage = "zh-CN" | "en";
+type OptionsContentCategory = "gambling" | "explicit" | "violence" | "scam" | "clickbait";
+type OptionsContentCategories = Record<OptionsContentCategory, boolean>;
 
 interface OptionsSettings {
   enabled: boolean;
   adsEnabled: boolean;
   cosmeticEnabled: boolean;
+  contentEnabled: boolean;
+  contentCategories: OptionsContentCategories;
   language: OptionsLanguagePreference;
   allowlist: string[];
+  contentAllowlist: string[];
 }
 
 const OPTIONS_STORAGE_KEY = "jammerSettings";
@@ -15,14 +20,26 @@ const OPTIONS_ALLOWLIST_RULE_ID_BASE = 1_000_000;
 const OPTIONS_ALLOWLIST_RULE_ID_LIMIT = 1_999_999;
 const OPTIONS_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
 const OPTIONS_COSMETIC_SITE_SCRIPT_ID = "jammer-cosmetic-canyoublockit";
+const OPTIONS_CONTENT_SCRIPT_ID = "jammer-content-filter";
 const OPTIONS_COSMETIC_ORIGINS = ["http://*/*", "https://*/*"];
+
+const OPTIONS_DEFAULT_CATEGORIES: OptionsContentCategories = {
+  gambling: false,
+  explicit: false,
+  violence: false,
+  scam: false,
+  clickbait: false
+};
 
 const OPTIONS_DEFAULT_SETTINGS: OptionsSettings = {
   enabled: true,
   adsEnabled: true,
   cosmeticEnabled: false,
+  contentEnabled: false,
+  contentCategories: { ...OPTIONS_DEFAULT_CATEGORIES },
   language: "auto",
-  allowlist: []
+  allowlist: [],
+  contentAllowlist: []
 };
 
 const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> = {
@@ -32,22 +49,40 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     network: "Network ad blocking",
     cosmeticTitle: "Page ad cleanup",
     cosmeticLabel: "Hide page ad containers",
-    cosmeticDescription: "Optional. When enabled, Edge asks for website access so Jammer can inject CSS-only ad hiding. Jammer does not read page text, forms, or passwords.",
+    cosmeticDescription:
+      "Optional. When enabled, Edge asks for website access so Jammer can inject CSS-only ad hiding.",
     cosmeticReload: "Reload open pages after changing this setting. Allowlisted sites are excluded.",
-    allowlistTitle: "Allowlist",
+    contentTitle: "Content filtering",
+    contentMaster: "Warn on selected content categories",
+    contentDescription:
+      "Optional local text matching. Jammer reads visible page text on-device only when this feature is enabled and never uploads the page text.",
+    contentReload:
+      "After first enabling, reload open pages once. Existing filtered pages react to later setting changes.",
+    gambling: "Gambling / betting promotion",
+    explicit: "Explicit sexual material",
+    violence: "Graphic violence",
+    scam: "Scam-like promotion",
+    clickbait: "Clickbait / nuisance",
+    contentAllowlistTitle: "Content-filter exceptions",
+    contentAllowlistDescription:
+      "Sites listed here skip content-category warnings but can still use normal ad blocking.",
+    allowlistTitle: "Ad-block allowlist",
     allowlistDescription: "Enter a domain manually. Jammer does not read the current tab.",
     add: "Add",
     remove: "Remove",
-    contentTitle: "Content filtering",
-    contentDescription: "Semantic page-content filtering is not implemented. Jammer only hides explicit ad containers with CSS.",
     auto: "Auto",
-    permissionDenied: "Website access was not granted. Page ad cleanup remains off.",
+    permissionDenied: "Website access was not granted. This feature remains off.",
     cosmeticEnabled: "Page ad cleanup enabled. Reload open pages.",
-    cosmeticDisabled: "Page ad cleanup disabled and website access removed.",
-    protectionUpdated: "Protection setting updated. Reload open pages for cosmetic changes.",
+    cosmeticDisabled: "Page ad cleanup disabled.",
+    contentEnabled: "Content filtering enabled. Reload already-open pages once.",
+    contentDisabled: "Content filtering disabled.",
+    contentSelectCategory: "Select at least one content category first.",
+    protectionUpdated: "Protection setting updated.",
     networkUpdated: "Network ad blocking updated.",
-    allowlistUpdated: "Allowlist updated. Reload open pages for cosmetic changes.",
-    duplicate: "That domain is already allowlisted.",
+    allowlistUpdated: "Ad-block allowlist updated.",
+    contentAllowlistUpdated: "Content-filter exceptions updated.",
+    categoriesUpdated: "Content categories updated.",
+    duplicate: "That domain is already listed.",
     invalid: "Enter a valid domain.",
     fullyQualified: "Enter a fully qualified domain.",
     httpOnly: "Only http/https domains are supported.",
@@ -59,26 +94,42 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     network: "网络广告拦截",
     cosmeticTitle: "页面广告清理",
     cosmeticLabel: "隐藏页面广告容器",
-    cosmeticDescription: "可选功能。启用后，Edge 会请求网站访问权限，以便 Jammer 仅注入 CSS 隐藏广告。Jammer 不读取网页正文、表单或密码。",
-    cosmeticReload: "修改后请刷新已打开页面。白名单网站不会注入页面广告清理 CSS。",
-    allowlistTitle: "白名单",
-    allowlistDescription: "手动输入域名。Jammer 不读取当前标签页。",
+    cosmeticDescription:
+      "可选功能。启用后会请求网站访问权限，仅用于注入本地 CSS 隐藏广告容器。",
+    cosmeticReload: "修改后请刷新已打开页面。广告白名单网站不会注入页面广告清理 CSS。",
+    contentTitle: "内容过滤",
+    contentMaster: "对所选内容类别显示警告",
+    contentDescription:
+      "可选的本地文本匹配。仅在启用后读取当前网页可见文本并在设备本地判断，不会把网页正文上传到 Jammer 服务器。",
+    contentReload: "首次启用后，请刷新已经打开的页面一次。之后修改设置时，已加载的过滤脚本会响应变化。",
+    gambling: "赌博 / 博彩推广",
+    explicit: "露骨色情内容",
+    violence: "血腥 / 严重暴力内容",
+    scam: "疑似诈骗诱导",
+    clickbait: "标题党 / 诱导内容",
+    contentAllowlistTitle: "内容过滤例外",
+    contentAllowlistDescription: "这里的站点不会触发内容类别警告，但仍可继续使用广告拦截。",
+    allowlistTitle: "广告拦截白名单",
+    allowlistDescription: "手动输入域名。Jammer 不读取当前标签页地址。",
     add: "添加",
     remove: "删除",
-    contentTitle: "内容过滤",
-    contentDescription: "尚未实现语义内容过滤。当前只通过 CSS 隐藏明确的广告容器。",
     auto: "自动",
-    permissionDenied: "未授予网站访问权限，页面广告清理保持关闭。",
+    permissionDenied: "未授予网站访问权限，该功能保持关闭。",
     cosmeticEnabled: "页面广告清理已启用，请刷新已打开页面。",
-    cosmeticDisabled: "页面广告清理已关闭，并已撤销网站访问权限。",
-    protectionUpdated: "总保护设置已更新。页面广告清理变化需刷新已打开页面。",
+    cosmeticDisabled: "页面广告清理已关闭。",
+    contentEnabled: "内容过滤已启用。请把已打开页面刷新一次。",
+    contentDisabled: "内容过滤已关闭。",
+    contentSelectCategory: "请先至少选择一个内容类别。",
+    protectionUpdated: "总保护设置已更新。",
     networkUpdated: "网络广告拦截设置已更新。",
-    allowlistUpdated: "白名单已更新。页面广告清理变化需刷新已打开页面。",
-    duplicate: "该域名已在白名单中。",
+    allowlistUpdated: "广告拦截白名单已更新。",
+    contentAllowlistUpdated: "内容过滤例外已更新。",
+    categoriesUpdated: "内容过滤类别已更新。",
+    duplicate: "该域名已经存在。",
     invalid: "请输入有效域名。",
     fullyQualified: "请输入完整域名。",
     httpOnly: "仅支持 http/https 域名。",
-    credentials: "白名单条目中不允许包含账号凭据。"
+    credentials: "域名条目中不允许包含账号凭据。"
   }
 };
 
@@ -181,26 +232,23 @@ function optionsPermissionRemove(): Promise<boolean> {
   });
 }
 
-function optionsGetRegisteredCosmetic(): Promise<JammerContentScript[]> {
+function optionsGetRegisteredScripts(ids: string[]): Promise<JammerContentScript[]> {
   return new Promise((resolve, reject) => {
-    chrome.scripting.getRegisteredContentScripts(
-      { ids: [OPTIONS_COSMETIC_SCRIPT_ID, OPTIONS_COSMETIC_SITE_SCRIPT_ID] },
-      (scripts) => {
-        if (chrome.runtime.lastError) {
-          reject(optionsRuntimeError("Cosmetic registration read failed"));
-          return;
-        }
-        resolve(scripts);
+    chrome.scripting.getRegisteredContentScripts({ ids }, (scripts) => {
+      if (chrome.runtime.lastError) {
+        reject(optionsRuntimeError("Registered content-script read failed"));
+        return;
       }
-    );
+      resolve(scripts);
+    });
   });
 }
 
-function optionsRegisterContentScript(script: JammerContentScript): Promise<void> {
+function optionsRegisterScripts(scripts: JammerContentScript[]): Promise<void> {
   return new Promise((resolve, reject) => {
-    chrome.scripting.registerContentScripts([script], () => {
+    chrome.scripting.registerContentScripts(scripts, () => {
       if (chrome.runtime.lastError) {
-        reject(optionsRuntimeError("Cosmetic registration failed"));
+        reject(optionsRuntimeError("Content-script registration failed"));
         return;
       }
       resolve();
@@ -208,30 +256,26 @@ function optionsRegisterContentScript(script: JammerContentScript): Promise<void
   });
 }
 
-function optionsUnregisterContentScript(): Promise<void> {
+function optionsUnregisterScripts(ids: string[]): Promise<void> {
   return new Promise((resolve, reject) => {
-    chrome.scripting.unregisterContentScripts(
-      { ids: [OPTIONS_COSMETIC_SCRIPT_ID, OPTIONS_COSMETIC_SITE_SCRIPT_ID] },
-      () => {
-        if (chrome.runtime.lastError) {
-          reject(optionsRuntimeError("Cosmetic unregister failed"));
-          return;
-        }
-        resolve();
+    chrome.scripting.unregisterContentScripts({ ids }, () => {
+      if (chrome.runtime.lastError) {
+        reject(optionsRuntimeError("Content-script unregister failed"));
+        return;
       }
-    );
+      resolve();
+    });
   });
 }
 
-async function optionsUnregisterCosmeticIfPresent(): Promise<void> {
+async function optionsUnregisterIfPresent(ids: string[]): Promise<void> {
   const granted = await optionsPermissionContains();
   if (!granted) return;
-  const existing = await optionsGetRegisteredCosmetic();
-  if (existing.length === 0) return;
-  await optionsUnregisterContentScript();
+  const existing = await optionsGetRegisteredScripts(ids);
+  if (existing.length > 0) await optionsUnregisterScripts(existing.map((item) => item.id));
 }
 
-function optionsAllowlistExcludeMatches(domains: string[]): string[] {
+function optionsDomainExcludeMatches(domains: string[]): string[] {
   return domains.flatMap((domain) => {
     const exact = `*://${domain}/*`;
     if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(domain)) return [exact];
@@ -239,33 +283,74 @@ function optionsAllowlistExcludeMatches(domains: string[]): string[] {
   });
 }
 
+function optionsHasSelectedContentCategory(settings: OptionsSettings): boolean {
+  return Object.values(settings.contentCategories).some(Boolean);
+}
+
 async function optionsApplyCosmetic(settings: OptionsSettings): Promise<void> {
   const granted = await optionsPermissionContains();
+  const ids = [OPTIONS_COSMETIC_SCRIPT_ID, OPTIONS_COSMETIC_SITE_SCRIPT_ID];
+  const shouldEnable = settings.enabled && settings.cosmeticEnabled && granted;
 
-  if (!settings.enabled || !settings.cosmeticEnabled || !granted) {
-    if (granted) await optionsUnregisterCosmeticIfPresent();
+  if (!shouldEnable) {
+    if (granted) await optionsUnregisterIfPresent(ids);
     return;
   }
 
-  await optionsUnregisterCosmeticIfPresent();
-  await optionsRegisterContentScript({
-    id: OPTIONS_COSMETIC_SCRIPT_ID,
-    matches: OPTIONS_COSMETIC_ORIGINS,
-    excludeMatches: optionsAllowlistExcludeMatches(settings.allowlist),
-    css: ["cosmetic.css", "cosmetic-easylist.css"],
-    runAt: "document_start",
-    allFrames: true,
-    persistAcrossSessions: true
-  });
-  await optionsRegisterContentScript({
-    id: OPTIONS_COSMETIC_SITE_SCRIPT_ID,
-    matches: ["*://canyoublockit.com/*", "*://*.canyoublockit.com/*"],
-    excludeMatches: optionsAllowlistExcludeMatches(settings.allowlist),
-    css: ["cosmetic-canyoublockit.css", "cosmetic-canyoublockit-local.css"],
-    runAt: "document_start",
-    allFrames: true,
-    persistAcrossSessions: true
-  });
+  await optionsUnregisterIfPresent(ids);
+  await optionsRegisterScripts([
+    {
+      id: OPTIONS_COSMETIC_SCRIPT_ID,
+      matches: OPTIONS_COSMETIC_ORIGINS,
+      excludeMatches: optionsDomainExcludeMatches(settings.allowlist),
+      css: ["cosmetic.css", "cosmetic-easylist.css"],
+      runAt: "document_start",
+      allFrames: true,
+      persistAcrossSessions: true
+    },
+    {
+      id: OPTIONS_COSMETIC_SITE_SCRIPT_ID,
+      matches: ["*://canyoublockit.com/*", "*://*.canyoublockit.com/*"],
+      excludeMatches: optionsDomainExcludeMatches(settings.allowlist),
+      css: ["cosmetic-canyoublockit.css", "cosmetic-canyoublockit-local.css"],
+      runAt: "document_start",
+      allFrames: true,
+      persistAcrossSessions: true
+    }
+  ]);
+}
+
+async function optionsApplyContentFilter(settings: OptionsSettings): Promise<void> {
+  const granted = await optionsPermissionContains();
+  const shouldEnable =
+    settings.enabled &&
+    settings.contentEnabled &&
+    optionsHasSelectedContentCategory(settings) &&
+    granted;
+
+  if (!shouldEnable) {
+    if (granted) await optionsUnregisterIfPresent([OPTIONS_CONTENT_SCRIPT_ID]);
+    return;
+  }
+
+  await optionsUnregisterIfPresent([OPTIONS_CONTENT_SCRIPT_ID]);
+  await optionsRegisterScripts([
+    {
+      id: OPTIONS_CONTENT_SCRIPT_ID,
+      matches: OPTIONS_COSMETIC_ORIGINS,
+      excludeMatches: optionsDomainExcludeMatches(settings.contentAllowlist),
+      js: ["content-classifier.js", "content-filter.js"],
+      runAt: "document_idle",
+      allFrames: false,
+      persistAcrossSessions: true
+    }
+  ]);
+}
+
+async function optionsMaybeRemoveSiteAccess(settings: OptionsSettings): Promise<void> {
+  if (settings.cosmeticEnabled || settings.contentEnabled) return;
+  const granted = await optionsPermissionContains();
+  if (granted) await optionsPermissionRemove();
 }
 
 function optionsGetEnabledRulesets(): Promise<string[]> {
@@ -327,15 +412,37 @@ function optionsSanitizeLanguage(value: unknown): OptionsLanguagePreference {
 }
 
 function optionsSanitizeSettings(value: unknown): OptionsSettings {
-  if (!value || typeof value !== "object") return { ...OPTIONS_DEFAULT_SETTINGS };
+  if (!value || typeof value !== "object") {
+    return {
+      ...OPTIONS_DEFAULT_SETTINGS,
+      contentCategories: { ...OPTIONS_DEFAULT_CATEGORIES }
+    };
+  }
+
   const candidate = value as Partial<OptionsSettings>;
+  const categories =
+    candidate.contentCategories && typeof candidate.contentCategories === "object"
+      ? candidate.contentCategories as Partial<OptionsContentCategories>
+      : {};
+
   return {
     enabled: typeof candidate.enabled === "boolean" ? candidate.enabled : true,
     adsEnabled: typeof candidate.adsEnabled === "boolean" ? candidate.adsEnabled : true,
     cosmeticEnabled: typeof candidate.cosmeticEnabled === "boolean" ? candidate.cosmeticEnabled : false,
+    contentEnabled: typeof candidate.contentEnabled === "boolean" ? candidate.contentEnabled : false,
+    contentCategories: {
+      gambling: categories.gambling === true,
+      explicit: categories.explicit === true,
+      violence: categories.violence === true,
+      scam: categories.scam === true,
+      clickbait: categories.clickbait === true
+    },
     language: optionsSanitizeLanguage(candidate.language),
     allowlist: Array.isArray(candidate.allowlist)
       ? candidate.allowlist.filter((item): item is string => typeof item === "string")
+      : [],
+    contentAllowlist: Array.isArray(candidate.contentAllowlist)
+      ? candidate.contentAllowlist.filter((item): item is string => typeof item === "string")
       : []
   };
 }
@@ -360,12 +467,8 @@ function optionsNormalizeDomain(value: string, strings: Record<string, string>):
     throw new Error(strings.invalid);
   }
 
-  if (url.protocol !== "http:" && url.protocol !== "https:") {
-    throw new Error(strings.httpOnly);
-  }
-  if (url.username || url.password) {
-    throw new Error(strings.credentials);
-  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error(strings.httpOnly);
+  if (url.username || url.password) throw new Error(strings.credentials);
 
   const hostname = url.hostname.toLowerCase().replace(/\.$/, "");
   if (!hostname || hostname.length > 253 || !hostname.includes(".")) {
@@ -373,10 +476,7 @@ function optionsNormalizeDomain(value: string, strings: Record<string, string>):
   }
 
   const labels = hostname.split(".");
-  if (labels.some((label) => !OPTIONS_LABEL_RE.test(label))) {
-    throw new Error(strings.invalid);
-  }
-
+  if (labels.some((label) => !OPTIONS_LABEL_RE.test(label))) throw new Error(strings.invalid);
   return hostname;
 }
 
@@ -430,36 +530,73 @@ async function optionsApplySettings(settings: OptionsSettings): Promise<void> {
   await optionsApplyProtection(settings);
   await optionsSyncAllowlistRules(settings.allowlist);
   await optionsApplyCosmetic(settings);
+  await optionsApplyContentFilter(settings);
 }
 
 const title = optionsRequireElement<HTMLElement>("#options-title");
 const master = optionsRequireElement<HTMLInputElement>("#master-enabled");
 const ads = optionsRequireElement<HTMLInputElement>("#ads-enabled");
 const cosmetic = optionsRequireElement<HTMLInputElement>("#cosmetic-enabled");
+const contentEnabled = optionsRequireElement<HTMLInputElement>("#content-enabled");
 const masterLabel = optionsRequireElement<HTMLElement>("#master-label");
 const adsLabel = optionsRequireElement<HTMLElement>("#ads-label");
 const cosmeticTitle = optionsRequireElement<HTMLElement>("#cosmetic-title");
 const cosmeticLabel = optionsRequireElement<HTMLElement>("#cosmetic-label");
 const cosmeticDescription = optionsRequireElement<HTMLElement>("#cosmetic-description");
 const cosmeticReload = optionsRequireElement<HTMLElement>("#cosmetic-reload");
+const contentTitle = optionsRequireElement<HTMLElement>("#content-title");
+const contentMasterLabel = optionsRequireElement<HTMLElement>("#content-master-label");
+const contentDescription = optionsRequireElement<HTMLElement>("#content-description");
+const contentReload = optionsRequireElement<HTMLElement>("#content-reload");
 const allowlistTitle = optionsRequireElement<HTMLElement>("#allowlist-title");
 const allowlistDescription = optionsRequireElement<HTMLElement>("#allowlist-description");
 const input = optionsRequireElement<HTMLInputElement>("#allowlist-input");
 const addButton = optionsRequireElement<HTMLButtonElement>("#add-domain");
 const list = optionsRequireElement<HTMLUListElement>("#allowlist");
+const contentAllowlistTitle = optionsRequireElement<HTMLElement>("#content-allowlist-title");
+const contentAllowlistDescription = optionsRequireElement<HTMLElement>("#content-allowlist-description");
+const contentAllowlistInput = optionsRequireElement<HTMLInputElement>("#content-allowlist-input");
+const contentAllowlistAdd = optionsRequireElement<HTMLButtonElement>("#add-content-domain");
+const contentAllowlistList = optionsRequireElement<HTMLUListElement>("#content-allowlist");
 const message = optionsRequireElement<HTMLElement>("#message");
-const contentTitle = optionsRequireElement<HTMLElement>("#content-title");
-const contentDescription = optionsRequireElement<HTMLElement>("#content-description");
+const contentMessage = optionsRequireElement<HTMLElement>("#content-message");
 const languageSelect = optionsRequireElement<HTMLSelectElement>("#language-select");
 
-master.disabled = true;
-ads.disabled = true;
-cosmetic.disabled = true;
-input.disabled = true;
-addButton.disabled = true;
-languageSelect.disabled = true;
+const categoryCheckboxes: Record<OptionsContentCategory, HTMLInputElement> = {
+  gambling: optionsRequireElement<HTMLInputElement>("#content-gambling"),
+  explicit: optionsRequireElement<HTMLInputElement>("#content-explicit"),
+  violence: optionsRequireElement<HTMLInputElement>("#content-violence"),
+  scam: optionsRequireElement<HTMLInputElement>("#content-scam"),
+  clickbait: optionsRequireElement<HTMLInputElement>("#content-clickbait")
+};
 
-let settings: OptionsSettings = { ...OPTIONS_DEFAULT_SETTINGS };
+const categoryLabels: Record<OptionsContentCategory, HTMLElement> = {
+  gambling: optionsRequireElement<HTMLElement>("#content-gambling-label"),
+  explicit: optionsRequireElement<HTMLElement>("#content-explicit-label"),
+  violence: optionsRequireElement<HTMLElement>("#content-violence-label"),
+  scam: optionsRequireElement<HTMLElement>("#content-scam-label"),
+  clickbait: optionsRequireElement<HTMLElement>("#content-clickbait-label")
+};
+
+for (const element of [
+  master,
+  ads,
+  cosmetic,
+  contentEnabled,
+  input,
+  addButton,
+  contentAllowlistInput,
+  contentAllowlistAdd,
+  languageSelect,
+  ...Object.values(categoryCheckboxes)
+]) {
+  element.disabled = true;
+}
+
+let settings: OptionsSettings = {
+  ...OPTIONS_DEFAULT_SETTINGS,
+  contentCategories: { ...OPTIONS_DEFAULT_CATEGORIES }
+};
 
 function optionsApplyTranslations(): void {
   const language = optionsResolveLanguage(settings.language);
@@ -473,23 +610,37 @@ function optionsApplyTranslations(): void {
   cosmeticLabel.textContent = strings.cosmeticLabel;
   cosmeticDescription.textContent = strings.cosmeticDescription;
   cosmeticReload.textContent = strings.cosmeticReload;
+  contentTitle.textContent = strings.contentTitle;
+  contentMasterLabel.textContent = strings.contentMaster;
+  contentDescription.textContent = strings.contentDescription;
+  contentReload.textContent = strings.contentReload;
   allowlistTitle.textContent = strings.allowlistTitle;
   allowlistDescription.textContent = strings.allowlistDescription;
+  contentAllowlistTitle.textContent = strings.contentAllowlistTitle;
+  contentAllowlistDescription.textContent = strings.contentAllowlistDescription;
   addButton.textContent = strings.add;
-  contentTitle.textContent = strings.contentTitle;
-  contentDescription.textContent = strings.contentDescription;
+  contentAllowlistAdd.textContent = strings.add;
+
+  categoryLabels.gambling.textContent = strings.gambling;
+  categoryLabels.explicit.textContent = strings.explicit;
+  categoryLabels.violence.textContent = strings.violence;
+  categoryLabels.scam.textContent = strings.scam;
+  categoryLabels.clickbait.textContent = strings.clickbait;
 
   const autoOption = languageSelect.querySelector<HTMLOptionElement>('option[value="auto"]');
   if (autoOption) autoOption.textContent = strings.auto;
-
   languageSelect.value = settings.language;
 }
 
-function renderAllowlist(): void {
+function optionsRenderDomainList(
+  target: HTMLUListElement,
+  domains: string[],
+  onRemove: (domain: string) => void
+): void {
   const strings = optionsStrings(settings);
-  list.replaceChildren();
+  target.replaceChildren();
 
-  for (const domain of settings.allowlist) {
+  for (const domain of domains) {
     const item = document.createElement("li");
     const label = document.createElement("span");
     label.textContent = domain;
@@ -497,12 +648,28 @@ function renderAllowlist(): void {
     const remove = document.createElement("button");
     remove.type = "button";
     remove.textContent = strings.remove;
-    remove.addEventListener("click", () => {
-      void updateAllowlist(settings.allowlist.filter((entry) => entry !== domain));
-    });
+    remove.addEventListener("click", () => onRemove(domain));
 
     item.append(label, remove);
-    list.append(item);
+    target.append(item);
+  }
+}
+
+function renderAllowlist(): void {
+  optionsRenderDomainList(list, settings.allowlist, (domain) => {
+    void updateAllowlist(settings.allowlist.filter((entry) => entry !== domain));
+  });
+}
+
+function renderContentAllowlist(): void {
+  optionsRenderDomainList(contentAllowlistList, settings.contentAllowlist, (domain) => {
+    void updateContentAllowlist(settings.contentAllowlist.filter((entry) => entry !== domain));
+  });
+}
+
+function renderCategories(): void {
+  for (const category of Object.keys(categoryCheckboxes) as OptionsContentCategory[]) {
+    categoryCheckboxes[category].checked = settings.contentCategories[category];
   }
 }
 
@@ -516,6 +683,14 @@ async function updateAllowlist(next: string[]): Promise<void> {
   await persist();
   renderAllowlist();
   message.textContent = optionsStrings(settings).allowlistUpdated;
+}
+
+async function updateContentAllowlist(next: string[]): Promise<void> {
+  settings.contentAllowlist = next;
+  await optionsSaveSettings(settings);
+  await optionsApplyContentFilter(settings);
+  renderContentAllowlist();
+  contentMessage.textContent = optionsStrings(settings).contentAllowlistUpdated;
 }
 
 master.addEventListener("change", () => {
@@ -550,21 +725,13 @@ cosmetic.addEventListener("change", () => {
       }
 
       settings.cosmeticEnabled = true;
-      try {
-        await optionsSaveSettings(settings);
-        await optionsApplyCosmetic(settings);
-        message.textContent = optionsStrings(settings).cosmeticEnabled;
-      } catch (error) {
-        settings.cosmeticEnabled = false;
-        cosmetic.checked = false;
-        await optionsSaveSettings(settings);
-        await optionsUnregisterCosmeticIfPresent().catch(() => undefined);
-        await optionsPermissionRemove().catch(() => false);
-        message.textContent = error instanceof Error ? error.message : "Could not enable page ad cleanup.";
-      }
+      await optionsSaveSettings(settings);
+      await optionsApplyCosmetic(settings);
+      message.textContent = optionsStrings(settings).cosmeticEnabled;
     }).catch((error) => {
       cosmetic.checked = false;
-      message.textContent = error instanceof Error ? error.message : "Could not request website access.";
+      settings.cosmeticEnabled = false;
+      message.textContent = error instanceof Error ? error.message : "Could not enable page ad cleanup.";
     }).finally(() => {
       cosmetic.disabled = false;
     });
@@ -573,8 +740,8 @@ cosmetic.addEventListener("change", () => {
 
   settings.cosmeticEnabled = false;
   void optionsSaveSettings(settings).then(async () => {
-    await optionsUnregisterCosmeticIfPresent();
-    await optionsPermissionRemove();
+    await optionsApplyCosmetic(settings);
+    await optionsMaybeRemoveSiteAccess(settings);
     message.textContent = optionsStrings(settings).cosmeticDisabled;
   }).catch((error) => {
     cosmetic.checked = true;
@@ -585,11 +752,80 @@ cosmetic.addEventListener("change", () => {
   });
 });
 
+contentEnabled.addEventListener("change", () => {
+  contentEnabled.disabled = true;
+
+  if (contentEnabled.checked) {
+    if (!optionsHasSelectedContentCategory(settings)) {
+      contentEnabled.checked = false;
+      settings.contentEnabled = false;
+      contentMessage.textContent = optionsStrings(settings).contentSelectCategory;
+      contentEnabled.disabled = false;
+      return;
+    }
+
+    void optionsPermissionRequest().then(async (granted) => {
+      if (!granted) {
+        contentEnabled.checked = false;
+        settings.contentEnabled = false;
+        await optionsSaveSettings(settings);
+        contentMessage.textContent = optionsStrings(settings).permissionDenied;
+        return;
+      }
+
+      settings.contentEnabled = true;
+      await optionsSaveSettings(settings);
+      await optionsApplyContentFilter(settings);
+      contentMessage.textContent = optionsStrings(settings).contentEnabled;
+    }).catch((error) => {
+      contentEnabled.checked = false;
+      settings.contentEnabled = false;
+      contentMessage.textContent = error instanceof Error ? error.message : "Could not enable content filtering.";
+    }).finally(() => {
+      contentEnabled.disabled = false;
+    });
+    return;
+  }
+
+  settings.contentEnabled = false;
+  void optionsSaveSettings(settings).then(async () => {
+    await optionsApplyContentFilter(settings);
+    await optionsMaybeRemoveSiteAccess(settings);
+    contentMessage.textContent = optionsStrings(settings).contentDisabled;
+  }).catch((error) => {
+    contentEnabled.checked = true;
+    settings.contentEnabled = true;
+    contentMessage.textContent = error instanceof Error ? error.message : "Could not disable content filtering.";
+  }).finally(() => {
+    contentEnabled.disabled = false;
+  });
+});
+
+for (const category of Object.keys(categoryCheckboxes) as OptionsContentCategory[]) {
+  categoryCheckboxes[category].addEventListener("change", () => {
+    settings.contentCategories[category] = categoryCheckboxes[category].checked;
+
+    if (settings.contentEnabled && !optionsHasSelectedContentCategory(settings)) {
+      settings.contentEnabled = false;
+      contentEnabled.checked = false;
+    }
+
+    void optionsSaveSettings(settings).then(async () => {
+      await optionsApplyContentFilter(settings);
+      await optionsMaybeRemoveSiteAccess(settings);
+      contentMessage.textContent = optionsStrings(settings).categoriesUpdated;
+    }).catch((error) => {
+      contentMessage.textContent = error instanceof Error ? error.message : "Could not update categories.";
+    });
+  });
+}
+
 languageSelect.addEventListener("change", () => {
   settings.language = optionsSanitizeLanguage(languageSelect.value);
   void optionsSaveSettings(settings).then(() => {
     optionsApplyTranslations();
     renderAllowlist();
+    renderContentAllowlist();
   }).catch((error) => {
     message.textContent = error instanceof Error ? error.message : "Could not update language.";
   });
@@ -597,14 +833,12 @@ languageSelect.addEventListener("change", () => {
 
 addButton.addEventListener("click", () => {
   const strings = optionsStrings(settings);
-
   try {
     const domain = optionsNormalizeDomain(input.value, strings);
     if (settings.allowlist.includes(domain)) {
       message.textContent = strings.duplicate;
       return;
     }
-
     input.value = "";
     void updateAllowlist([...settings.allowlist, domain]).catch((error) => {
       message.textContent = error instanceof Error ? error.message : "Could not update allowlist.";
@@ -614,32 +848,63 @@ addButton.addEventListener("click", () => {
   }
 });
 
+contentAllowlistAdd.addEventListener("click", () => {
+  const strings = optionsStrings(settings);
+  try {
+    const domain = optionsNormalizeDomain(contentAllowlistInput.value, strings);
+    if (settings.contentAllowlist.includes(domain)) {
+      contentMessage.textContent = strings.duplicate;
+      return;
+    }
+    contentAllowlistInput.value = "";
+    void updateContentAllowlist([...settings.contentAllowlist, domain]).catch((error) => {
+      contentMessage.textContent =
+        error instanceof Error ? error.message : "Could not update content exceptions.";
+    });
+  } catch (error) {
+    contentMessage.textContent = error instanceof Error ? error.message : strings.invalid;
+  }
+});
+
 void optionsLoadSettings().then(async (loaded) => {
   settings = loaded;
 
   const permissionGranted = await optionsPermissionContains();
-  if (settings.cosmeticEnabled && !permissionGranted) {
+  if (!permissionGranted && (settings.cosmeticEnabled || settings.contentEnabled)) {
     settings.cosmeticEnabled = false;
+    settings.contentEnabled = false;
     await optionsSaveSettings(settings);
   }
 
   master.checked = settings.enabled;
   ads.checked = settings.adsEnabled;
   cosmetic.checked = settings.cosmeticEnabled;
+  contentEnabled.checked = settings.contentEnabled;
+  renderCategories();
 
   optionsApplyTranslations();
   renderAllowlist();
+  renderContentAllowlist();
 
   if (permissionGranted) {
     await optionsApplyCosmetic(settings);
+    await optionsApplyContentFilter(settings);
   }
 
-  master.disabled = false;
-  ads.disabled = false;
-  cosmetic.disabled = false;
-  input.disabled = false;
-  addButton.disabled = false;
-  languageSelect.disabled = false;
+  for (const element of [
+    master,
+    ads,
+    cosmetic,
+    contentEnabled,
+    input,
+    addButton,
+    contentAllowlistInput,
+    contentAllowlistAdd,
+    languageSelect,
+    ...Object.values(categoryCheckboxes)
+  ]) {
+    element.disabled = false;
+  }
 }).catch((error) => {
   message.textContent = error instanceof Error ? error.message : "Could not load settings.";
 });

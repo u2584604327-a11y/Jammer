@@ -31,10 +31,23 @@ type JammerContentScript = {
   matches: string[];
   excludeMatches?: string[];
   css?: string[];
+  js?: string[];
   runAt?: "document_start" | "document_end" | "document_idle";
   allFrames?: boolean;
   persistAcrossSessions?: boolean;
 };
+
+interface JammerStorageChange {
+  oldValue?: unknown;
+  newValue?: unknown;
+}
+
+interface JammerStorageChangedEvent {
+  addListener(
+    callback: (changes: Record<string, JammerStorageChange>, areaName: string) => void
+  ): void;
+}
+
 
 declare const chrome: {
   storage: {
@@ -47,6 +60,7 @@ declare const chrome: {
       set(items: Record<string, unknown>): Promise<void>;
       set(items: Record<string, unknown>, callback: () => void): void;
     };
+    onChanged: JammerStorageChangedEvent;
   };
   permissions: {
     contains(

@@ -31,15 +31,29 @@
 - deterministic build/tests where practical
 - dependency review before additions
 
+## P6.0 content-filter controls
+
+- content filtering is opt-in;
+- every content category is opt-in;
+- classification is local and uses packaged weighted keyword rules;
+- scanned page text is not uploaded to a Jammer server;
+- warnings explain category and matched signals;
+- warning overlays can be dismissed immediately;
+- content-filter exceptions are separate from the ad-block allowlist;
+- no remote model, API, or classifier is used;
+- optional site access is shared with cosmetic filtering and removed when neither feature needs it.
+
 ## Explicit non-protections
 
-P1 does not claim to:
+Jammer does not claim to:
 
 - remove every advertisement
-- defeat anti-adblock systems
+- defeat every anti-adblock system
 - protect against all malware/phishing
-- classify page meaning
+- semantically understand page meaning
+- identify every undesirable page
 - provide parental-control guarantees
+- prevent determined users from bypassing a warning
 - prevent a browser or operating-system compromise
 
 ## Security boundary

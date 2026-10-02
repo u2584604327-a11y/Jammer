@@ -33,3 +33,24 @@ Production logging must never record full visited URLs, page text, credentials, 
 ## Future remote updates
 
 If remote rule updates are ever added, they require a separate design covering authenticity, rollback, provenance, privacy, cache behavior, and failure handling.
+
+
+## P6.0 local content filtering
+
+When the user explicitly enables content filtering and one or more categories, Jammer may locally inspect:
+
+- page title;
+- meta description;
+- heading text; and
+- a bounded amount of visible body text.
+
+This text is used only for packaged on-device category matching.
+
+P6.0 must not:
+- upload scanned page text;
+- upload matched terms;
+- persist page text as history;
+- intentionally read form field values or password values;
+- send category decisions to a Jammer server.
+
+Content-filter exception domains may be stored locally as configuration.

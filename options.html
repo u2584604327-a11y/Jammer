@@ -13,7 +13,7 @@
       <span class="brand-mark" aria-hidden="true"><span>J</span></span>
       <div>
         <h1 id="options-title">Jammer Options</h1>
-        <p class="build-id">Jammer 0.6</p>
+        <p class="build-id">Jammer 0.7</p>
       </div>
     </div>
     <select id="language-select" class="compact-select" aria-label="Language">
@@ -60,9 +60,50 @@
     <p id="message" class="status-message" aria-live="polite"></p>
   </section>
 
-  <section class="card settings-card subdued-card">
-    <h2 id="content-title">Content filtering</h2>
-    <p id="content-description" class="muted">Semantic page-content filtering is not implemented. P4.1 only hides explicit ad containers with CSS.</p>
+  <section class="card settings-card">
+    <div class="section-heading">
+      <h2 id="content-title">Content filtering</h2>
+      <input id="content-enabled" class="switch" type="checkbox">
+    </div>
+    <p id="content-master-label" class="section-label">Warn on selected content categories</p>
+    <p id="content-description" class="muted">Optional local text matching. Page text stays on-device.</p>
+
+    <div class="category-grid" role="group" aria-label="Content categories">
+      <label class="category-option">
+        <input id="content-gambling" type="checkbox">
+        <span id="content-gambling-label">Gambling / betting promotion</span>
+      </label>
+      <label class="category-option">
+        <input id="content-explicit" type="checkbox">
+        <span id="content-explicit-label">Explicit sexual material</span>
+      </label>
+      <label class="category-option">
+        <input id="content-violence" type="checkbox">
+        <span id="content-violence-label">Graphic violence</span>
+      </label>
+      <label class="category-option">
+        <input id="content-scam" type="checkbox">
+        <span id="content-scam-label">Scam-like promotion</span>
+      </label>
+      <label class="category-option">
+        <input id="content-clickbait" type="checkbox">
+        <span id="content-clickbait-label">Clickbait / nuisance</span>
+      </label>
+    </div>
+
+    <p id="content-reload" class="hint-box">After first enabling, reload already-open pages once.</p>
+
+    <div class="content-exceptions">
+      <h3 id="content-allowlist-title">Content-filter exceptions</h3>
+      <p id="content-allowlist-description" class="muted">Sites here skip content warnings but keep normal ad blocking.</p>
+      <div class="input-row">
+        <input id="content-allowlist-input" type="text" placeholder="example.com" autocomplete="off" spellcheck="false">
+        <button id="add-content-domain" class="secondary-button" type="button">Add</button>
+      </div>
+      <ul id="content-allowlist" class="allowlist"></ul>
+    </div>
+
+    <p id="content-message" class="status-message" aria-live="polite"></p>
   </section>
 </main>
 <script src="options.js"></script>

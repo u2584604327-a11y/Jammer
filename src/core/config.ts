@@ -1,19 +1,35 @@
 export type JammerLanguage = "auto" | "zh-CN" | "en";
 
+export type JammerContentCategoryKey = "gambling" | "explicit" | "violence" | "scam" | "clickbait";
+
+export type JammerContentCategories = Record<JammerContentCategoryKey, boolean>;
+
 export interface JammerSettings {
   enabled: boolean;
   adsEnabled: boolean;
   cosmeticEnabled: boolean;
+  contentEnabled: boolean;
+  contentCategories: JammerContentCategories;
   language: JammerLanguage;
   allowlist: string[];
+  contentAllowlist: string[];
 }
 
 export const DEFAULT_SETTINGS: JammerSettings = {
   enabled: true,
   adsEnabled: true,
   cosmeticEnabled: false,
+  contentEnabled: false,
+  contentCategories: {
+    gambling: false,
+    explicit: false,
+    violence: false,
+    scam: false,
+    clickbait: false
+  },
   language: "auto",
-  allowlist: []
+  allowlist: [],
+  contentAllowlist: []
 };
 
 const STORAGE_KEY = "jammerSettings";
@@ -25,13 +41,29 @@ function sanitizeLanguage(value: unknown): JammerLanguage {
 function sanitizeSettings(value: unknown): JammerSettings {
   if (!value || typeof value !== "object") return { ...DEFAULT_SETTINGS };
   const candidate = value as Partial<JammerSettings>;
+  const categories =
+    candidate.contentCategories && typeof candidate.contentCategories === "object"
+      ? candidate.contentCategories as Partial<JammerContentCategories>
+      : {};
+
   return {
     enabled: typeof candidate.enabled === "boolean" ? candidate.enabled : true,
     adsEnabled: typeof candidate.adsEnabled === "boolean" ? candidate.adsEnabled : true,
     cosmeticEnabled: typeof candidate.cosmeticEnabled === "boolean" ? candidate.cosmeticEnabled : false,
+    contentEnabled: typeof candidate.contentEnabled === "boolean" ? candidate.contentEnabled : false,
+    contentCategories: {
+      gambling: categories.gambling === true,
+      explicit: categories.explicit === true,
+      violence: categories.violence === true,
+      scam: categories.scam === true,
+      clickbait: categories.clickbait === true
+    },
     language: sanitizeLanguage(candidate.language),
     allowlist: Array.isArray(candidate.allowlist)
       ? candidate.allowlist.filter((item): item is string => typeof item === "string")
+      : [],
+    contentAllowlist: Array.isArray(candidate.contentAllowlist)
+      ? candidate.contentAllowlist.filter((item): item is string => typeof item === "string")
       : []
   };
 }

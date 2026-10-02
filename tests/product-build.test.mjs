@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 test('product build keeps Jammer ruleset contract and adds optional cosmetic capability', async () => {
   const source = await readFile('scripts/build-product.mjs', 'utf8');
 
-  assert.match(source, /version: '0\.6\.0'/);
+  assert.match(source, /version: '0\.7\.0'/);
   assert.match(source, /id: 'ads_static'/);
   assert.match(source, /rules\/easylist-adservers\.json/);
   assert.match(source, /PROVENANCE\.json/);
@@ -18,6 +18,8 @@ test('product build keeps Jammer ruleset contract and adds optional cosmetic cap
   assert.match(source, /icons\/icon-128\.png/);
   assert.match(source, /default_icon/);
   assert.match(source, /assets\/jammer-cover\.webp/);
+  assert.match(source, /content-classifier\.js/);
+  assert.match(source, /content-filter\.js/);
   assert.match(source, /optional_permissions: \['scripting'\]/);
   assert.match(source, /optional_host_permissions: \['http:\/\/\*\/\*', 'https:\/\/\*\/\*'\]/);
   assert.doesNotMatch(source, /\n\s*host_permissions:/);
