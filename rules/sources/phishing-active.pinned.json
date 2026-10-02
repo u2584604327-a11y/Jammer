@@ -1,0 +1,16 @@
+{
+  "id": "phishing-database-active-pinned-2026-10-02",
+  "repository": "Phishing-Database/Phishing.Database",
+  "commit": "6874727d671bb56765fd1fbfa15bc5f8b79ae63f",
+  "path": "phishing-domains-ACTIVE/phishing-domains-ACTIVE2.txt",
+  "url": "https://raw.githubusercontent.com/Phishing-Database/Phishing.Database/6874727d671bb56765fd1fbfa15bc5f8b79ae63f/phishing-domains-ACTIVE/phishing-domains-ACTIVE2.txt",
+  "expectedGitBlobSha1": "6adc5d0bc92feda2654ff4b7a882dc6a168b8705",
+  "license": "MIT",
+  "runtimeUpdate": false,
+  "bucketCount": 64,
+  "ruleIdBase": 13000000,
+  "expectedAcceptedDomains": 21552,
+  "expectedInvalidLines": 84,
+  "expectedDuplicates": 3,
+  "expectedEmittedRules": 64
+}
