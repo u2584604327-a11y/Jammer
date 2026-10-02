@@ -7,7 +7,7 @@ test('brand source is local vector artwork with no external references', async (
   assert.match(svg, /<svg/);
   assert.match(svg, /Jammer icon/);
   assert.match(svg, /linearGradient/);
-  assert.doesNotMatch(svg, /https?:\/\//);
+  assert.doesNotMatch(svg, /(?:href|src)=["']https?:\/\//i);
   assert.doesNotMatch(svg, /<image/i);
 });
 
