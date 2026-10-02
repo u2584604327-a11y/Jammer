@@ -25,6 +25,8 @@ jobs:
       - run: npm run build
       - name: Verify pinned EasyList source and compiler baseline
         run: npm run rules:prepare:easylist
+      - name: Verify pinned EasyList cosmetic sources
+        run: npm run rules:prepare:cosmetic
       - name: Build isolated EasyList smoke profile
         run: npm run build:easylist-smoke
       - name: Build full Jammer EasyList product profile
