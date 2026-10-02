@@ -41,3 +41,12 @@ test('allowlist domains are converted into cosmetic exclusions', async () => {
   assert.match(options, /\\d\{1,3\}/);
   assert.match(options, /return \[exact\]/);
 });
+
+test('popup can directly enable and disable cosmetic permission', async () => {
+  const popup = await readFile('src/popup.ts', 'utf8');
+
+  assert.match(popup, /chrome\.permissions\.request/);
+  assert.match(popup, /chrome\.permissions\.remove/);
+  assert.match(popup, /css: \["cosmetic\.css"\]/);
+  assert.match(popup, /cosmeticEnabled/);
+});
