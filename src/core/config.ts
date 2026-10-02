@@ -1,12 +1,14 @@
 export interface JammerSettings {
   enabled: boolean;
   adsEnabled: boolean;
+  cosmeticEnabled: boolean;
   allowlist: string[];
 }
 
 export const DEFAULT_SETTINGS: JammerSettings = {
   enabled: true,
   adsEnabled: true,
+  cosmeticEnabled: false,
   allowlist: []
 };
 
@@ -18,6 +20,7 @@ function sanitizeSettings(value: unknown): JammerSettings {
   return {
     enabled: typeof candidate.enabled === "boolean" ? candidate.enabled : true,
     adsEnabled: typeof candidate.adsEnabled === "boolean" ? candidate.adsEnabled : true,
+    cosmeticEnabled: typeof candidate.cosmeticEnabled === "boolean" ? candidate.cosmeticEnabled : false,
     allowlist: Array.isArray(candidate.allowlist)
       ? candidate.allowlist.filter((item): item is string => typeof item === "string")
       : []
