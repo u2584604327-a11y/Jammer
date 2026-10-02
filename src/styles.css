@@ -10,3 +10,4 @@ ul { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 8px; }
 li { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .muted { opacity: .72; }
 #message { min-height: 1.4em; }
+.compact-select { width: auto; max-width: 120px; padding: 6px 8px; }
