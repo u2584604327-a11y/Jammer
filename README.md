@@ -2,19 +2,21 @@
 
 # Jammer
 
-Jammer is a local-first Manifest V3 browser extension for ad blocking, tracker blocking, dangerous-domain navigation blocking, page-ad cleanup, and opt-in local content-block masking.
+Jammer is a local-first Manifest V3 browser extension for ad/script blocking, tracker blocking, known-phishing navigation blocking, optional HTTPS navigation upgrade, page-ad cleanup, and opt-in local content-block masking.
 
 ## Current capabilities
 
 - **Network ad blocking:** pinned EasyList ad-server domains plus broader EasyList general/specific/third-party network filters compiled at build time. The normal ad toggle controls both rulesets, covering many banner images, ad scripts, frames, XHRs, and path-based ad requests.
 - **Privacy / tracker blocking:** pinned EasyPrivacy tracking-server source compiled at build time; blocks known tracker scripts, pixels, XHR, pings, and embedded requests without runtime list download.
+- **Known-phishing blocking:** a pinned active Phishing-Database snapshot is compiled at build time and blocks top-level/embedded navigation to listed phishing domains.
 - **Dangerous-site list:** user-managed local domain list blocks top-level and embedded navigation to listed domains, including redirects that land on a listed domain.
+- **HTTPS navigation upgrade:** optional HTTP→HTTPS upgrade for top-level and embedded navigation; disabled by default because HTTP-only legacy sites can break.
 - **Page ad cleanup:** optional CSS-only cosmetic filtering using packaged selectors.
 - **Content filtering:** opt-in local text matching for gambling, explicit sexual material, graphic violence, scam-like promotion, and clickbait/nuisance content; only matched page blocks are hidden, with local reveal/exit controls and matched signals.
 - **Bilingual UI:** Auto / 中文 / English.
 - **Branded options cover:** packaged Jammer artwork shown locally inside the extension settings UI.
 - **Local exceptions:** separate ad-block allowlist and content-filter exception list, both stored only in extension storage.
-- **Reversible permissions:** page cleanup and content filtering share optional site access; the permission is removed when neither feature needs it.
+- **Reversible permissions:** page cleanup/content filtering use optional scripting + site access; HTTPS upgrade uses optional site access only. Unneeded optional permissions are removed.
 - **No telemetry:** no analytics, account system, cloud sync, or runtime filter-list download.
 - **DNS boundary:** Jammer can block URL/domain requests but cannot detect a poisoned DNS answer that maps an otherwise allowed hostname to the wrong IP; browser Secure DNS remains a separate protection.
 
@@ -33,7 +35,7 @@ declarativeNetRequest
 storage
 ```
 
-Optional permissions used only for page ad cleanup or content filtering:
+Optional permissions used only for page ad cleanup, content filtering, or the explicit HTTPS-upgrade feature:
 
 ```text
 scripting
@@ -90,6 +92,7 @@ Jammer pins reviewed EasyList source files to a specific upstream commit and ver
 - `PROVENANCE.json`
 - `AD_NETWORK_PROVENANCE.json`
 - `PRIVACY_PROVENANCE.json`
+- `PHISHING_PROVENANCE.json`
 - `COSMETIC_PROVENANCE.json`
 - `THIRD_PARTY_NOTICES.txt`
 
@@ -121,8 +124,9 @@ The extension does not update filter lists at runtime.
 - [P6.1 element-level content masking](docs/P61_ELEMENT_CONTENT_MASKING.md)
 - [P6.2 network privacy and navigation protection](docs/P62_NETWORK_PRIVACY.md)
 - [P6.3 enhanced ad and ad-script blocking](docs/P63_ENHANCED_AD_BLOCKING.md)
+- [P6.4 phishing and secure navigation](docs/P64_PHISHING_SECURE_NAVIGATION.md)
 - [Security](SECURITY.md)
 
 ## Status
 
-The current Jammer 0.8.1 product build is intended for unpacked-extension testing and validation. Store publication remains a separate release step.
+The current Jammer 0.9.0 product build is intended for unpacked-extension testing and validation. Store publication remains a separate release step.
