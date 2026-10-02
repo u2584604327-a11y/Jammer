@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 test('product build keeps Jammer ruleset contract and adds optional cosmetic capability', async () => {
   const source = await readFile('scripts/build-product.mjs', 'utf8');
 
-  assert.match(source, /version: '0\.9\.0'/);
+  assert.match(source, /version: '0\.10\.0'/);
   assert.match(source, /id: 'ads_static'/);
   assert.match(source, /id: 'ads_extended'/);
   assert.match(source, /rules\/easylist-network-extended\.json/);
@@ -14,6 +14,9 @@ test('product build keeps Jammer ruleset contract and adds optional cosmetic cap
   assert.match(source, /id: 'phishing_static'/);
   assert.match(source, /rules\/phishing-active\.json/);
   assert.match(source, /PHISHING_PROVENANCE\.json/);
+  assert.match(source, /id: 'security_static'/);
+  assert.match(source, /rules\/ublock-security\.json/);
+  assert.match(source, /SECURITY_PROVENANCE\.json/);
   assert.match(source, /rules\/easyprivacy-tracking\.json/);
   assert.match(source, /PRIVACY_PROVENANCE\.json/);
   assert.match(source, /id: 'privacy_static'/);
@@ -32,6 +35,10 @@ test('product build keeps Jammer ruleset contract and adds optional cosmetic cap
   assert.match(source, /assets\/jammer-cover\.webp/);
   assert.match(source, /content-classifier\.js/);
   assert.match(source, /content-filter\.js/);
+  assert.match(source, /content-category-domains\.js/);
+  assert.match(source, /cosmetic-specific-rules\.js/);
+  assert.match(source, /cosmetic-specific-filter\.js/);
+  assert.match(source, /ad-element-filter\.js/);
   assert.match(source, /optional_permissions: \['scripting'\]/);
   assert.match(source, /optional_host_permissions: \['http:\/\/\*\/\*', 'https:\/\/\*\/\*'\]/);
   assert.doesNotMatch(source, /\n\s*host_permissions:/);
