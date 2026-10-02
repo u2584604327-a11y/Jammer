@@ -214,7 +214,7 @@ async function popupApplyCosmetic(settings: PopupSettings): Promise<void> {
     id: POPUP_COSMETIC_SITE_SCRIPT_ID,
     matches: ["*://canyoublockit.com/*", "*://*.canyoublockit.com/*"],
     excludeMatches: popupAllowlistExcludeMatches(settings.allowlist),
-    css: ["cosmetic-canyoublockit.css"],
+    css: ["cosmetic-canyoublockit.css", "cosmetic-canyoublockit-local.css"],
     runAt: "document_start",
     allFrames: true,
     persistAcrossSessions: true
