@@ -35,25 +35,26 @@ The classifier:
 - runs locally;
 - uses packaged weighted keyword signals;
 - scores prominent text (title, description, headings) more heavily than ordinary body text;
-- scans at most a bounded amount of visible page text;
+- scans at most a bounded amount of visible page text and common accessibility/image text such as aria-label, title, and alt;
 - requires a per-category threshold;
-- returns the matched category and matched terms.
+- counts repeated signals with bounded scoring, recognizes additional Chinese/English variants, and returns the matched category and matched terms.
 
 It is intentionally not described as AI or semantic understanding.
 
-## Warning model
+## Element-level masking model
 
-When a selected category crosses its threshold, Jammer displays a full-page per-element placeholder.
+When a selected category crosses its threshold, Jammer hides only the matched content block and inserts a placeholder in the same location.
 
-The warning:
+The placeholder:
 
 - identifies the category;
 - shows a small set of matched signals;
 - states that false positives are possible;
-- allows the user to show the page immediately;
+- allows the user to reveal only that content block;
+- provides an explicit Leave this page / 退出此网页 action in the top frame;
 - allows the current site to be added to a local content-filter exception list.
 
-Jammer does not delete the underlying page or permanently block navigation.
+Jammer does not cover the whole website merely because one card or post matched.
 
 ## Separate exceptions
 
