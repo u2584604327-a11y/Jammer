@@ -62,6 +62,16 @@ npm run brand:preview
 
 The social-preview generator produces a 1280×640 PNG under `generated/brand/social-preview.png`. The vector source is kept at `assets/brand/social-preview.svg`.
 
+## Release candidate
+
+Build and audit the installable Chromium ZIP:
+
+```bash
+npm run release:rc
+```
+
+The audited files are written under `release/`. See [P5.4 release packaging](docs/P54_RELEASE_PACKAGING.md).
+
 ## Filter provenance
 
 Jammer pins reviewed EasyList source files to a specific upstream commit and verifies source identity before product compilation. Generated product builds include:
