@@ -93,7 +93,9 @@ When enabled, Jammer requests:
 - optional `scripting`; and
 - optional `http://*/*` and `https://*/*` site access.
 
-These permissions register packaged CSS-only cosmetic-filtering resources that hide identified ad containers. Jammer does not use page-ad cleanup to intentionally read form values, passwords, browsing history, or cookies.
+These permissions register packaged cosmetic-filtering CSS plus a local heuristic ad-cleanup script. The script evaluates ad-related element metadata, link/image/frame URLs, element dimensions, and common ad/banner markers so self-hosted and dynamically inserted ads can be hidden when network blocking alone is insufficient.
+
+The ad-cleanup script does not use a remote classifier, does not upload page data, and does not intentionally read form values, passwords, browsing history, or cookies.
 
 ### 9. Optional content filtering
 
@@ -251,7 +253,9 @@ HTTPS导航升级默认关闭。
 - 可选 `scripting` 权限；
 - 可选 `http://*/*` 与 `https://*/*` 网站访问权限。
 
-这些权限用于注册扩展内置CSS页面广告隐藏规则。页面广告清理不会被用于主动读取表单值、密码、浏览历史或Cookie。
+这些权限用于注册扩展内置的页面广告CSS，以及一个本地启发式广告清理脚本。该脚本会检查广告相关的元素属性、链接/图片/框架URL、元素尺寸和常见广告/横幅标记，用于清理网络规则无法覆盖的自托管广告和动态插入广告。
+
+广告清理脚本不使用远程分类器，不上传网页数据，也不会被用于主动读取表单值、密码、浏览历史或Cookie。
 
 ### 9. 可选内容过滤
 
@@ -281,7 +285,7 @@ Jammer扩展页面使用：
 
 `connect-src 'none'`
 
-Popup、Options和内容过滤运行时代码不使用 `fetch`、XMLHttpRequest、WebSocket、EventSource、统计分析或遥测接口。
+Popup、Options、内容过滤和启发式广告清理运行时代码不使用 `fetch`、XMLHttpRequest、WebSocket、EventSource、统计分析或遥测接口。
 
 构建脚本在制作版本时会下载并校验固定的第三方规则来源；这是构建阶段行为，不由安装后的扩展执行。
 
