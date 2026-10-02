@@ -19,7 +19,10 @@ test('uses Manifest V3 with optional cosmetic permissions only', () => {
   assert.equal('background' in manifest, false);
 });
 
-test('declares one static ruleset and blocks extension network egress', () => {
-  assert.deepEqual(manifest.declarative_net_request.rule_resources, [{ id: 'ads_static', enabled: true, path: 'rules/ads.json' }]);
+test('declares ads and privacy static rulesets and blocks extension network egress', () => {
+  assert.deepEqual(manifest.declarative_net_request.rule_resources, [
+    { id: 'ads_static', enabled: true, path: 'rules/ads.json' },
+    { id: 'privacy_static', enabled: true, path: 'rules/privacy.json' }
+  ]);
   assert.match(manifest.content_security_policy.extension_pages, /connect-src 'none'/);
 });

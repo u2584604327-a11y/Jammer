@@ -34,7 +34,8 @@ Jammer stores the following settings in the browser's local extension storage un
 - which content categories the user selected;
 - interface language preference: Auto, 中文, or English;
 - domains the user manually adds to the ad-block allowlist; and
-- domains the user manually adds to content-filter exceptions.
+- domains the user manually adds to content-filter exceptions; and
+- domains the user manually adds to the dangerous-site block list.
 
 These settings stay in the browser profile on the user's device unless the browser itself synchronizes or backs up extension data outside Jammer's control.
 
@@ -48,7 +49,27 @@ The filtering rules are generated at build time from pinned and verified EasyLis
 
 Network blocking is performed by the browser. Jammer does not send a log of blocked or allowed requests to a Jammer server.
 
-### 4. Optional page-ad cleanup
+### 4. Privacy / tracker blocking
+
+Privacy / tracker blocking uses a packaged `declarativeNetRequest` ruleset compiled at build time from a pinned EasyPrivacy tracking-server source.
+
+When enabled, Chromium can block requests to known tracking endpoints used for scripts, tracking pixels/images, XMLHttpRequest, pings, embedded frames, WebSocket, and similar resource requests.
+
+Jammer does not download EasyPrivacy at runtime and does not upload a log of blocked tracker requests to a Jammer server.
+
+The tracker rules intentionally do not treat the EasyPrivacy source as a dangerous-site navigation list; direct top-level navigation is not blocked merely because a domain appears in that source.
+
+### 5. Dangerous-site block list
+
+The user can manually add domains to a local dangerous-site block list.
+
+Jammer turns those entries into local browser DNR rules that block top-level and embedded navigation to the listed domains. A redirect that lands on a listed domain can therefore be blocked before the destination page loads.
+
+This list is stored locally and is not uploaded to a Jammer server.
+
+Jammer does not directly inspect DNS answers. It cannot reliably identify DNS poisoning where an otherwise allowed hostname resolves to an attacker-controlled IP while the hostname remains unchanged.
+
+### 6. Optional page-ad cleanup
 
 Page-ad cleanup is optional and disabled by default.
 
@@ -62,7 +83,7 @@ Jammer does not use this feature to intentionally read or collect page text, for
 
 When page-ad cleanup is disabled, Jammer unregisters its cosmetic filtering. Optional website access is removed when neither page-ad cleanup nor content filtering requires it.
 
-### 5. Optional content filtering
+### 7. Optional content filtering
 
 Content filtering is optional and disabled by default. Individual categories are also disabled by default.
 
@@ -81,7 +102,7 @@ If a selected category crosses its local score threshold, Jammer hides the match
 
 Jammer does not upload scanned page text or matched terms to a Jammer server. It does not intentionally read form values, password fields, cookies, or browser history for this feature.
 
-### 6. Allowlists and exceptions
+### 8. Allowlists and exceptions
 
 The ad-block allowlist contains domain names manually entered by the user and excludes matching sites from network blocking or cosmetic filtering.
 
@@ -89,7 +110,7 @@ Content-filter exceptions are stored separately and only suppress content-block 
 
 Neither list is uploaded to a Jammer server.
 
-### 7. External network communication
+### 9. External network communication
 
 The packaged Jammer extension is configured with the extension-page Content Security Policy:
 
@@ -99,13 +120,13 @@ Jammer's popup and Options code do not use `fetch`, XMLHttpRequest, WebSocket, E
 
 Normal websites opened by the user may still make their own network requests. Jammer's purpose is to block some of those requests; it does not control every request made by every website or by the browser itself.
 
-### 8. Third-party filter sources
+### 10. Third-party filter sources
 
-Jammer's build process uses EasyList-derived filtering data. Source provenance and third-party notices are included in product builds.
+Jammer's build process uses EasyList-derived ad filtering data and EasyPrivacy-derived tracking-server data. Source provenance and third-party notices are included in product builds.
 
-This use happens during the build process. The installed extension does not contact EasyList to update rules at runtime.
+This use happens during the build process. The installed extension does not contact EasyList or EasyPrivacy to update rules at runtime.
 
-### 9. Retention and deletion
+### 11. Retention and deletion
 
 Because Jammer does not operate a backend database for extension users, Jammer has no server-side user-data retention period.
 
@@ -114,7 +135,7 @@ Local Jammer settings remain in the browser profile until the user:
 - clears extension/browser storage; or
 - uninstalls the extension.
 
-### 10. Permissions summary
+### 12. Permissions summary
 
 Required:
 - `declarativeNetRequest`
@@ -127,11 +148,11 @@ Optional, only when page-ad cleanup or content filtering is enabled:
 
 Jammer does not request `tabs`, `history`, `cookies`, `webRequest`, `debugger`, `downloads`, or `nativeMessaging`.
 
-### 11. Changes to this policy
+### 13. Changes to this policy
 
 If Jammer's data handling or permission model changes, this policy should be updated before the changed version is distributed.
 
-### 12. Contact
+### 14. Contact
 
 Questions or privacy concerns can be submitted through the public Jammer repository:
 
@@ -165,7 +186,8 @@ Jammer使用浏览器扩展本地存储中的 `jammerSettings` 保存以下设�
 - 用户选择的内容过滤类别；
 - 界面语言偏好：自动、中文或English；
 - 用户手动加入广告拦截白名单的域名；
-- 用户手动加入内容过滤例外的域名。
+- 用户手动加入内容过滤例外的域名；
+- 用户手动加入危险网站拦截列表的域名。
 
 这些设置保存在用户设备的浏览器配置中。若浏览器自身提供扩展数据同步或备份，该行为不由Jammer控制。
 
@@ -179,7 +201,27 @@ Jammer使用Chromium的 `declarativeNetRequest` API应用随扩展打包的网�
 
 网络拦截由浏览器执行。Jammer不会把“哪些请求被拦截或允许”的日志发送到Jammer服务器。
 
-### 4. 可选的页面广告清理
+### 4. 隐私 / 跟踪器拦截
+
+“隐私 / 跟踪器拦截”使用随扩展打包的 `declarativeNetRequest` 规则。产品构建会从固定版本并校验过的 EasyPrivacy 跟踪服务器来源生成这些规则。
+
+启用后，Chromium 可以阻止已知跟踪端点的脚本、跟踪像素/图片、XMLHttpRequest、Ping、嵌入框架、WebSocket 等资源请求。
+
+Jammer 运行时不会下载 EasyPrivacy，也不会把被阻止的跟踪请求日志上传到 Jammer 服务器。
+
+EasyPrivacy 跟踪规则不会被直接当作“危险网站导航名单”，因此某域名仅仅出现在跟踪来源中，并不意味着 Jammer 会禁止用户直接打开该域名。
+
+### 5. 危险网站拦截列表
+
+用户可以手动把域名加入本地“危险网站拦截列表”。
+
+Jammer 会把这些域名转换成本地浏览器 DNR 规则，禁止把相应域名作为顶层网页或嵌入页面打开。因此，当跳转最终落到已列入名单的域名时，可以在目标页面加载前阻止该导航。
+
+该名单只保存在本地，不会上传到 Jammer 服务器。
+
+Jammer 不直接检查 DNS 解析结果。如果一个原本允许的主机名被 DNS 污染并解析到攻击者控制的 IP，而主机名本身没有变化，Jammer 无法可靠识别这种情况。
+
+### 6. 可选的页面广告清理
 
 “页面广告清理”为可选功能，默认关闭。
 
@@ -193,7 +235,7 @@ Jammer不会利用该功能主动读取或收集网页正文、表单内容、�
 
 关闭“页面广告清理”后，Jammer会注销页面广告清理规则。只有当“页面广告清理”和“内容过滤”都不再需要网站访问权限时，Jammer才会移除该可选权限。
 
-### 5. 可选的内容过滤
+### 7. 可选的内容过滤
 
 “内容过滤”为可选功能，默认关闭；各个内容类别也默认关闭。
 
@@ -212,7 +254,7 @@ Jammer不会利用该功能主动读取或收集网页正文、表单内容、�
 
 Jammer不会把扫描到的网页正文或匹配词上传到Jammer服务器，也不会为了该功能主动读取表单输入值、密码字段、Cookie或浏览历史。
 
-### 6. 白名单与内容过滤例外
+### 8. 白名单与内容过滤例外
 
 广告拦截白名单只包含用户手动输入的域名，用于在相应网站上排除网络过滤或页面广告清理。
 
@@ -220,7 +262,7 @@ Jammer不会把扫描到的网页正文或匹配词上传到Jammer服务器，�
 
 两类名单都不会上传到Jammer服务器。
 
-### 7. 外部网络通信
+### 9. 外部网络通信
 
 Jammer扩展页面使用以下Content Security Policy：
 
@@ -230,13 +272,13 @@ Jammer的Popup与Options代码不使用 `fetch`、XMLHttpRequest、WebSocket、E
 
 用户正常访问的网站仍可能发起自身的网络请求。Jammer会尝试拦截其中部分广告请求，但不会控制网站或浏览器自身的全部网络行为。
 
-### 8. 第三方过滤来源
+### 10. 第三方过滤来源
 
-Jammer构建过程会使用EasyList衍生的过滤数据。产品构建中包含来源记录和第三方声明。
+Jammer构建过程会使用EasyList衍生的广告过滤数据，以及EasyPrivacy衍生的跟踪服务器数据。产品构建中包含来源记录和第三方声明。
 
-该过程发生在构建阶段，安装后的扩展不会在运行时连接EasyList更新规则。
+该过程发生在构建阶段，安装后的扩展不会在运行时连接EasyList或EasyPrivacy更新规则。
 
-### 9. 保留与删除
+### 11. 保留与删除
 
 Jammer不运营用于保存扩展用户数据的后端数据库，因此不存在Jammer服务器端的用户数据保留周期。
 
@@ -245,7 +287,7 @@ Jammer不运营用于保存扩展用户数据的后端数据库，因此不存�
 - 清理浏览器/扩展存储；
 - 卸载Jammer。
 
-### 10. 权限摘要
+### 12. 权限摘要
 
 必须权限：
 - `declarativeNetRequest`
@@ -258,11 +300,11 @@ Jammer不运营用于保存扩展用户数据的后端数据库，因此不存�
 
 Jammer不请求 `tabs`、`history`、`cookies`、`webRequest`、`debugger`、`downloads` 或 `nativeMessaging`。
 
-### 11. 政策变更
+### 13. 政策变更
 
 如果Jammer的数据处理方式或权限模型发生变化，应在分发相关新版本之前同步更新本隐私政策。
 
-### 12. 联系方式
+### 14. 联系方式
 
 隐私相关问题可以通过Jammer公开仓库提交：
 

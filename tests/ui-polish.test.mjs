@@ -9,6 +9,10 @@ test('popup keeps all runtime control IDs after visual redesign', async () => {
     'protection',
     'protection-label',
     'status',
+    'privacy-enabled',
+    'privacy-label',
+    'privacy-hint',
+    'privacy-status',
     'cosmetic-enabled',
     'cosmetic-label',
     'cosmetic-hint',
@@ -21,7 +25,7 @@ test('popup keeps all runtime control IDs after visual redesign', async () => {
   ]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
-  assert.match(html, /Build: p61-element-mask-dev/);
+  assert.match(html, /Build: p62-network-privacy-dev/);
   assert.match(html, /class="brand-mark"/);
 });
 
@@ -40,6 +44,15 @@ test('options keeps all runtime control IDs after visual redesign', async () => 
     'master-label',
     'ads-enabled',
     'ads-label',
+    'privacy-enabled',
+    'privacy-label',
+    'privacy-description',
+    'blocked-title',
+    'blocked-description',
+    'blocked-domain-input',
+    'add-blocked-domain',
+    'blocked-domains',
+    'blocked-message',
     'cosmetic-title',
     'cosmetic-enabled',
     'cosmetic-label',

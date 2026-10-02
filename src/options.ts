@@ -6,18 +6,23 @@ type OptionsContentCategories = Record<OptionsContentCategory, boolean>;
 interface OptionsSettings {
   enabled: boolean;
   adsEnabled: boolean;
+  privacyEnabled: boolean;
   cosmeticEnabled: boolean;
   contentEnabled: boolean;
   contentCategories: OptionsContentCategories;
   language: OptionsLanguagePreference;
   allowlist: string[];
   contentAllowlist: string[];
+  blockedDomains: string[];
 }
 
 const OPTIONS_STORAGE_KEY = "jammerSettings";
 const OPTIONS_ADS_RULESET_ID = "ads_static";
+const OPTIONS_PRIVACY_RULESET_ID = "privacy_static";
 const OPTIONS_ALLOWLIST_RULE_ID_BASE = 1_000_000;
 const OPTIONS_ALLOWLIST_RULE_ID_LIMIT = 1_999_999;
+const OPTIONS_BLOCKED_RULE_ID_BASE = 2_000_000;
+const OPTIONS_BLOCKED_RULE_ID_LIMIT = 2_999_999;
 const OPTIONS_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
 const OPTIONS_COSMETIC_SITE_SCRIPT_ID = "jammer-cosmetic-canyoublockit";
 const OPTIONS_CONTENT_SCRIPT_ID = "jammer-content-filter";
@@ -34,12 +39,14 @@ const OPTIONS_DEFAULT_CATEGORIES: OptionsContentCategories = {
 const OPTIONS_DEFAULT_SETTINGS: OptionsSettings = {
   enabled: true,
   adsEnabled: true,
+  privacyEnabled: true,
   cosmeticEnabled: false,
   contentEnabled: false,
   contentCategories: { ...OPTIONS_DEFAULT_CATEGORIES },
   language: "auto",
   allowlist: [],
-  contentAllowlist: []
+  contentAllowlist: [],
+  blockedDomains: []
 };
 
 const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> = {
@@ -47,6 +54,10 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     title: "Jammer Options",
     master: "Jammer protection",
     network: "Network ad blocking",
+    privacy: "Privacy / tracker blocking",
+    privacyDescription: "Blocks packaged known tracking endpoints for scripts, pixels, XHR, pings, and embedded frames.",
+    blockedTitle: "Dangerous-site block list",
+    blockedDescription: "Domains added here are blocked for top-level and embedded navigation. Redirects to listed domains are blocked; this does not replace browser Secure DNS.",
     cosmeticTitle: "Page ad cleanup",
     cosmeticLabel: "Hide page ad containers",
     cosmeticDescription:
@@ -79,6 +90,8 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     contentSelectCategory: "Select at least one content category first.",
     protectionUpdated: "Protection setting updated.",
     networkUpdated: "Network ad blocking updated.",
+    privacyUpdated: "Privacy / tracker blocking updated.",
+    blockedUpdated: "Dangerous-site block list updated.",
     allowlistUpdated: "Ad-block allowlist updated.",
     contentAllowlistUpdated: "Content-filter exceptions updated.",
     categoriesUpdated: "Content categories updated.",
@@ -92,6 +105,10 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     title: "Jammer 设置",
     master: "Jammer 总保护",
     network: "网络广告拦截",
+    privacy: "隐私 / 跟踪器拦截",
+    privacyDescription: "拦截扩展内置规则识别的跟踪脚本、像素、XHR、Ping 和嵌入框架请求。",
+    blockedTitle: "危险网站拦截列表",
+    blockedDescription: "这里的域名会被禁止作为顶层网页或嵌入页面打开，可拦截跳转到已列入域名的请求；它不能替代浏览器的安全 DNS。",
     cosmeticTitle: "页面广告清理",
     cosmeticLabel: "隐藏页面广告容器",
     cosmeticDescription:
@@ -122,6 +139,8 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     contentSelectCategory: "请先至少选择一个内容类别。",
     protectionUpdated: "总保护设置已更新。",
     networkUpdated: "网络广告拦截设置已更新。",
+    privacyUpdated: "隐私 / 跟踪器拦截设置已更新。",
+    blockedUpdated: "危险网站拦截列表已更新。",
     allowlistUpdated: "广告拦截白名单已更新。",
     contentAllowlistUpdated: "内容过滤例外已更新。",
     categoriesUpdated: "内容过滤类别已更新。",
@@ -428,6 +447,7 @@ function optionsSanitizeSettings(value: unknown): OptionsSettings {
   return {
     enabled: typeof candidate.enabled === "boolean" ? candidate.enabled : true,
     adsEnabled: typeof candidate.adsEnabled === "boolean" ? candidate.adsEnabled : true,
+    privacyEnabled: typeof candidate.privacyEnabled === "boolean" ? candidate.privacyEnabled : true,
     cosmeticEnabled: typeof candidate.cosmeticEnabled === "boolean" ? candidate.cosmeticEnabled : false,
     contentEnabled: typeof candidate.contentEnabled === "boolean" ? candidate.contentEnabled : false,
     contentCategories: {
@@ -443,6 +463,9 @@ function optionsSanitizeSettings(value: unknown): OptionsSettings {
       : [],
     contentAllowlist: Array.isArray(candidate.contentAllowlist)
       ? candidate.contentAllowlist.filter((item): item is string => typeof item === "string")
+      : [],
+    blockedDomains: Array.isArray(candidate.blockedDomains)
+      ? candidate.blockedDomains.filter((item): item is string => typeof item === "string")
       : []
   };
 }
@@ -490,16 +513,18 @@ async function optionsSaveSettings(settings: OptionsSettings): Promise<void> {
 }
 
 async function optionsApplyProtection(settings: OptionsSettings): Promise<void> {
-  const shouldEnable = settings.enabled && settings.adsEnabled;
   const enabled = await optionsGetEnabledRulesets();
-  const isEnabled = enabled.includes(OPTIONS_ADS_RULESET_ID);
-  if (shouldEnable === isEnabled) return;
+  const desired = new Set<string>();
 
-  await optionsUpdateEnabledRulesets(
-    shouldEnable
-      ? { enableRulesetIds: [OPTIONS_ADS_RULESET_ID] }
-      : { disableRulesetIds: [OPTIONS_ADS_RULESET_ID] }
-  );
+  if (settings.enabled && settings.adsEnabled) desired.add(OPTIONS_ADS_RULESET_ID);
+  if (settings.enabled && settings.privacyEnabled) desired.add(OPTIONS_PRIVACY_RULESET_ID);
+
+  const managed = [OPTIONS_ADS_RULESET_ID, OPTIONS_PRIVACY_RULESET_ID];
+  const enableRulesetIds = managed.filter((id) => desired.has(id) && !enabled.includes(id));
+  const disableRulesetIds = managed.filter((id) => !desired.has(id) && enabled.includes(id));
+
+  if (enableRulesetIds.length === 0 && disableRulesetIds.length === 0) return;
+  await optionsUpdateEnabledRulesets({ enableRulesetIds, disableRulesetIds });
 }
 
 function optionsBuildAllowlistRules(domains: string[]): JammerDnrRule[] {
@@ -526,9 +551,34 @@ async function optionsSyncAllowlistRules(domains: string[]): Promise<void> {
   });
 }
 
+function optionsBuildBlockedDomainRules(domains: string[]): JammerDnrRule[] {
+  return domains.map((domain, index) => ({
+    id: OPTIONS_BLOCKED_RULE_ID_BASE + index,
+    priority: 20_000,
+    action: { type: "block" },
+    condition: {
+      urlFilter: `||${domain}^`,
+      resourceTypes: ["main_frame", "sub_frame"]
+    }
+  }));
+}
+
+async function optionsSyncBlockedDomainRules(domains: string[]): Promise<void> {
+  const existing = await optionsGetDynamicRules();
+  const removeRuleIds = existing
+    .filter((rule) => rule.id >= OPTIONS_BLOCKED_RULE_ID_BASE && rule.id <= OPTIONS_BLOCKED_RULE_ID_LIMIT)
+    .map((rule) => rule.id);
+
+  await optionsUpdateDynamicRules({
+    removeRuleIds,
+    addRules: optionsBuildBlockedDomainRules(domains)
+  });
+}
+
 async function optionsApplySettings(settings: OptionsSettings): Promise<void> {
   await optionsApplyProtection(settings);
   await optionsSyncAllowlistRules(settings.allowlist);
+  await optionsSyncBlockedDomainRules(settings.blockedDomains);
   await optionsApplyCosmetic(settings);
   await optionsApplyContentFilter(settings);
 }
@@ -536,10 +586,13 @@ async function optionsApplySettings(settings: OptionsSettings): Promise<void> {
 const title = optionsRequireElement<HTMLElement>("#options-title");
 const master = optionsRequireElement<HTMLInputElement>("#master-enabled");
 const ads = optionsRequireElement<HTMLInputElement>("#ads-enabled");
+const privacy = optionsRequireElement<HTMLInputElement>("#privacy-enabled");
 const cosmetic = optionsRequireElement<HTMLInputElement>("#cosmetic-enabled");
 const contentEnabled = optionsRequireElement<HTMLInputElement>("#content-enabled");
 const masterLabel = optionsRequireElement<HTMLElement>("#master-label");
 const adsLabel = optionsRequireElement<HTMLElement>("#ads-label");
+const privacyLabel = optionsRequireElement<HTMLElement>("#privacy-label");
+const privacyDescription = optionsRequireElement<HTMLElement>("#privacy-description");
 const cosmeticTitle = optionsRequireElement<HTMLElement>("#cosmetic-title");
 const cosmeticLabel = optionsRequireElement<HTMLElement>("#cosmetic-label");
 const cosmeticDescription = optionsRequireElement<HTMLElement>("#cosmetic-description");
@@ -558,6 +611,12 @@ const contentAllowlistDescription = optionsRequireElement<HTMLElement>("#content
 const contentAllowlistInput = optionsRequireElement<HTMLInputElement>("#content-allowlist-input");
 const contentAllowlistAdd = optionsRequireElement<HTMLButtonElement>("#add-content-domain");
 const contentAllowlistList = optionsRequireElement<HTMLUListElement>("#content-allowlist");
+const blockedTitle = optionsRequireElement<HTMLElement>("#blocked-title");
+const blockedDescription = optionsRequireElement<HTMLElement>("#blocked-description");
+const blockedInput = optionsRequireElement<HTMLInputElement>("#blocked-domain-input");
+const blockedAdd = optionsRequireElement<HTMLButtonElement>("#add-blocked-domain");
+const blockedList = optionsRequireElement<HTMLUListElement>("#blocked-domains");
+const blockedMessage = optionsRequireElement<HTMLElement>("#blocked-message");
 const message = optionsRequireElement<HTMLElement>("#message");
 const contentMessage = optionsRequireElement<HTMLElement>("#content-message");
 const languageSelect = optionsRequireElement<HTMLSelectElement>("#language-select");
@@ -581,12 +640,15 @@ const categoryLabels: Record<OptionsContentCategory, HTMLElement> = {
 for (const element of [
   master,
   ads,
+  privacy,
   cosmetic,
   contentEnabled,
   input,
   addButton,
   contentAllowlistInput,
   contentAllowlistAdd,
+  blockedInput,
+  blockedAdd,
   languageSelect,
   ...Object.values(categoryCheckboxes)
 ]) {
@@ -606,6 +668,8 @@ function optionsApplyTranslations(): void {
   title.textContent = strings.title;
   masterLabel.textContent = strings.master;
   adsLabel.textContent = strings.network;
+  privacyLabel.textContent = strings.privacy;
+  privacyDescription.textContent = strings.privacyDescription;
   cosmeticTitle.textContent = strings.cosmeticTitle;
   cosmeticLabel.textContent = strings.cosmeticLabel;
   cosmeticDescription.textContent = strings.cosmeticDescription;
@@ -618,8 +682,11 @@ function optionsApplyTranslations(): void {
   allowlistDescription.textContent = strings.allowlistDescription;
   contentAllowlistTitle.textContent = strings.contentAllowlistTitle;
   contentAllowlistDescription.textContent = strings.contentAllowlistDescription;
+  blockedTitle.textContent = strings.blockedTitle;
+  blockedDescription.textContent = strings.blockedDescription;
   addButton.textContent = strings.add;
   contentAllowlistAdd.textContent = strings.add;
+  blockedAdd.textContent = strings.add;
 
   categoryLabels.gambling.textContent = strings.gambling;
   categoryLabels.explicit.textContent = strings.explicit;
@@ -667,6 +734,12 @@ function renderContentAllowlist(): void {
   });
 }
 
+function renderBlockedDomains(): void {
+  optionsRenderDomainList(blockedList, settings.blockedDomains, (domain) => {
+    void updateBlockedDomains(settings.blockedDomains.filter((entry) => entry !== domain));
+  });
+}
+
 function renderCategories(): void {
   for (const category of Object.keys(categoryCheckboxes) as OptionsContentCategory[]) {
     categoryCheckboxes[category].checked = settings.contentCategories[category];
@@ -693,6 +766,14 @@ async function updateContentAllowlist(next: string[]): Promise<void> {
   contentMessage.textContent = optionsStrings(settings).contentAllowlistUpdated;
 }
 
+async function updateBlockedDomains(next: string[]): Promise<void> {
+  settings.blockedDomains = next;
+  await optionsSaveSettings(settings);
+  await optionsSyncBlockedDomainRules(next);
+  renderBlockedDomains();
+  blockedMessage.textContent = optionsStrings(settings).blockedUpdated;
+}
+
 master.addEventListener("change", () => {
   settings.enabled = master.checked;
   void persist().then(() => {
@@ -708,6 +789,15 @@ ads.addEventListener("change", () => {
     message.textContent = optionsStrings(settings).networkUpdated;
   }).catch((error) => {
     message.textContent = error instanceof Error ? error.message : "Could not update network ad blocking.";
+  });
+});
+
+privacy.addEventListener("change", () => {
+  settings.privacyEnabled = privacy.checked;
+  void persist().then(() => {
+    message.textContent = optionsStrings(settings).privacyUpdated;
+  }).catch((error) => {
+    message.textContent = error instanceof Error ? error.message : "Could not update privacy blocking.";
   });
 });
 
@@ -848,6 +938,24 @@ addButton.addEventListener("click", () => {
   }
 });
 
+blockedAdd.addEventListener("click", () => {
+  const strings = optionsStrings(settings);
+  try {
+    const domain = optionsNormalizeDomain(blockedInput.value, strings);
+    if (settings.blockedDomains.includes(domain)) {
+      blockedMessage.textContent = strings.duplicate;
+      return;
+    }
+    blockedInput.value = "";
+    void updateBlockedDomains([...settings.blockedDomains, domain]).catch((error) => {
+      blockedMessage.textContent =
+        error instanceof Error ? error.message : "Could not update dangerous-site block list.";
+    });
+  } catch (error) {
+    blockedMessage.textContent = error instanceof Error ? error.message : strings.invalid;
+  }
+});
+
 contentAllowlistAdd.addEventListener("click", () => {
   const strings = optionsStrings(settings);
   try {
@@ -878,6 +986,7 @@ void optionsLoadSettings().then(async (loaded) => {
 
   master.checked = settings.enabled;
   ads.checked = settings.adsEnabled;
+  privacy.checked = settings.privacyEnabled;
   cosmetic.checked = settings.cosmeticEnabled;
   contentEnabled.checked = settings.contentEnabled;
   renderCategories();
@@ -885,6 +994,9 @@ void optionsLoadSettings().then(async (loaded) => {
   optionsApplyTranslations();
   renderAllowlist();
   renderContentAllowlist();
+  renderBlockedDomains();
+  await optionsApplyProtection(settings);
+  await optionsSyncBlockedDomainRules(settings.blockedDomains);
 
   if (permissionGranted) {
     await optionsApplyCosmetic(settings);
@@ -894,12 +1006,15 @@ void optionsLoadSettings().then(async (loaded) => {
   for (const element of [
     master,
     ads,
+    privacy,
     cosmetic,
     contentEnabled,
     input,
     addButton,
     contentAllowlistInput,
     contentAllowlistAdd,
+    blockedInput,
+    blockedAdd,
     languageSelect,
     ...Object.values(categoryCheckboxes)
   ]) {

@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1001,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||privacy-tracker.jammer.invalid^",
+      "resourceTypes": ["script", "image", "xmlhttprequest", "ping", "sub_frame"]
+    }
+  }
+]

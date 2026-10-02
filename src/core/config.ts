@@ -7,17 +7,20 @@ export type JammerContentCategories = Record<JammerContentCategoryKey, boolean>;
 export interface JammerSettings {
   enabled: boolean;
   adsEnabled: boolean;
+  privacyEnabled: boolean;
   cosmeticEnabled: boolean;
   contentEnabled: boolean;
   contentCategories: JammerContentCategories;
   language: JammerLanguage;
   allowlist: string[];
   contentAllowlist: string[];
+  blockedDomains: string[];
 }
 
 export const DEFAULT_SETTINGS: JammerSettings = {
   enabled: true,
   adsEnabled: true,
+  privacyEnabled: true,
   cosmeticEnabled: false,
   contentEnabled: false,
   contentCategories: {
@@ -29,7 +32,8 @@ export const DEFAULT_SETTINGS: JammerSettings = {
   },
   language: "auto",
   allowlist: [],
-  contentAllowlist: []
+  contentAllowlist: [],
+  blockedDomains: []
 };
 
 const STORAGE_KEY = "jammerSettings";
@@ -49,6 +53,7 @@ function sanitizeSettings(value: unknown): JammerSettings {
   return {
     enabled: typeof candidate.enabled === "boolean" ? candidate.enabled : true,
     adsEnabled: typeof candidate.adsEnabled === "boolean" ? candidate.adsEnabled : true,
+    privacyEnabled: typeof candidate.privacyEnabled === "boolean" ? candidate.privacyEnabled : true,
     cosmeticEnabled: typeof candidate.cosmeticEnabled === "boolean" ? candidate.cosmeticEnabled : false,
     contentEnabled: typeof candidate.contentEnabled === "boolean" ? candidate.contentEnabled : false,
     contentCategories: {
@@ -64,6 +69,9 @@ function sanitizeSettings(value: unknown): JammerSettings {
       : [],
     contentAllowlist: Array.isArray(candidate.contentAllowlist)
       ? candidate.contentAllowlist.filter((item): item is string => typeof item === "string")
+      : [],
+    blockedDomains: Array.isArray(candidate.blockedDomains)
+      ? candidate.blockedDomains.filter((item): item is string => typeof item === "string")
       : []
   };
 }

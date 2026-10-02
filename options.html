@@ -13,7 +13,7 @@
       <span class="brand-mark" aria-hidden="true"><span>J</span></span>
       <div>
         <h1 id="options-title">Jammer Options</h1>
-        <p class="build-id">Jammer 0.7.1</p>
+        <p class="build-id">Jammer 0.8.0</p>
       </div>
     </div>
     <select id="language-select" class="compact-select" aria-label="Language">
@@ -37,6 +37,12 @@
       <label id="ads-label" for="ads-enabled">Network ad blocking</label>
       <input id="ads-enabled" class="switch" type="checkbox">
     </div>
+    <div class="divider"></div>
+    <div class="feature-row">
+      <label id="privacy-label" for="privacy-enabled">Privacy / tracker blocking</label>
+      <input id="privacy-enabled" class="switch" type="checkbox">
+    </div>
+    <p id="privacy-description" class="muted">Blocks packaged known tracking endpoints for scripts, pixels, XHR, pings, and embedded frames.</p>
   </section>
 
   <section class="card settings-card">
@@ -58,6 +64,17 @@
     </div>
     <ul id="allowlist" class="allowlist"></ul>
     <p id="message" class="status-message" aria-live="polite"></p>
+  </section>
+
+  <section class="card settings-card">
+    <h2 id="blocked-title">Dangerous-site block list</h2>
+    <p id="blocked-description" class="muted">Domains added here are blocked for top-level and embedded navigation. This catches redirects to listed domains but does not replace browser Secure DNS.</p>
+    <div class="input-row">
+      <input id="blocked-domain-input" type="text" placeholder="example.com" autocomplete="off" spellcheck="false">
+      <button id="add-blocked-domain" class="secondary-button" type="button">Add</button>
+    </div>
+    <ul id="blocked-domains" class="allowlist"></ul>
+    <p id="blocked-message" class="status-message" aria-live="polite"></p>
   </section>
 
   <section class="card settings-card">
