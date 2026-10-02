@@ -24,10 +24,11 @@ await cp('src/cosmetic-easylist.css', 'dist/cosmetic-easylist.css');
 await cp('src/cosmetic-canyoublockit.css', 'dist/cosmetic-canyoublockit.css');
 await cp('src/cosmetic-canyoublockit-local.css', 'dist/cosmetic-canyoublockit-local.css');
 await cp('src/cosmetic-specific-rules.js', 'dist/cosmetic-specific-rules.js');
+await cp('src/content-category-domains.js', 'dist/content-category-domains.js');
 await cp('rules', 'dist/rules', { recursive: true });
 await cp('.build-js', 'dist', { recursive: true });
 
-for (const file of ['dist/popup.js', 'dist/options.js', 'dist/content-classifier.js', 'dist/content-filter.js', 'dist/cosmetic-specific-filter.js', 'dist/cosmetic-specific-rules.js']) {
+for (const file of ['dist/popup.js', 'dist/options.js', 'dist/content-classifier.js', 'dist/content-filter.js', 'dist/cosmetic-specific-filter.js', 'dist/cosmetic-specific-rules.js', 'dist/content-category-domains.js']) {
   const info = await stat(file);
   if (!info.isFile() || info.size === 0) {
     throw new Error(`Missing runtime entry: ${file}`);
