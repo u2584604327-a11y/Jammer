@@ -24,6 +24,7 @@ const POPUP_PRIVACY_RULESET_ID = "privacy_static";
 const POPUP_PHISHING_RULESET_ID = "phishing_static";
 const POPUP_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
 const POPUP_COSMETIC_SITE_SCRIPT_ID = "jammer-cosmetic-canyoublockit";
+const POPUP_COSMETIC_SPECIFIC_SCRIPT_ID = "jammer-cosmetic-specific";
 const POPUP_CONTENT_SCRIPT_ID = "jammer-content-filter";
 const POPUP_SITE_ORIGINS = ["http://*/*", "https://*/*"];
 
@@ -278,7 +279,7 @@ function popupHasSelectedCategory(settings: PopupSettings): boolean {
 
 async function popupApplyCosmetic(settings: PopupSettings): Promise<void> {
   const granted = await popupPermissionContains();
-  const ids = [POPUP_COSMETIC_SCRIPT_ID, POPUP_COSMETIC_SITE_SCRIPT_ID];
+  const ids = [POPUP_COSMETIC_SCRIPT_ID, POPUP_COSMETIC_SITE_SCRIPT_ID, POPUP_COSMETIC_SPECIFIC_SCRIPT_ID];
   const shouldEnable = settings.enabled && settings.cosmeticEnabled && granted;
 
   if (!shouldEnable) {
@@ -302,6 +303,15 @@ async function popupApplyCosmetic(settings: PopupSettings): Promise<void> {
       matches: ["*://canyoublockit.com/*", "*://*.canyoublockit.com/*"],
       excludeMatches: popupDomainExcludeMatches(settings.allowlist),
       css: ["cosmetic-canyoublockit.css", "cosmetic-canyoublockit-local.css"],
+      runAt: "document_start",
+      allFrames: true,
+      persistAcrossSessions: true
+    },
+    {
+      id: POPUP_COSMETIC_SPECIFIC_SCRIPT_ID,
+      matches: POPUP_SITE_ORIGINS,
+      excludeMatches: popupDomainExcludeMatches(settings.allowlist),
+      js: ["cosmetic-specific-rules.js", "cosmetic-specific-filter.js"],
       runAt: "document_start",
       allFrames: true,
       persistAcrossSessions: true
