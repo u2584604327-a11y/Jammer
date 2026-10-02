@@ -27,3 +27,5 @@ jobs:
         run: npm run rules:prepare:easylist
       - name: Build isolated EasyList smoke profile
         run: npm run build:easylist-smoke
+      - name: Build full Jammer EasyList product profile
+        run: node scripts/build-product.mjs

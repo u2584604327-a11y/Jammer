@@ -15,7 +15,8 @@
     "rules:compile:buckets:sample": "node scripts/compile-domain-buckets.mjs rules/sources/sample-fixture.txt rules/sources/sample-fixture.meta.json generated/sample-bucket-rules.json generated/sample-bucket-report.json 16",
     "rules:prepare:easylist": "node scripts/prepare-easylist.mjs",
     "build:easylist-smoke": "node scripts/build-easylist-smoke.mjs",
-    "smoke:easylist": "npm run rules:prepare:easylist && npm run build:easylist-smoke"
+    "smoke:easylist": "npm run rules:prepare:easylist && npm run build:easylist-smoke",
+    "build:product": "npm run rules:prepare:easylist && node scripts/build-product.mjs"
   },
   "engines": {
     "node": ">=22"
