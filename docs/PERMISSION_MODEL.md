@@ -43,3 +43,38 @@ Permission expansion must not be bundled into unrelated work.
 ## Future content filtering
 
 If a later phase needs page DOM access, it must be optional and separately reviewed. Prefer per-site or user-triggered access over unconditional global access.
+
+
+## P6.0 content-filter permission review
+
+Feature:
+- opt-in local content-category warnings.
+
+Why lower privilege is insufficient:
+- `declarativeNetRequest` can classify network requests but cannot read rendered page text;
+- page-text classification requires a content script in the page.
+
+Exact additional exposure:
+- while enabled, Jammer can execute its packaged content-filter scripts on HTTP/HTTPS pages;
+- those scripts can inspect page DOM text visible to the page context.
+
+Mitigations:
+- the permission remains optional;
+- categories are disabled by default;
+- content filtering is disabled by default;
+- content scripts are registered only after explicit user activation;
+- a separate content-filter exception list is supported;
+- page text is processed locally;
+- no remote classifier or telemetry is used;
+- optional site access is removed when neither content filtering nor cosmetic filtering needs it.
+
+The required manifest permission set remains:
+
+`declarativeNetRequest`
+`storage`
+
+Optional:
+
+`scripting`
+`http://*/*`
+`https://*/*`
