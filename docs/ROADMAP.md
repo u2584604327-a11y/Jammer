@@ -40,13 +40,17 @@ Only after explicit review:
 - cosmetic selectors
 - false-positive recovery
 
-## P4 - user-controlled content categories
+## P4 / P6.0 - user-controlled content categories
+
+Implemented in P6.0:
 
 - explicit category settings
-- local-first matching
+- local-first weighted matching
 - explainable match reason
-- per-site overrides
+- separate per-site content exceptions
 - no hidden category activation
+- warning overlay instead of destructive blocking
+- no remote classifier or page-text upload
 
 ## P5 - cross-browser compatibility
 
