@@ -35,11 +35,11 @@ for (const file of ['dist/popup.html', 'dist/options.html']) {
 }
 
 const manifest = JSON.parse(await readFile('dist/manifest.json', 'utf8'));
-if (manifest.version !== '0.1.2') {
+if (manifest.version !== '0.1.3') {
   throw new Error('Unexpected dist manifest version');
 }
 const popupHtml = await readFile('dist/popup.html', 'utf8');
-if (!popupHtml.includes('Build: p1-runtime-fix2')) {
+if (!popupHtml.includes('Build: p42-bilingual-dev')) {
   throw new Error('Popup build marker missing from dist');
 }
 
