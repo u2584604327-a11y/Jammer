@@ -31,3 +31,13 @@ jobs:
         run: npm run build:easylist-smoke
       - name: Build full Jammer EasyList product profile
         run: node scripts/build-product.mjs
+      - name: Generate GitHub social preview
+        run: npm run brand:preview
+      - name: Upload branding preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: jammer-brand-preview
+          path: |
+            generated/brand/social-preview.png
+            generated/brand/icon-128.png
+          if-no-files-found: error
