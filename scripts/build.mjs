@@ -12,6 +12,7 @@ for (const file of ['manifest.json', 'popup.html', 'options.html']) {
   await cp(file, join('dist', file));
 }
 await cp('src/styles.css', 'dist/styles.css');
+await cp('src/cosmetic.css', 'dist/cosmetic.css');
 await cp('rules', 'dist/rules', { recursive: true });
 await cp('.build-js', 'dist', { recursive: true });
 
@@ -34,7 +35,7 @@ for (const file of ['dist/popup.html', 'dist/options.html']) {
 }
 
 const manifest = JSON.parse(await readFile('dist/manifest.json', 'utf8'));
-if (manifest.version !== '0.1.1') {
+if (manifest.version !== '0.1.2') {
   throw new Error('Unexpected dist manifest version');
 }
 const popupHtml = await readFile('dist/popup.html', 'utf8');
