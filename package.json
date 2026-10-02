@@ -10,7 +10,9 @@
     "build": "node scripts/build.mjs",
     "runtime:fixture": "node scripts/runtime-fixture-server.mjs",
     "rules:compile": "node scripts/compile-rules.mjs",
-    "rules:compile:sample": "node scripts/compile-rules.mjs rules/sources/sample-fixture.txt rules/sources/sample-fixture.meta.json generated/sample-rules.json generated/sample-report.json"
+    "rules:compile:sample": "node scripts/compile-rules.mjs rules/sources/sample-fixture.txt rules/sources/sample-fixture.meta.json generated/sample-rules.json generated/sample-report.json",
+    "rules:compile:buckets": "node scripts/compile-domain-buckets.mjs",
+    "rules:compile:buckets:sample": "node scripts/compile-domain-buckets.mjs rules/sources/sample-fixture.txt rules/sources/sample-fixture.meta.json generated/sample-bucket-rules.json generated/sample-bucket-report.json 16"
   },
   "engines": {
     "node": ">=22"
