@@ -7,6 +7,8 @@ interface OptionsSettings {
   enabled: boolean;
   adsEnabled: boolean;
   privacyEnabled: boolean;
+  phishingEnabled: boolean;
+  secureNavigationEnabled: boolean;
   cosmeticEnabled: boolean;
   contentEnabled: boolean;
   contentCategories: OptionsContentCategories;
@@ -19,10 +21,12 @@ interface OptionsSettings {
 const OPTIONS_STORAGE_KEY = "jammerSettings";
 const OPTIONS_ADS_RULESET_IDS = ["ads_static", "ads_extended"] as const;
 const OPTIONS_PRIVACY_RULESET_ID = "privacy_static";
+const OPTIONS_PHISHING_RULESET_ID = "phishing_static";
 const OPTIONS_ALLOWLIST_RULE_ID_BASE = 1_000_000;
 const OPTIONS_ALLOWLIST_RULE_ID_LIMIT = 1_999_999;
 const OPTIONS_BLOCKED_RULE_ID_BASE = 2_000_000;
 const OPTIONS_BLOCKED_RULE_ID_LIMIT = 2_999_999;
+const OPTIONS_HTTPS_UPGRADE_RULE_ID = 3_000_000;
 const OPTIONS_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
 const OPTIONS_COSMETIC_SITE_SCRIPT_ID = "jammer-cosmetic-canyoublockit";
 const OPTIONS_CONTENT_SCRIPT_ID = "jammer-content-filter";
@@ -40,6 +44,8 @@ const OPTIONS_DEFAULT_SETTINGS: OptionsSettings = {
   enabled: true,
   adsEnabled: true,
   privacyEnabled: true,
+  phishingEnabled: true,
+  secureNavigationEnabled: false,
   cosmeticEnabled: false,
   contentEnabled: false,
   contentCategories: { ...OPTIONS_DEFAULT_CATEGORIES },
@@ -56,6 +62,10 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     network: "Network ad & script blocking",
     privacy: "Privacy / tracker blocking",
     privacyDescription: "Blocks packaged known tracking endpoints for scripts, pixels, XHR, pings, and embedded frames.",
+    phishing: "Known phishing-site blocking",
+    phishingDescription: "Blocks top-level and embedded navigation to domains from a pinned active phishing feed.",
+    secureNavigation: "Upgrade HTTP navigation to HTTPS",
+    secureNavigationDescription: "Optional. Upgrades HTTP page/frame navigation to HTTPS when the destination supports it; some legacy HTTP-only sites may fail.",
     blockedTitle: "Dangerous-site block list",
     blockedDescription: "Domains added here are blocked for top-level and embedded navigation. Redirects to listed domains are blocked; this does not replace browser Secure DNS.",
     cosmeticTitle: "Page ad cleanup",
@@ -91,6 +101,8 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     protectionUpdated: "Protection setting updated.",
     networkUpdated: "Network ad & script blocking updated.",
     privacyUpdated: "Privacy / tracker blocking updated.",
+    phishingUpdated: "Known phishing-site blocking updated.",
+    secureNavigationUpdated: "HTTPS navigation upgrade updated.",
     blockedUpdated: "Dangerous-site block list updated.",
     allowlistUpdated: "Ad-block allowlist updated.",
     contentAllowlistUpdated: "Content-filter exceptions updated.",
@@ -107,6 +119,10 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     network: "网络广告 / 广告脚本拦截",
     privacy: "隐私 / 跟踪器拦截",
     privacyDescription: "拦截扩展内置规则识别的跟踪脚本、像素、XHR、Ping 和嵌入框架请求。",
+    phishing: "已知钓鱼网站拦截",
+    phishingDescription: "使用固定并校验过的活跃钓鱼域名数据，阻止顶层网页或嵌入页面跳转到已知钓鱼域名。",
+    secureNavigation: "HTTP 导航自动升级到 HTTPS",
+    secureNavigationDescription: "可选。将 HTTP 页面/框架导航升级为 HTTPS；部分仅支持 HTTP 的旧网站可能无法打开。",
     blockedTitle: "危险网站拦截列表",
     blockedDescription: "这里的域名会被禁止作为顶层网页或嵌入页面打开，可拦截跳转到已列入域名的请求；它不能替代浏览器的安全 DNS。",
     cosmeticTitle: "页面广告清理",
@@ -140,6 +156,8 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     protectionUpdated: "总保护设置已更新。",
     networkUpdated: "网络广告 / 广告脚本拦截设置已更新。",
     privacyUpdated: "隐私 / 跟踪器拦截设置已更新。",
+    phishingUpdated: "已知钓鱼网站拦截设置已更新。",
+    secureNavigationUpdated: "HTTPS 导航升级设置已更新。",
     blockedUpdated: "危险网站拦截列表已更新。",
     allowlistUpdated: "广告拦截白名单已更新。",
     contentAllowlistUpdated: "内容过滤例外已更新。",
@@ -243,6 +261,81 @@ function optionsPermissionRemove(): Promise<boolean> {
       (removed) => {
         if (chrome.runtime.lastError) {
           reject(optionsRuntimeError("Permission removal failed"));
+          return;
+        }
+        resolve(removed);
+      }
+    );
+  });
+}
+
+function optionsHostPermissionContains(): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    chrome.permissions.contains(
+      { origins: OPTIONS_COSMETIC_ORIGINS },
+      (result) => {
+        if (chrome.runtime.lastError) {
+          reject(optionsRuntimeError("Host permission check failed"));
+          return;
+        }
+        resolve(result);
+      }
+    );
+  });
+}
+
+function optionsHostPermissionRequest(): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    chrome.permissions.request(
+      { origins: OPTIONS_COSMETIC_ORIGINS },
+      (granted) => {
+        if (chrome.runtime.lastError) {
+          reject(optionsRuntimeError("Host permission request failed"));
+          return;
+        }
+        resolve(granted);
+      }
+    );
+  });
+}
+
+function optionsHostPermissionRemove(): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    chrome.permissions.remove(
+      { origins: OPTIONS_COSMETIC_ORIGINS },
+      (removed) => {
+        if (chrome.runtime.lastError) {
+          reject(optionsRuntimeError("Host permission removal failed"));
+          return;
+        }
+        resolve(removed);
+      }
+    );
+  });
+}
+
+function optionsScriptingPermissionContains(): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    chrome.permissions.contains(
+      { permissions: ["scripting"] },
+      (result) => {
+        if (chrome.runtime.lastError) {
+          reject(optionsRuntimeError("Scripting permission check failed"));
+          return;
+        }
+        resolve(result);
+      }
+    );
+  });
+}
+
+function optionsScriptingPermissionRemove(): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    chrome.permissions.remove(
+      { permissions: ["scripting"] },
+      (removed) => {
+        if (chrome.runtime.lastError) {
+          reject(optionsRuntimeError("Scripting permission removal failed"));
           return;
         }
         resolve(removed);
@@ -367,9 +460,15 @@ async function optionsApplyContentFilter(settings: OptionsSettings): Promise<voi
 }
 
 async function optionsMaybeRemoveSiteAccess(settings: OptionsSettings): Promise<void> {
-  if (settings.cosmeticEnabled || settings.contentEnabled) return;
-  const granted = await optionsPermissionContains();
-  if (granted) await optionsPermissionRemove();
+  const needsScripting = settings.cosmeticEnabled || settings.contentEnabled;
+  const needsHosts = needsScripting || settings.secureNavigationEnabled;
+
+  if (!needsScripting && await optionsScriptingPermissionContains()) {
+    await optionsScriptingPermissionRemove();
+  }
+  if (!needsHosts && await optionsHostPermissionContains()) {
+    await optionsHostPermissionRemove();
+  }
 }
 
 function optionsGetEnabledRulesets(): Promise<string[]> {
@@ -448,6 +547,9 @@ function optionsSanitizeSettings(value: unknown): OptionsSettings {
     enabled: typeof candidate.enabled === "boolean" ? candidate.enabled : true,
     adsEnabled: typeof candidate.adsEnabled === "boolean" ? candidate.adsEnabled : true,
     privacyEnabled: typeof candidate.privacyEnabled === "boolean" ? candidate.privacyEnabled : true,
+    phishingEnabled: typeof candidate.phishingEnabled === "boolean" ? candidate.phishingEnabled : true,
+    secureNavigationEnabled:
+      typeof candidate.secureNavigationEnabled === "boolean" ? candidate.secureNavigationEnabled : false,
     cosmeticEnabled: typeof candidate.cosmeticEnabled === "boolean" ? candidate.cosmeticEnabled : false,
     contentEnabled: typeof candidate.contentEnabled === "boolean" ? candidate.contentEnabled : false,
     contentCategories: {
@@ -520,8 +622,13 @@ async function optionsApplyProtection(settings: OptionsSettings): Promise<void> 
     for (const id of OPTIONS_ADS_RULESET_IDS) desired.add(id);
   }
   if (settings.enabled && settings.privacyEnabled) desired.add(OPTIONS_PRIVACY_RULESET_ID);
+  if (settings.enabled && settings.phishingEnabled) desired.add(OPTIONS_PHISHING_RULESET_ID);
 
-  const managed = [...OPTIONS_ADS_RULESET_IDS, OPTIONS_PRIVACY_RULESET_ID];
+  const managed = [
+    ...OPTIONS_ADS_RULESET_IDS,
+    OPTIONS_PRIVACY_RULESET_ID,
+    OPTIONS_PHISHING_RULESET_ID
+  ];
   const enableRulesetIds = managed.filter((id) => desired.has(id) && !enabled.includes(id));
   const disableRulesetIds = managed.filter((id) => !desired.has(id) && enabled.includes(id));
 
@@ -577,10 +684,31 @@ async function optionsSyncBlockedDomainRules(domains: string[]): Promise<void> {
   });
 }
 
+async function optionsSyncHttpsUpgradeRule(enabled: boolean): Promise<void> {
+  const hostGranted = await optionsHostPermissionContains();
+  const shouldEnable = enabled && hostGranted;
+
+  await optionsUpdateDynamicRules({
+    removeRuleIds: [OPTIONS_HTTPS_UPGRADE_RULE_ID],
+    addRules: shouldEnable
+      ? [{
+          id: OPTIONS_HTTPS_UPGRADE_RULE_ID,
+          priority: 5_000,
+          action: { type: "upgradeScheme" },
+          condition: {
+            regexFilter: "^http://",
+            resourceTypes: ["main_frame", "sub_frame"]
+          }
+        }]
+      : []
+  });
+}
+
 async function optionsApplySettings(settings: OptionsSettings): Promise<void> {
   await optionsApplyProtection(settings);
   await optionsSyncAllowlistRules(settings.allowlist);
   await optionsSyncBlockedDomainRules(settings.blockedDomains);
+  await optionsSyncHttpsUpgradeRule(settings.enabled && settings.secureNavigationEnabled);
   await optionsApplyCosmetic(settings);
   await optionsApplyContentFilter(settings);
 }
@@ -589,12 +717,18 @@ const title = optionsRequireElement<HTMLElement>("#options-title");
 const master = optionsRequireElement<HTMLInputElement>("#master-enabled");
 const ads = optionsRequireElement<HTMLInputElement>("#ads-enabled");
 const privacy = optionsRequireElement<HTMLInputElement>("#privacy-enabled");
+const phishing = optionsRequireElement<HTMLInputElement>("#phishing-enabled");
+const secureNavigation = optionsRequireElement<HTMLInputElement>("#secure-navigation-enabled");
 const cosmetic = optionsRequireElement<HTMLInputElement>("#cosmetic-enabled");
 const contentEnabled = optionsRequireElement<HTMLInputElement>("#content-enabled");
 const masterLabel = optionsRequireElement<HTMLElement>("#master-label");
 const adsLabel = optionsRequireElement<HTMLElement>("#ads-label");
 const privacyLabel = optionsRequireElement<HTMLElement>("#privacy-label");
 const privacyDescription = optionsRequireElement<HTMLElement>("#privacy-description");
+const phishingLabel = optionsRequireElement<HTMLElement>("#phishing-label");
+const phishingDescription = optionsRequireElement<HTMLElement>("#phishing-description");
+const secureNavigationLabel = optionsRequireElement<HTMLElement>("#secure-navigation-label");
+const secureNavigationDescription = optionsRequireElement<HTMLElement>("#secure-navigation-description");
 const cosmeticTitle = optionsRequireElement<HTMLElement>("#cosmetic-title");
 const cosmeticLabel = optionsRequireElement<HTMLElement>("#cosmetic-label");
 const cosmeticDescription = optionsRequireElement<HTMLElement>("#cosmetic-description");
@@ -643,6 +777,8 @@ for (const element of [
   master,
   ads,
   privacy,
+  phishing,
+  secureNavigation,
   cosmetic,
   contentEnabled,
   input,
@@ -672,6 +808,10 @@ function optionsApplyTranslations(): void {
   adsLabel.textContent = strings.network;
   privacyLabel.textContent = strings.privacy;
   privacyDescription.textContent = strings.privacyDescription;
+  phishingLabel.textContent = strings.phishing;
+  phishingDescription.textContent = strings.phishingDescription;
+  secureNavigationLabel.textContent = strings.secureNavigation;
+  secureNavigationDescription.textContent = strings.secureNavigationDescription;
   cosmeticTitle.textContent = strings.cosmeticTitle;
   cosmeticLabel.textContent = strings.cosmeticLabel;
   cosmeticDescription.textContent = strings.cosmeticDescription;
@@ -800,6 +940,58 @@ privacy.addEventListener("change", () => {
     message.textContent = optionsStrings(settings).privacyUpdated;
   }).catch((error) => {
     message.textContent = error instanceof Error ? error.message : "Could not update privacy blocking.";
+  });
+});
+
+phishing.addEventListener("change", () => {
+  settings.phishingEnabled = phishing.checked;
+  void persist().then(() => {
+    message.textContent = optionsStrings(settings).phishingUpdated;
+  }).catch((error) => {
+    message.textContent = error instanceof Error ? error.message : "Could not update phishing blocking.";
+  });
+});
+
+secureNavigation.addEventListener("change", () => {
+  secureNavigation.disabled = true;
+
+  if (secureNavigation.checked) {
+    void optionsHostPermissionRequest().then(async (granted) => {
+      if (!granted) {
+        secureNavigation.checked = false;
+        settings.secureNavigationEnabled = false;
+        await optionsSaveSettings(settings);
+        message.textContent = optionsStrings(settings).permissionDenied;
+        return;
+      }
+
+      settings.secureNavigationEnabled = true;
+      await optionsSaveSettings(settings);
+      await optionsSyncHttpsUpgradeRule(settings.enabled);
+      message.textContent = optionsStrings(settings).secureNavigationUpdated;
+    }).catch((error) => {
+      secureNavigation.checked = false;
+      settings.secureNavigationEnabled = false;
+      message.textContent =
+        error instanceof Error ? error.message : "Could not enable HTTPS navigation upgrade.";
+    }).finally(() => {
+      secureNavigation.disabled = false;
+    });
+    return;
+  }
+
+  settings.secureNavigationEnabled = false;
+  void optionsSaveSettings(settings).then(async () => {
+    await optionsSyncHttpsUpgradeRule(false);
+    await optionsMaybeRemoveSiteAccess(settings);
+    message.textContent = optionsStrings(settings).secureNavigationUpdated;
+  }).catch((error) => {
+    secureNavigation.checked = true;
+    settings.secureNavigationEnabled = true;
+    message.textContent =
+      error instanceof Error ? error.message : "Could not disable HTTPS navigation upgrade.";
+  }).finally(() => {
+    secureNavigation.disabled = false;
   });
 });
 
@@ -980,15 +1172,22 @@ void optionsLoadSettings().then(async (loaded) => {
   settings = loaded;
 
   const permissionGranted = await optionsPermissionContains();
+  const hostPermissionGranted = await optionsHostPermissionContains();
   if (!permissionGranted && (settings.cosmeticEnabled || settings.contentEnabled)) {
     settings.cosmeticEnabled = false;
     settings.contentEnabled = false;
+    await optionsSaveSettings(settings);
+  }
+  if (!hostPermissionGranted && settings.secureNavigationEnabled) {
+    settings.secureNavigationEnabled = false;
     await optionsSaveSettings(settings);
   }
 
   master.checked = settings.enabled;
   ads.checked = settings.adsEnabled;
   privacy.checked = settings.privacyEnabled;
+  phishing.checked = settings.phishingEnabled;
+  secureNavigation.checked = settings.secureNavigationEnabled;
   cosmetic.checked = settings.cosmeticEnabled;
   contentEnabled.checked = settings.contentEnabled;
   renderCategories();
@@ -999,6 +1198,7 @@ void optionsLoadSettings().then(async (loaded) => {
   renderBlockedDomains();
   await optionsApplyProtection(settings);
   await optionsSyncBlockedDomainRules(settings.blockedDomains);
+  await optionsSyncHttpsUpgradeRule(settings.enabled && settings.secureNavigationEnabled);
 
   if (permissionGranted) {
     await optionsApplyCosmetic(settings);
@@ -1009,6 +1209,8 @@ void optionsLoadSettings().then(async (loaded) => {
     master,
     ads,
     privacy,
+    phishing,
+    secureNavigation,
     cosmetic,
     contentEnabled,
     input,
