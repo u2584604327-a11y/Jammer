@@ -18,6 +18,7 @@ Page ad cleanup is optional. When enabled, Jammer requests website access and in
 
 Jammer includes:
 - network ad blocking
+- packaged privacy / tracker blocking
 - optional page ad cleanup
 - opt-in local content masking for gambling/betting promotion, explicit sexual material, graphic violence, scam-like promotion, and clickbait/nuisance content
 - explainable category and matched-signal placeholders with reveal and leave-page controls
