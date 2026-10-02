@@ -17,7 +17,7 @@ interface OptionsSettings {
 }
 
 const OPTIONS_STORAGE_KEY = "jammerSettings";
-const OPTIONS_ADS_RULESET_ID = "ads_static";
+const OPTIONS_ADS_RULESET_IDS = ["ads_static", "ads_extended"] as const;
 const OPTIONS_PRIVACY_RULESET_ID = "privacy_static";
 const OPTIONS_ALLOWLIST_RULE_ID_BASE = 1_000_000;
 const OPTIONS_ALLOWLIST_RULE_ID_LIMIT = 1_999_999;
@@ -53,7 +53,7 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
   en: {
     title: "Jammer Options",
     master: "Jammer protection",
-    network: "Network ad blocking",
+    network: "Network ad & script blocking",
     privacy: "Privacy / tracker blocking",
     privacyDescription: "Blocks packaged known tracking endpoints for scripts, pixels, XHR, pings, and embedded frames.",
     blockedTitle: "Dangerous-site block list",
@@ -89,7 +89,7 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     contentDisabled: "Content filtering disabled.",
     contentSelectCategory: "Select at least one content category first.",
     protectionUpdated: "Protection setting updated.",
-    networkUpdated: "Network ad blocking updated.",
+    networkUpdated: "Network ad & script blocking updated.",
     privacyUpdated: "Privacy / tracker blocking updated.",
     blockedUpdated: "Dangerous-site block list updated.",
     allowlistUpdated: "Ad-block allowlist updated.",
@@ -104,7 +104,7 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
   "zh-CN": {
     title: "Jammer 设置",
     master: "Jammer 总保护",
-    network: "网络广告拦截",
+    network: "网络广告 / 广告脚本拦截",
     privacy: "隐私 / 跟踪器拦截",
     privacyDescription: "拦截扩展内置规则识别的跟踪脚本、像素、XHR、Ping 和嵌入框架请求。",
     blockedTitle: "危险网站拦截列表",
@@ -138,7 +138,7 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     contentDisabled: "内容过滤已关闭。",
     contentSelectCategory: "请先至少选择一个内容类别。",
     protectionUpdated: "总保护设置已更新。",
-    networkUpdated: "网络广告拦截设置已更新。",
+    networkUpdated: "网络广告 / 广告脚本拦截设置已更新。",
     privacyUpdated: "隐私 / 跟踪器拦截设置已更新。",
     blockedUpdated: "危险网站拦截列表已更新。",
     allowlistUpdated: "广告拦截白名单已更新。",
@@ -516,10 +516,12 @@ async function optionsApplyProtection(settings: OptionsSettings): Promise<void> 
   const enabled = await optionsGetEnabledRulesets();
   const desired = new Set<string>();
 
-  if (settings.enabled && settings.adsEnabled) desired.add(OPTIONS_ADS_RULESET_ID);
+  if (settings.enabled && settings.adsEnabled) {
+    for (const id of OPTIONS_ADS_RULESET_IDS) desired.add(id);
+  }
   if (settings.enabled && settings.privacyEnabled) desired.add(OPTIONS_PRIVACY_RULESET_ID);
 
-  const managed = [OPTIONS_ADS_RULESET_ID, OPTIONS_PRIVACY_RULESET_ID];
+  const managed = [...OPTIONS_ADS_RULESET_IDS, OPTIONS_PRIVACY_RULESET_ID];
   const enableRulesetIds = managed.filter((id) => desired.has(id) && !enabled.includes(id));
   const disableRulesetIds = managed.filter((id) => !desired.has(id) && enabled.includes(id));
 
