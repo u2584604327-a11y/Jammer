@@ -6,11 +6,11 @@ This phase prepares Jammer for manual browser-store submission without publishin
 
 Main product version:
 
-`0.8.0`
+`0.8.1`
 
 Release candidate:
 
-`jammer-0.8.0-chromium.zip`
+`jammer-0.8.1-chromium.zip`
 
 ## Store visual assets
 
@@ -43,7 +43,7 @@ See:
 
 ## Manual items still required before public submission
 
-1. Capture real browser screenshots from the final 0.8.0 build.
+1. Capture real browser screenshots from the final 0.8.1 build.
 2. Privacy policy is prepared at `PRIVACY.md`; use the public repository URL if a store submission is ever resumed.
 3. Choose publisher/developer identity.
 4. Review store-specific declarations and category.
