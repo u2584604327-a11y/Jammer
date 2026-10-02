@@ -10,6 +10,9 @@ test('product build keeps Jammer ruleset contract and adds optional cosmetic cap
   assert.match(source, /rules\/easylist-adservers\.json/);
   assert.match(source, /PROVENANCE\.json/);
   assert.match(source, /THIRD_PARTY_NOTICES\.txt/);
+  assert.match(source, /COSMETIC_PROVENANCE\.json/);
+  assert.match(source, /cosmetic-easylist\.css/);
+  assert.match(source, /cosmetic-canyoublockit\.css/);
   assert.match(source, /connect-src 'none'/);
   assert.match(source, /optional_permissions: \['scripting'\]/);
   assert.match(source, /optional_host_permissions: \['http:\/\/\*\/\*', 'https:\/\/\*\/\*'\]/);
