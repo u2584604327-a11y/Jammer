@@ -59,3 +59,32 @@ Jammer does not claim to:
 ## Security boundary
 
 The browser's Declarative Net Request engine performs network blocking. Jammer supplies reviewed rules and local settings; it should not become a general-purpose network observer.
+
+
+## P6.4 navigation-security controls
+
+Known-phishing navigation blocking:
+- uses a pinned, build-time verified active phishing-domain snapshot;
+- blocks only top-level and embedded navigation to listed domains;
+- has no runtime feed lookup;
+- can be disabled independently;
+- does not send visited domains to the source.
+
+Optional HTTPS navigation upgrade:
+- is disabled by default;
+- requires explicit user activation and optional host access;
+- is limited to top-level and embedded `http://` navigation;
+- uses browser-native `upgradeScheme` rather than proxying traffic.
+
+Manual dangerous-domain entries remain separate from the packaged phishing list.
+
+### Residual risks
+
+- phishing blocklists have false negatives and may occasionally contain false positives;
+- a newly created malicious domain may not exist in the pinned snapshot;
+- HTTPS upgrade cannot make an HTTP-only destination support HTTPS;
+- HTTPS does not prove a site is trustworthy;
+- Jammer does not inspect raw DNS answers and cannot reliably detect hostname-preserving DNS poisoning;
+- Jammer is not an antivirus or complete anti-phishing product.
+
+Browser Safe Browsing / SmartScreen, HTTPS certificate validation, and Secure DNS remain complementary browser/OS protections.
