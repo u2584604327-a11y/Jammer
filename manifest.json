@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Jammer",
+  "version": "0.1.1",
+  "description": "Local-first ad blocking with transparent, user-controlled rules.",
+  "permissions": ["declarativeNetRequest", "storage"],
+  "action": {
+    "default_title": "Jammer",
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html",
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ads_static",
+        "enabled": true,
+        "path": "rules/ads.json"
+      }
+    ]
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; connect-src 'none'"
+  }
+}

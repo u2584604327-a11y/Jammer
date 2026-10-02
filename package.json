@@ -1,0 +1,16 @@
+{
+  "name": "jammer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "node scripts/typecheck.mjs",
+    "lint": "node scripts/lint.mjs",
+    "test": "node scripts/test.mjs",
+    "build": "node scripts/build.mjs",
+    "runtime:fixture": "node scripts/runtime-fixture-server.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
