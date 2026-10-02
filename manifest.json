@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Jammer",
-  "version": "0.9.0",
-  "description": "Local-first ad, tracker, phishing-navigation, HTTPS-upgrade, and selective content filtering.",
+  "version": "0.9.1",
+  "description": "Local-first ad/script, tracker/beacon, phishing-navigation, HTTPS-upgrade, and selective content filtering.",
   "permissions": [
     "declarativeNetRequest",
     "storage"
@@ -41,6 +41,11 @@
         "id": "privacy_static",
         "enabled": true,
         "path": "rules/privacy.json"
+      },
+      {
+        "id": "privacy_extended",
+        "enabled": true,
+        "path": "rules/privacy-extended.json"
       },
       {
         "id": "phishing_static",
