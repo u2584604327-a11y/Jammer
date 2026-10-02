@@ -12,6 +12,7 @@ interface PopupSettings {
 const POPUP_STORAGE_KEY = "jammerSettings";
 const POPUP_ADS_RULESET_ID = "ads_static";
 const POPUP_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
+const POPUP_COSMETIC_SITE_SCRIPT_ID = "jammer-cosmetic-canyoublockit";
 const POPUP_COSMETIC_ORIGINS = ["http://*/*", "https://*/*"];
 
 const POPUP_DEFAULT_SETTINGS: PopupSettings = {
@@ -136,7 +137,7 @@ function popupPermissionRemove(): Promise<boolean> {
 function popupGetRegisteredCosmetic(): Promise<JammerContentScript[]> {
   return new Promise((resolve, reject) => {
     chrome.scripting.getRegisteredContentScripts(
-      { ids: [POPUP_COSMETIC_SCRIPT_ID] },
+      { ids: [POPUP_COSMETIC_SCRIPT_ID, POPUP_COSMETIC_SITE_SCRIPT_ID] },
       (scripts) => {
         if (chrome.runtime.lastError) {
           reject(popupRuntimeError("Cosmetic registration read failed"));
@@ -163,7 +164,7 @@ function popupRegisterContentScript(script: JammerContentScript): Promise<void> 
 function popupUnregisterContentScript(): Promise<void> {
   return new Promise((resolve, reject) => {
     chrome.scripting.unregisterContentScripts(
-      { ids: [POPUP_COSMETIC_SCRIPT_ID] },
+      { ids: [POPUP_COSMETIC_SCRIPT_ID, POPUP_COSMETIC_SITE_SCRIPT_ID] },
       () => {
         if (chrome.runtime.lastError) {
           reject(popupRuntimeError("Cosmetic unregister failed"));
@@ -204,7 +205,16 @@ async function popupApplyCosmetic(settings: PopupSettings): Promise<void> {
     id: POPUP_COSMETIC_SCRIPT_ID,
     matches: POPUP_COSMETIC_ORIGINS,
     excludeMatches: popupAllowlistExcludeMatches(settings.allowlist),
-    css: ["cosmetic.css"],
+    css: ["cosmetic.css", "cosmetic-easylist.css"],
+    runAt: "document_start",
+    allFrames: true,
+    persistAcrossSessions: true
+  });
+  await popupRegisterContentScript({
+    id: POPUP_COSMETIC_SITE_SCRIPT_ID,
+    matches: ["*://canyoublockit.com/*", "*://*.canyoublockit.com/*"],
+    excludeMatches: popupAllowlistExcludeMatches(settings.allowlist),
+    css: ["cosmetic-canyoublockit.css"],
     runAt: "document_start",
     allFrames: true,
     persistAcrossSessions: true
