@@ -13,7 +13,7 @@
       <span class="brand-mark" aria-hidden="true"><span>J</span></span>
       <div>
         <h1>Jammer</h1>
-        <p id="build-id" class="build-id">Build: p64-secure-navigation-dev</p>
+        <p id="build-id" class="build-id">Build: p65-high-coverage-dev</p>
       </div>
     </div>
     <select id="language-select" class="compact-select" aria-label="Language">
@@ -51,8 +51,17 @@
 
   <section class="card feature-card">
     <div class="feature-copy">
+      <label id="security-label" for="security-enabled">Badware / abusive-script blocking</label>
+      <p id="security-hint" class="muted">Block packaged badware and resource-abuse network rules.</p>
+      <p id="security-status" class="status-line"></p>
+    </div>
+    <input id="security-enabled" class="switch" type="checkbox">
+  </section>
+
+  <section class="card feature-card">
+    <div class="feature-copy">
       <label id="cosmetic-label" for="cosmetic-enabled">Page ad cleanup</label>
-      <p id="cosmetic-hint" class="muted">Hide explicit ad containers. Enabling requires website access.</p>
+      <p id="cosmetic-hint" class="muted">Hide generic and site-specific ad containers. Enabling requires website access.</p>
       <p id="cosmetic-status" class="status-line"></p>
     </div>
     <input id="cosmetic-enabled" class="switch" type="checkbox">
@@ -61,7 +70,7 @@
   <section class="card feature-card">
     <div class="feature-copy">
       <label id="content-label" for="content-enabled">Content filtering</label>
-      <p id="content-hint" class="muted">Hide matched content blocks with local text matching.</p>
+      <p id="content-hint" class="muted">Hide matched blocks using local text, links/media, and category-domain signals.</p>
       <p id="content-status" class="status-line"></p>
     </div>
     <input id="content-enabled" class="switch" type="checkbox">
