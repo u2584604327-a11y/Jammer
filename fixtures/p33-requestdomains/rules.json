@@ -211,6 +211,9 @@
         "batch-200.jammer.invalid",
         "batch-201.jammer.invalid",
         "batch-202.jammer.invalid"
+      ],
+      "resourceTypes": [
+        "main_frame"
       ]
     }
   }
