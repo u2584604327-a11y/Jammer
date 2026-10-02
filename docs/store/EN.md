@@ -6,11 +6,11 @@ Jammer
 
 ## Short description
 
-Local-first ad blocking with optional page-ad cleanup and opt-in on-device content-category warnings.
+Local-first ad blocking with optional page-ad cleanup and opt-in on-device content-block masking.
 
 ## Long description
 
-Jammer is a local-first Manifest V3 browser extension for blocking network advertising, hiding clearly identified page ad containers, and optionally warning on user-selected content categories while keeping control in the user's hands.
+Jammer is a local-first Manifest V3 browser extension for blocking network advertising, hiding clearly identified page ad containers, and optionally hiding only matched content blocks from user-selected categories while keeping control in the user's hands.
 
 Network blocking uses Chromium's declarativeNetRequest engine with EasyList-derived rules that are pinned, verified, and compiled at build time. Jammer does not download filter lists at runtime.
 
@@ -19,8 +19,8 @@ Page ad cleanup is optional. When enabled, Jammer requests website access and in
 Jammer includes:
 - network ad blocking
 - optional page ad cleanup
-- opt-in local content warnings for gambling/betting promotion, explicit sexual material, graphic violence, scam-like promotion, and clickbait/nuisance content
-- explainable category and matched-signal warnings
+- opt-in local content masking for gambling/betting promotion, explicit sexual material, graphic violence, scam-like promotion, and clickbait/nuisance content
+- explainable category and matched-signal placeholders with reveal and leave-page controls
 - separate local content-filter exceptions
 - local allowlist management
 - Auto / 中文 / English interface language
