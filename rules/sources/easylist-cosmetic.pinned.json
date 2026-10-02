@@ -1,0 +1,21 @@
+{
+  "id": "easylist-cosmetic-pinned-2026-10-02",
+  "repository": "easylist/easylist",
+  "commit": "3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8",
+  "license": "GPL-3.0-or-later OR CC-BY-SA-3.0-or-later",
+  "attribution": "The EasyList authors",
+  "generalHide": {
+    "path": "easylist/easylist_general_hide.txt",
+    "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easylist/easylist_general_hide.txt",
+    "expectedSizeBytes": 236792,
+    "expectedGitBlobSha1": "f2751049c9f5db7a5afe169f5f3f9824e33fd496",
+    "expectedSelectors": 13631
+  },
+  "specificHide": {
+    "path": "easylist/easylist_specific_hide.txt",
+    "url": "https://raw.githubusercontent.com/easylist/easylist/3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8/easylist/easylist_specific_hide.txt",
+    "expectedSizeBytes": 437250,
+    "expectedGitBlobSha1": "49e3937b6ca2cce86da30bb5a47162f3af7d042b"
+  },
+  "runtimeUpdate": false
+}
