@@ -261,7 +261,7 @@ async function optionsApplyCosmetic(settings: OptionsSettings): Promise<void> {
     id: OPTIONS_COSMETIC_SITE_SCRIPT_ID,
     matches: ["*://canyoublockit.com/*", "*://*.canyoublockit.com/*"],
     excludeMatches: optionsAllowlistExcludeMatches(settings.allowlist),
-    css: ["cosmetic-canyoublockit.css"],
+    css: ["cosmetic-canyoublockit.css", "cosmetic-canyoublockit-local.css"],
     runAt: "document_start",
     allFrames: true,
     persistAcrossSessions: true
