@@ -18,7 +18,8 @@
     "smoke:easylist": "npm run rules:prepare:easylist && npm run build:easylist-smoke",
     "build:product": "npm run rules:prepare:easylist && npm run rules:prepare:cosmetic && node scripts/build-product.mjs",
     "rules:prepare:cosmetic": "node scripts/prepare-easylist-cosmetic.mjs",
-    "brand:generate": "node scripts/generate-brand-assets.mjs"
+    "brand:generate": "node scripts/generate-brand-assets.mjs",
+    "brand:preview": "node scripts/generate-social-preview.mjs"
   },
   "engines": {
     "node": ">=22"

@@ -1,43 +1,98 @@
+![Jammer](assets/brand/social-preview.svg)
+
 # Jammer
 
-Jammer is a local-first browser extension for blocking ads and giving users transparent, reversible control over unwanted web content.
+Jammer is a local-first Manifest V3 browser extension for blocking network ads and hiding page ad containers with explicit, reversible user controls.
 
-## P1 target
+## Current capabilities
 
-- Desktop Chromium browsers, Manifest V3.
-- Declarative ad blocking with bundled `declarativeNetRequest` rules.
-- Minimal popup/options UI.
-- Local settings and allowlist.
-- No telemetry, remote rules, remote code, content scripts, or page-text scanning.
+- **Network ad blocking:** pinned EasyList source compiled at build time into deterministic `declarativeNetRequest` rules.
+- **Page ad cleanup:** optional CSS-only cosmetic filtering using packaged selectors.
+- **Bilingual UI:** Auto / 中文 / English.
+- **Local allowlist:** exact-domain and subdomain exclusions stored only in extension storage.
+- **Reversible permissions:** page cleanup requests optional site access only when enabled and removes it when disabled.
+- **No telemetry:** no analytics, account system, cloud sync, or runtime filter-list download.
+
+## Privacy and permission model
+
+Required permissions:
+
+```text
+declarativeNetRequest
+storage
+```
+
+Optional permissions used only for page ad cleanup:
+
+```text
+scripting
+http://*/*
+https://*/*
+```
+
+Jammer does not request `tabs`, `history`, `cookies`, `webRequest`, `debugger`, or `nativeMessaging`.
+
+## Build
+
+Development build:
+
+```bash
+npm ci
+npm run build
+```
+
+Full pinned-EasyList product build:
+
+```bash
+npm run build:product
+```
+
+Output:
+
+```text
+dist-product/
+```
+
+Brand assets:
+
+```bash
+npm run brand:generate
+npm run brand:preview
+```
+
+The social-preview generator produces a 1280×640 PNG under `generated/brand/social-preview.png`. The vector source is kept at `assets/brand/social-preview.svg`.
+
+## Filter provenance
+
+Jammer pins reviewed EasyList source files to a specific upstream commit and verifies source identity before product compilation. Generated product builds include:
+
+- `PROVENANCE.json`
+- `COSMETIC_PROVENANCE.json`
+- `THIRD_PARTY_NOTICES.txt`
+
+The extension does not update filter lists at runtime.
 
 ## Design principles
 
-- **Minimal permissions.** P1 does not request broad host access or page-reading permissions.
-- **Local first.** Settings and filtering stay on-device.
-- **Explainable and reversible.** Users can disable rule groups and recover from false positives.
-- **No hidden content policy.** Future content categories are explicit user choices.
-- **No homemade browser interception layer.** Network blocking is delegated to the browser DNR engine.
+- **Local first.** User settings and filtering behavior stay on-device.
+- **Minimal required permissions.** Broad site access is optional, not required at install.
+- **Explainable and reversible.** Protection, page cleanup, language, and allowlist are explicit controls.
+- **Browser-native enforcement.** Network blocking uses Chromium's DNR engine rather than a proxy or interception layer.
+- **No remote code.** Runtime logic and filtering resources are packaged with the extension.
 
-## Specifications
+## Documentation
 
-- [P0 product specification](docs/P0_PRODUCT_SPEC.md)
+- [Product specification](docs/P0_PRODUCT_SPEC.md)
 - [Permission model](docs/PERMISSION_MODEL.md)
 - [Filtering architecture](docs/FILTERING_ARCHITECTURE.md)
-- [User-controlled content policy model](docs/CONTENT_POLICY_MODEL.md)
 - [Threat model](docs/THREAT_MODEL.md)
 - [Privacy design](docs/PRIVACY.md)
-- [Roadmap](docs/ROADMAP.md)
-- [Work / Codex handoff](docs/WORK_HANDOFF.md)
+- [P3.5 EasyList product integration](docs/P35_PRODUCT_EASYLIST.md)
+- [P4.1 cosmetic filtering](docs/P41_COSMETIC_FILTERING.md)
+- [P4.2 bilingual popup](docs/P42_BILINGUAL_POPUP.md)
+- [P4.3 EasyList cosmetic filtering](docs/P43_EASYLIST_COSMETIC.md)
 - [Security](SECURITY.md)
 
-## P1 non-goals
+## Status
 
-- No DOM/content scanning.
-- No cosmetic filtering.
-- No remote classifier.
-- No remote filter-list updates.
-- No browsing-history analytics.
-- No credential, cookie, or form-data access.
-- No mobile acceptance target in P1.
-
-Development starts with P0 specifications before implementation.
+The current product build is intended for unpacked-extension testing and validation. Store publication remains a separate release step.
