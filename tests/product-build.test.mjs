@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 test('product build keeps Jammer ruleset contract and adds optional cosmetic capability', async () => {
   const source = await readFile('scripts/build-product.mjs', 'utf8');
 
-  assert.match(source, /version: '0\.4\.2'/);
+  assert.match(source, /version: '0\.5\.0'/);
   assert.match(source, /id: 'ads_static'/);
   assert.match(source, /rules\/easylist-adservers\.json/);
   assert.match(source, /PROVENANCE\.json/);
