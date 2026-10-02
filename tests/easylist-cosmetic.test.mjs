@@ -44,3 +44,12 @@ test('runtime registers generic and canyoublockit cosmetic layers', async () => 
     assert.match(source, /jammer-cosmetic-canyoublockit/);
   }
 });
+
+test('local CanYouBlockIt regression CSS hides test-ad anchors without hiding article screenshots', async () => {
+  const css = await readFile('src/cosmetic-canyoublockit-local.css', 'utf8');
+
+  assert.match(css, /a\[href="ad\.com"\]/);
+  assert.match(css, /elementor-widget-container/);
+  assert.doesNotMatch(css, /Capture\.png/);
+  assert.doesNotMatch(css, /Screenshot_13/);
+});
