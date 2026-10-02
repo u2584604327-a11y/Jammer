@@ -4,8 +4,13 @@ import { extname, join } from 'node:path';
 const ROOTS = ['src', 'scripts', 'tests'];
 const FORBIDDEN = [
   'chrome.tabs', 'chrome.history', 'chrome.cookies', 'chrome.webRequest',
-  'chrome.debugger', 'chrome.downloads', 'chrome.scripting', 'eval(', 'new Function('
+  'chrome.debugger', 'chrome.downloads', 'eval(', 'new Function('
 ];
+
+const COSMETIC_API_ALLOWED_FILES = new Set([
+  join('src', 'options.ts'),
+  join('src', 'popup.ts')
+]);
 
 async function walk(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -30,12 +35,21 @@ for (const root of ROOTS) {
         failed = true;
       }
     });
+
     if (file.startsWith('src/')) {
       for (const token of FORBIDDEN) {
         if (source.includes(token)) {
           console.error(`${file}: forbidden token ${token}`);
           failed = true;
         }
+      }
+
+      if (
+        (source.includes('chrome.scripting') || source.includes('chrome.permissions')) &&
+        !COSMETIC_API_ALLOWED_FILES.has(file)
+      ) {
+        console.error(`${file}: cosmetic permission APIs are restricted to popup/options control code`);
+        failed = true;
       }
     }
   }
