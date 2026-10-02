@@ -31,10 +31,53 @@ type JammerContentScript = {
   matches: string[];
   excludeMatches?: string[];
   css?: string[];
+  js?: string[];
   runAt?: "document_start" | "document_end" | "document_idle";
   allFrames?: boolean;
   persistAcrossSessions?: boolean;
 };
+
+type JammerContentCategory =
+  | "gambling"
+  | "explicit"
+  | "violence"
+  | "scam"
+  | "clickbait";
+
+type JammerContentCategorySelection = Record<JammerContentCategory, boolean>;
+
+type JammerContentSample = {
+  title: string;
+  description: string;
+  headings: string;
+  body: string;
+};
+
+type JammerContentMatch = {
+  category: JammerContentCategory;
+  score: number;
+  matchedTerms: string[];
+};
+
+interface JammerContentClassifierApi {
+  classify(sample: JammerContentSample, enabled: JammerContentCategorySelection): JammerContentMatch[];
+  definitions: Record<string, { threshold: number; terms: Array<{ term: string; weight: number }> }>;
+}
+
+interface JammerStorageChange {
+  oldValue?: unknown;
+  newValue?: unknown;
+}
+
+interface JammerStorageChangedEvent {
+  addListener(
+    callback: (changes: Record<string, JammerStorageChange>, areaName: string) => void
+  ): void;
+}
+
+interface GlobalThis {
+  JammerContentClassifier: JammerContentClassifierApi;
+}
 
 declare const chrome: {
   storage: {
@@ -47,6 +90,7 @@ declare const chrome: {
       set(items: Record<string, unknown>): Promise<void>;
       set(items: Record<string, unknown>, callback: () => void): void;
     };
+    onChanged: JammerStorageChangedEvent;
   };
   permissions: {
     contains(
