@@ -56,6 +56,13 @@ if (!manifest.content_security_policy?.extension_pages?.includes("connect-src 'n
 if (manifest.declarative_net_request?.rule_resources?.[0]?.id !== 'ads_static') {
   fail('ads_static ruleset contract changed');
 }
+const extendedAdsResource = manifest.declarative_net_request?.rule_resources?.find(
+  (item) => item.id === 'ads_extended'
+);
+if (!extendedAdsResource || extendedAdsResource.path !== 'rules/easylist-network-extended.json') {
+  fail('ads_extended ruleset contract changed');
+}
+
 const privacyResource = manifest.declarative_net_request?.rule_resources?.find(
   (item) => item.id === 'privacy_static'
 );
@@ -74,10 +81,12 @@ const requiredFiles = [
   'styles.css',
   'assets/jammer-cover.webp',
   'PROVENANCE.json',
+  'AD_NETWORK_PROVENANCE.json',
   'PRIVACY_PROVENANCE.json',
   'COSMETIC_PROVENANCE.json',
   'THIRD_PARTY_NOTICES.txt',
   'rules/easylist-adservers.json',
+  'rules/easylist-network-extended.json',
   'rules/easyprivacy-tracking.json',
   'icons/icon-16.png',
   'icons/icon-32.png',
