@@ -38,5 +38,5 @@ test('store preparation documents current visual asset dimensions', async () => 
   assert.match(doc, /440×280/);
   assert.match(doc, /1400×560/);
   assert.match(doc, /1280×800/);
-  assert.match(doc, /0\.9\.0/);
+  assert.match(doc, /0\.9\.1/);
 });
