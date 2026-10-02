@@ -108,7 +108,7 @@ async function popupApplyProtection(settings: PopupSettings): Promise<void> {
 }
 
 const protection = popupRequireElement<HTMLInputElement>("#protection");
-const status = popupRequireElement<HTMLElement>("#status");
+const statusElement = popupRequireElement<HTMLElement>("#status");
 const optionsButton = popupRequireElement<HTMLButtonElement>("#open-options");
 
 protection.disabled = true;
@@ -116,7 +116,7 @@ protection.disabled = true;
 async function popupRefresh(): Promise<void> {
   const settings = await popupLoadSettings();
   protection.checked = settings.enabled;
-  status.textContent = settings.enabled ? "Enabled" : "Disabled";
+  statusElement.textContent = settings.enabled ? "Enabled" : "Disabled";
   protection.disabled = false;
 }
 
@@ -127,9 +127,9 @@ protection.addEventListener("change", async () => {
     settings.enabled = protection.checked;
     await popupSaveSettings(settings);
     await popupApplyProtection(settings);
-    status.textContent = settings.enabled ? "Enabled" : "Disabled";
+    statusElement.textContent = settings.enabled ? "Enabled" : "Disabled";
   } catch (error) {
-    status.textContent = error instanceof Error ? error.message : "Could not update protection";
+    statusElement.textContent = error instanceof Error ? error.message : "Could not update protection";
     try {
       await popupRefresh();
     } catch {
@@ -143,12 +143,12 @@ protection.addEventListener("change", async () => {
 optionsButton.addEventListener("click", () => {
   chrome.runtime.openOptionsPage(() => {
     if (chrome.runtime.lastError) {
-      status.textContent = popupRuntimeError("Could not open options").message;
+      statusElement.textContent = popupRuntimeError("Could not open options").message;
     }
   });
 });
 
 void popupRefresh().catch((error) => {
-  status.textContent = error instanceof Error ? error.message : "Could not load settings";
+  statusElement.textContent = error instanceof Error ? error.message : "Could not load settings";
   protection.disabled = false;
 });
