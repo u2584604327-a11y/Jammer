@@ -1,34 +1,62 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Jammer Options</title><link rel="stylesheet" href="styles.css"></head>
-<body>
-<main>
-  <div class="row">
-    <h1 id="options-title">Jammer Options</h1>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Jammer Options</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="options-page">
+<main class="settings-shell">
+  <header class="brand-header settings-header">
+    <div class="brand-lockup">
+      <span class="brand-mark" aria-hidden="true"><span>J</span></span>
+      <div>
+        <h1 id="options-title">Jammer Options</h1>
+        <p class="build-id">Jammer 0.5</p>
+      </div>
+    </div>
     <select id="language-select" class="compact-select" aria-label="Language">
       <option value="auto">Auto</option>
       <option value="zh-CN">中文</option>
       <option value="en">English</option>
     </select>
-  </div>
-  <section class="card">
-    <div class="row"><label id="master-label" for="master-enabled">Jammer protection</label><input id="master-enabled" type="checkbox"></div>
-    <div class="row"><label id="ads-label" for="ads-enabled">Network ad blocking</label><input id="ads-enabled" type="checkbox"></div>
+  </header>
+
+  <section class="card settings-card">
+    <div class="feature-row">
+      <label id="master-label" for="master-enabled">Jammer protection</label>
+      <input id="master-enabled" class="switch" type="checkbox">
+    </div>
+    <div class="divider"></div>
+    <div class="feature-row">
+      <label id="ads-label" for="ads-enabled">Network ad blocking</label>
+      <input id="ads-enabled" class="switch" type="checkbox">
+    </div>
   </section>
-  <section class="card">
-    <h2 id="cosmetic-title">Page ad cleanup</h2>
-    <div class="row"><label id="cosmetic-label" for="cosmetic-enabled">Hide page ad containers</label><input id="cosmetic-enabled" type="checkbox"></div>
+
+  <section class="card settings-card">
+    <div class="section-heading">
+      <h2 id="cosmetic-title">Page ad cleanup</h2>
+      <input id="cosmetic-enabled" class="switch" type="checkbox">
+    </div>
+    <p id="cosmetic-label" class="section-label">Hide page ad containers</p>
     <p id="cosmetic-description" class="muted">Optional. When enabled, Edge asks for website access so Jammer can inject CSS-only ad hiding. Jammer does not read page text, forms, or passwords.</p>
-    <p id="cosmetic-reload" class="muted">Reload open pages after changing this setting. Allowlisted sites are excluded.</p>
+    <p id="cosmetic-reload" class="hint-box">Reload open pages after changing this setting. Allowlisted sites are excluded.</p>
   </section>
-  <section class="card">
+
+  <section class="card settings-card">
     <h2 id="allowlist-title">Allowlist</h2>
     <p id="allowlist-description" class="muted">Enter a domain manually. Jammer does not read the current tab.</p>
-    <div class="row"><input id="allowlist-input" type="text" placeholder="example.com"><button id="add-domain" type="button">Add</button></div>
-    <ul id="allowlist"></ul>
-    <p id="message" aria-live="polite"></p>
+    <div class="input-row">
+      <input id="allowlist-input" type="text" placeholder="example.com" autocomplete="off" spellcheck="false">
+      <button id="add-domain" class="secondary-button" type="button">Add</button>
+    </div>
+    <ul id="allowlist" class="allowlist"></ul>
+    <p id="message" class="status-message" aria-live="polite"></p>
   </section>
-  <section class="card">
+
+  <section class="card settings-card subdued-card">
     <h2 id="content-title">Content filtering</h2>
     <p id="content-description" class="muted">Semantic page-content filtering is not implemented. P4.1 only hides explicit ad containers with CSS.</p>
   </section>
