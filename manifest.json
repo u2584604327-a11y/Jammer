@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Jammer",
-  "version": "0.3.0",
-  "description": "Local-first ad blocking with transparent, user-controlled rules.",
+  "version": "0.7.0",
+  "description": "Local-first ad blocking and opt-in content warnings with transparent, user-controlled rules.",
   "permissions": [
     "declarativeNetRequest",
     "storage"
