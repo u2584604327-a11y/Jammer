@@ -1,0 +1,28 @@
+/*
+ * Jammer P4.1 conservative cosmetic filtering.
+ *
+ * CSS only: no page text, form values, credentials, or DOM data is read.
+ * Selectors intentionally target common explicit ad-container markers.
+ */
+
+ins.adsbygoogle,
+[id^="google_ads_iframe_"],
+[id^="google_ads_"],
+[id^="div-gpt-ad"],
+[data-ad-slot],
+[data-ad-unit],
+[data-ad-container="true"],
+[class~="advertisement"],
+[class~="ad-slot"],
+[class~="ad-container"],
+[class~="ad-wrapper"],
+[class~="sponsored-ad"],
+[aria-label="Advertisement"][role="complementary"],
+[aria-label="广告"][role="complementary"] {
+  display: none !important;
+  visibility: hidden !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+}
