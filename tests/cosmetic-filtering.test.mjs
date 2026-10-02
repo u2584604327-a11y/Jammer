@@ -25,7 +25,7 @@ test('cosmetic filtering is opt-in and CSS-only', async () => {
   assert.equal('host_permissions' in manifest, false);
   assert.equal('content_scripts' in manifest, false);
 
-  assert.match(options, /css: \["cosmetic\.css"\]/);
+  assert.match(options, /css: \["cosmetic\.css", "cosmetic-easylist\.css"\]/);
   assert.match(options, /permissions\.request/);
   assert.match(options, /permissions\.remove/);
   assert.match(options, /excludeMatches/);
@@ -40,4 +40,13 @@ test('allowlist domains are converted into cosmetic exclusions', async () => {
   assert.match(options, /\*:\/\/\*\.\$\{domain\}\/\*/);
   assert.match(options, /\\d\{1,3\}/);
   assert.match(options, /return \[exact\]/);
+});
+
+test('popup can directly enable and disable cosmetic permission', async () => {
+  const popup = await readFile('src/popup.ts', 'utf8');
+
+  assert.match(popup, /chrome\.permissions\.request/);
+  assert.match(popup, /chrome\.permissions\.remove/);
+  assert.match(popup, /css: \["cosmetic\.css", "cosmetic-easylist\.css"\]/);
+  assert.match(popup, /cosmeticEnabled/);
 });

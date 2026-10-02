@@ -1,20 +1,57 @@
+type PopupLanguagePreference = "auto" | "zh-CN" | "en";
+type PopupResolvedLanguage = "zh-CN" | "en";
+
 interface PopupSettings {
   enabled: boolean;
   adsEnabled: boolean;
   cosmeticEnabled: boolean;
+  language: PopupLanguagePreference;
   allowlist: string[];
 }
 
 const POPUP_STORAGE_KEY = "jammerSettings";
 const POPUP_ADS_RULESET_ID = "ads_static";
 const POPUP_COSMETIC_SCRIPT_ID = "jammer-cosmetic-css";
+const POPUP_COSMETIC_SITE_SCRIPT_ID = "jammer-cosmetic-canyoublockit";
 const POPUP_COSMETIC_ORIGINS = ["http://*/*", "https://*/*"];
 
 const POPUP_DEFAULT_SETTINGS: PopupSettings = {
   enabled: true,
   adsEnabled: true,
   cosmeticEnabled: false,
+  language: "auto",
   allowlist: []
+};
+
+const POPUP_STRINGS: Record<PopupResolvedLanguage, Record<string, string>> = {
+  en: {
+    protection: "Protection",
+    enabled: "Enabled",
+    disabled: "Disabled",
+    cosmetic: "Page ad cleanup",
+    cosmeticHint: "Hide explicit ad containers. Enabling requires website access.",
+    cosmeticOn: "Page ad cleanup is on.",
+    cosmeticOff: "Page ad cleanup is off.",
+    cosmeticDenied: "Website access was not granted.",
+    cosmeticEnabled: "Page ad cleanup enabled. Reload open pages.",
+    cosmeticDisabled: "Page ad cleanup disabled and website access removed.",
+    options: "Options",
+    languageAuto: "Auto"
+  },
+  "zh-CN": {
+    protection: "总保护",
+    enabled: "已启用",
+    disabled: "已停用",
+    cosmetic: "页面广告清理",
+    cosmeticHint: "隐藏明确的页面广告容器。启用时需要网站访问权限。",
+    cosmeticOn: "页面广告清理已开启。",
+    cosmeticOff: "页面广告清理已关闭。",
+    cosmeticDenied: "未授予网站访问权限。",
+    cosmeticEnabled: "页面广告清理已启用，请刷新已打开页面。",
+    cosmeticDisabled: "页面广告清理已关闭，并已撤销网站访问权限。",
+    options: "设置",
+    languageAuto: "自动"
+  }
 };
 
 function popupRequireElement<T extends Element>(selector: string): T {
@@ -67,10 +104,40 @@ function popupPermissionContains(): Promise<boolean> {
   });
 }
 
+function popupPermissionRequest(): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    chrome.permissions.request(
+      { permissions: ["scripting"], origins: POPUP_COSMETIC_ORIGINS },
+      (granted) => {
+        if (chrome.runtime.lastError) {
+          reject(popupRuntimeError("Permission request failed"));
+          return;
+        }
+        resolve(granted);
+      }
+    );
+  });
+}
+
+function popupPermissionRemove(): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    chrome.permissions.remove(
+      { permissions: ["scripting"], origins: POPUP_COSMETIC_ORIGINS },
+      (removed) => {
+        if (chrome.runtime.lastError) {
+          reject(popupRuntimeError("Permission removal failed"));
+          return;
+        }
+        resolve(removed);
+      }
+    );
+  });
+}
+
 function popupGetRegisteredCosmetic(): Promise<JammerContentScript[]> {
   return new Promise((resolve, reject) => {
     chrome.scripting.getRegisteredContentScripts(
-      { ids: [POPUP_COSMETIC_SCRIPT_ID] },
+      { ids: [POPUP_COSMETIC_SCRIPT_ID, POPUP_COSMETIC_SITE_SCRIPT_ID] },
       (scripts) => {
         if (chrome.runtime.lastError) {
           reject(popupRuntimeError("Cosmetic registration read failed"));
@@ -97,7 +164,7 @@ function popupRegisterContentScript(script: JammerContentScript): Promise<void> 
 function popupUnregisterContentScript(): Promise<void> {
   return new Promise((resolve, reject) => {
     chrome.scripting.unregisterContentScripts(
-      { ids: [POPUP_COSMETIC_SCRIPT_ID] },
+      { ids: [POPUP_COSMETIC_SCRIPT_ID, POPUP_COSMETIC_SITE_SCRIPT_ID] },
       () => {
         if (chrome.runtime.lastError) {
           reject(popupRuntimeError("Cosmetic unregister failed"));
@@ -138,7 +205,16 @@ async function popupApplyCosmetic(settings: PopupSettings): Promise<void> {
     id: POPUP_COSMETIC_SCRIPT_ID,
     matches: POPUP_COSMETIC_ORIGINS,
     excludeMatches: popupAllowlistExcludeMatches(settings.allowlist),
-    css: ["cosmetic.css"],
+    css: ["cosmetic.css", "cosmetic-easylist.css"],
+    runAt: "document_start",
+    allFrames: true,
+    persistAcrossSessions: true
+  });
+  await popupRegisterContentScript({
+    id: POPUP_COSMETIC_SITE_SCRIPT_ID,
+    matches: ["*://canyoublockit.com/*", "*://*.canyoublockit.com/*"],
+    excludeMatches: popupAllowlistExcludeMatches(settings.allowlist),
+    css: ["cosmetic-canyoublockit.css", "cosmetic-canyoublockit-local.css"],
     runAt: "document_start",
     allFrames: true,
     persistAcrossSessions: true
@@ -172,6 +248,10 @@ function popupUpdateEnabledRulesets(options: {
   });
 }
 
+function popupSanitizeLanguage(value: unknown): PopupLanguagePreference {
+  return value === "zh-CN" || value === "en" || value === "auto" ? value : "auto";
+}
+
 function popupSanitizeSettings(value: unknown): PopupSettings {
   if (!value || typeof value !== "object") return { ...POPUP_DEFAULT_SETTINGS };
   const candidate = value as Partial<PopupSettings>;
@@ -179,10 +259,16 @@ function popupSanitizeSettings(value: unknown): PopupSettings {
     enabled: typeof candidate.enabled === "boolean" ? candidate.enabled : true,
     adsEnabled: typeof candidate.adsEnabled === "boolean" ? candidate.adsEnabled : true,
     cosmeticEnabled: typeof candidate.cosmeticEnabled === "boolean" ? candidate.cosmeticEnabled : false,
+    language: popupSanitizeLanguage(candidate.language),
     allowlist: Array.isArray(candidate.allowlist)
       ? candidate.allowlist.filter((item): item is string => typeof item === "string")
       : []
   };
+}
+
+function popupResolveLanguage(preference: PopupLanguagePreference): PopupResolvedLanguage {
+  if (preference === "zh-CN" || preference === "en") return preference;
+  return navigator.language.toLowerCase().startsWith("zh") ? "zh-CN" : "en";
 }
 
 async function popupLoadSettings(): Promise<PopupSettings> {
@@ -208,18 +294,45 @@ async function popupApplyProtection(settings: PopupSettings): Promise<void> {
 }
 
 const protection = popupRequireElement<HTMLInputElement>("#protection");
+const popupCosmeticToggle = popupRequireElement<HTMLInputElement>("#cosmetic-enabled");
 const statusElement = popupRequireElement<HTMLElement>("#status");
+const cosmeticStatus = popupRequireElement<HTMLElement>("#cosmetic-status");
+const protectionLabel = popupRequireElement<HTMLElement>("#protection-label");
+const popupCosmeticLabel = popupRequireElement<HTMLElement>("#cosmetic-label");
+const cosmeticHint = popupRequireElement<HTMLElement>("#cosmetic-hint");
 const optionsButton = popupRequireElement<HTMLButtonElement>("#open-options");
+const popupLanguageSelect = popupRequireElement<HTMLSelectElement>("#language-select");
 
-statusElement.textContent = "Starting…";
-protection.disabled = true;
+function popupApplyTranslations(settings: PopupSettings): void {
+  const language = popupResolveLanguage(settings.language);
+  const strings = POPUP_STRINGS[language];
+
+  document.documentElement.lang = language;
+  protectionLabel.textContent = strings.protection;
+  popupCosmeticLabel.textContent = strings.cosmetic;
+  cosmeticHint.textContent = strings.cosmeticHint;
+  optionsButton.textContent = strings.options;
+  statusElement.textContent = settings.enabled ? strings.enabled : strings.disabled;
+  cosmeticStatus.textContent = settings.cosmeticEnabled ? strings.cosmeticOn : strings.cosmeticOff;
+
+  const autoOption = popupLanguageSelect.querySelector<HTMLOptionElement>('option[value="auto"]');
+  if (autoOption) autoOption.textContent = strings.languageAuto;
+  popupLanguageSelect.value = settings.language;
+}
 
 async function popupRefresh(): Promise<void> {
   const settings = await popupLoadSettings();
   protection.checked = settings.enabled;
-  statusElement.textContent = settings.enabled ? "Enabled" : "Disabled";
+  popupCosmeticToggle.checked = settings.cosmeticEnabled;
+  popupApplyTranslations(settings);
   protection.disabled = false;
+  popupCosmeticToggle.disabled = false;
+  popupLanguageSelect.disabled = false;
 }
+
+protection.disabled = true;
+popupCosmeticToggle.disabled = true;
+popupLanguageSelect.disabled = true;
 
 protection.addEventListener("change", async () => {
   protection.disabled = true;
@@ -229,17 +342,80 @@ protection.addEventListener("change", async () => {
     await popupSaveSettings(settings);
     await popupApplyProtection(settings);
     await popupApplyCosmetic(settings);
-    statusElement.textContent = settings.enabled ? "Enabled" : "Disabled";
+    popupApplyTranslations(settings);
   } catch (error) {
     statusElement.textContent = error instanceof Error ? error.message : "Could not update protection";
-    try {
-      await popupRefresh();
-    } catch {
-      protection.disabled = false;
-    }
+    await popupRefresh().catch(() => undefined);
   } finally {
     protection.disabled = false;
   }
+});
+
+popupCosmeticToggle.addEventListener("change", () => {
+  popupCosmeticToggle.disabled = true;
+
+  if (popupCosmeticToggle.checked) {
+    void popupPermissionRequest().then(async (granted) => {
+      const settings = await popupLoadSettings();
+      const strings = POPUP_STRINGS[popupResolveLanguage(settings.language)];
+
+      if (!granted) {
+        settings.cosmeticEnabled = false;
+        popupCosmeticToggle.checked = false;
+        await popupSaveSettings(settings);
+        popupApplyTranslations(settings);
+        cosmeticStatus.textContent = strings.cosmeticDenied;
+        return;
+      }
+
+      settings.cosmeticEnabled = true;
+      try {
+        await popupSaveSettings(settings);
+        await popupApplyCosmetic(settings);
+        popupApplyTranslations(settings);
+        cosmeticStatus.textContent = strings.cosmeticEnabled;
+      } catch (error) {
+        settings.cosmeticEnabled = false;
+        popupCosmeticToggle.checked = false;
+        await popupSaveSettings(settings);
+        await popupUnregisterCosmeticIfPresent().catch(() => undefined);
+        await popupPermissionRemove().catch(() => false);
+        popupApplyTranslations(settings);
+        cosmeticStatus.textContent = error instanceof Error ? error.message : strings.cosmeticOff;
+      }
+    }).catch((error) => {
+      popupCosmeticToggle.checked = false;
+      cosmeticStatus.textContent = error instanceof Error ? error.message : "Could not request website access.";
+    }).finally(() => {
+      popupCosmeticToggle.disabled = false;
+    });
+    return;
+  }
+
+  void popupLoadSettings().then(async (settings) => {
+    settings.cosmeticEnabled = false;
+    await popupSaveSettings(settings);
+    await popupUnregisterCosmeticIfPresent();
+    await popupPermissionRemove();
+    popupApplyTranslations(settings);
+    const strings = POPUP_STRINGS[popupResolveLanguage(settings.language)];
+    cosmeticStatus.textContent = strings.cosmeticDisabled;
+  }).catch((error) => {
+    popupCosmeticToggle.checked = true;
+    cosmeticStatus.textContent = error instanceof Error ? error.message : "Could not disable page ad cleanup.";
+  }).finally(() => {
+    popupCosmeticToggle.disabled = false;
+  });
+});
+
+popupLanguageSelect.addEventListener("change", () => {
+  void popupLoadSettings().then(async (settings) => {
+    settings.language = popupSanitizeLanguage(popupLanguageSelect.value);
+    await popupSaveSettings(settings);
+    popupApplyTranslations(settings);
+  }).catch((error) => {
+    statusElement.textContent = error instanceof Error ? error.message : "Could not update language.";
+  });
 });
 
 optionsButton.addEventListener("click", () => {
@@ -251,13 +427,23 @@ optionsButton.addEventListener("click", () => {
 });
 
 void popupLoadSettings().then(async (settings) => {
-  protection.checked = settings.enabled;
-  statusElement.textContent = settings.enabled ? "Enabled" : "Disabled";
-  protection.disabled = false;
+  const permissionGranted = await popupPermissionContains();
+  if (settings.cosmeticEnabled && !permissionGranted) {
+    settings.cosmeticEnabled = false;
+    await popupSaveSettings(settings);
+  }
 
-  const granted = await popupPermissionContains();
-  if (granted) await popupApplyCosmetic(settings);
+  protection.checked = settings.enabled;
+  popupCosmeticToggle.checked = settings.cosmeticEnabled;
+  popupApplyTranslations(settings);
+  protection.disabled = false;
+  popupCosmeticToggle.disabled = false;
+  popupLanguageSelect.disabled = false;
+
+  if (permissionGranted) await popupApplyCosmetic(settings);
 }).catch((error) => {
   statusElement.textContent = error instanceof Error ? error.message : "Could not load settings";
   protection.disabled = false;
+  popupCosmeticToggle.disabled = false;
+  popupLanguageSelect.disabled = false;
 });

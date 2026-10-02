@@ -13,6 +13,9 @@ for (const file of ['manifest.json', 'popup.html', 'options.html']) {
 }
 await cp('src/styles.css', 'dist/styles.css');
 await cp('src/cosmetic.css', 'dist/cosmetic.css');
+await cp('src/cosmetic-easylist.css', 'dist/cosmetic-easylist.css');
+await cp('src/cosmetic-canyoublockit.css', 'dist/cosmetic-canyoublockit.css');
+await cp('src/cosmetic-canyoublockit-local.css', 'dist/cosmetic-canyoublockit-local.css');
 await cp('rules', 'dist/rules', { recursive: true });
 await cp('.build-js', 'dist', { recursive: true });
 
@@ -35,11 +38,11 @@ for (const file of ['dist/popup.html', 'dist/options.html']) {
 }
 
 const manifest = JSON.parse(await readFile('dist/manifest.json', 'utf8'));
-if (manifest.version !== '0.1.2') {
+if (manifest.version !== '0.1.5') {
   throw new Error('Unexpected dist manifest version');
 }
 const popupHtml = await readFile('dist/popup.html', 'utf8');
-if (!popupHtml.includes('Build: p1-runtime-fix2')) {
+if (!popupHtml.includes('Build: p431-canyoublockit-cleanup-dev')) {
   throw new Error('Popup build marker missing from dist');
 }
 

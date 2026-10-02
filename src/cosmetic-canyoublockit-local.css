@@ -1,0 +1,27 @@
+/*
+ * Jammer site regression cleanup for canyoublockit.com.
+ *
+ * This intentionally does NOT hide the page's explanatory "Testing 1" /
+ * "Testing 2" screenshots. Those are ordinary article content.
+ *
+ * These selectors target the site's self-hosted test-ad anchors and
+ * advertisement placeholders only.
+ */
+
+a[href="ad.com"],
+a[href="http://ad.com"],
+a[href="https://ad.com"],
+center:has(> a[href="ad.com"]),
+center:has(> a[href="http://ad.com"]),
+center:has(> a[href="https://ad.com"]),
+.elementor-widget-container > center > p,
+.elementor-widget-container center > p {
+  display: none !important;
+  visibility: hidden !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
