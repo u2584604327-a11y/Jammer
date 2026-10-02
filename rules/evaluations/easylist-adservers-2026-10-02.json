@@ -1,0 +1,46 @@
+{
+  "evaluation": "easylist-adservers-p31",
+  "evaluatedAt": "2026-10-02",
+  "source": {
+    "repository": "easylist/easylist",
+    "commit": "3f284f851f6380a25c0f7e2447f2b01b1c8ee2d8",
+    "commitTimestamp": "2026-10-02T03:16:00Z",
+    "path": "easylist/easylist_adservers.txt",
+    "gitBlobSha": "a6940dc5accf3e903f5ac1cafa4ed4ff2927eb3d",
+    "sizeBytes": 995208,
+    "sha256": "244344bf3636e070ade00588520ba913c5fcdc3a2049a2d9c27b6352a84f969b"
+  },
+  "license": {
+    "officialUrl": "https://easylist.to/pages/licence.html",
+    "repositoryDefault": [
+      "GPL-3.0-or-later",
+      "CC-BY-SA-3.0-or-later"
+    ],
+    "attributionSource": "The EasyList authors",
+    "externalListsNeedSeparateReview": true
+  },
+  "compiler": {
+    "totalLines": 44730,
+    "nonCommentCandidateRules": 44715,
+    "acceptedUniqueDomains": 42940,
+    "duplicates": 1,
+    "rejected": 1774,
+    "acceptanceRatePercent": 96.03,
+    "rejectionByReason": {
+      "adblock-modifier-not-supported": 1753,
+      "complex-adblock-rule-not-supported": 11,
+      "regex-rule-not-supported": 9,
+      "unsupported-syntax": 1
+    }
+  },
+  "capacity": {
+    "generatedRulesWithCurrentStrategy": 42940,
+    "chromeGuaranteedMinimumStaticRules": 30000,
+    "oneDomainPerRuleAcceptable": false
+  },
+  "decision": {
+    "shipCurrentOutput": false,
+    "permissionExpansionRequired": false,
+    "nextTask": "requestDomains-batching-runtime-validation"
+  }
+}
