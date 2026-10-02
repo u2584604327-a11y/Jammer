@@ -11,7 +11,44 @@ type JammerContentFilterSettings = {
 };
 
 const JAMMER_CONTENT_FILTER_STORAGE_KEY = "jammerSettings";
-const JAMMER_CONTENT_FILTER_HOST_ID = "jammer-content-warning-host";
+const JAMMER_CONTENT_FILTER_MASK_ATTR = "data-jammer-content-masked";
+const JAMMER_CONTENT_FILTER_REVEALED_ATTR = "data-jammer-content-revealed";
+const JAMMER_CONTENT_FILTER_ID_ATTR = "data-jammer-content-mask-id";
+const JAMMER_CONTENT_FILTER_PLACEHOLDER_ATTR = "data-jammer-content-placeholder";
+const JAMMER_CONTENT_FILTER_CANDIDATE_SELECTOR = [
+  "article",
+  "[role='article']",
+  "[role='listitem']",
+  "li",
+  "section",
+  "figure",
+  "p",
+  "[class*='card' i]",
+  "[class*='post' i]",
+  "[class*='feed' i]",
+  "[class*='story' i]",
+  "[class*='result' i]",
+  "[class*='entry' i]",
+  "[class*='comment' i]",
+  "[class*='tile' i]"
+].join(",");
+
+const JAMMER_CONTENT_FILTER_CONTAINER_SELECTOR = [
+  "article",
+  "[role='article']",
+  "[role='listitem']",
+  "li",
+  "figure",
+  "[class*='card' i]",
+  "[class*='post' i]",
+  "[class*='feed' i]",
+  "[class*='story' i]",
+  "[class*='result' i]",
+  "[class*='entry' i]",
+  "[class*='comment' i]",
+  "[class*='tile' i]"
+].join(",");
+
 const JAMMER_CONTENT_FILTER_DEFAULT_CATEGORIES: JammerContentFilterCategories = {
   gambling: false,
   explicit: false,
@@ -20,8 +57,10 @@ const JAMMER_CONTENT_FILTER_DEFAULT_CATEGORIES: JammerContentFilterCategories = 
   clickbait: false
 };
 
-let jammerContentDismissedForPage = false;
-let jammerContentScanTimer: number | undefined;
+let jammerContentObserver: MutationObserver | undefined;
+let jammerContentScanQueued = false;
+let jammerContentMaskSequence = 0;
+let jammerContentDelayedTimers: number[] = [];
 
 function jammerContentFilterSanitizeSettings(value: unknown): JammerContentFilterSettings {
   const candidate = value && typeof value === "object"
@@ -95,171 +134,254 @@ function jammerContentFilterCategoryLabel(
   return labels[category][language];
 }
 
-function jammerContentFilterRemoveOverlay(): void {
-  document.getElementById(JAMMER_CONTENT_FILTER_HOST_ID)?.remove();
+function jammerContentFilterClassifier(): {
+  classify(
+    sample: JammerContentSample,
+    enabled: JammerContentCategorySelection
+  ): JammerContentMatch[];
+} {
+  return (globalThis as unknown as {
+    JammerContentClassifier: {
+      classify(
+        sample: JammerContentSample,
+        enabled: JammerContentCategorySelection
+      ): JammerContentMatch[];
+    };
+  }).JammerContentClassifier;
 }
 
-function jammerContentFilterSample(): {
-  title: string;
-  description: string;
-  headings: string;
-  body: string;
-} {
-  const description =
-    document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content ?? "";
-  const headings = Array.from(document.querySelectorAll<HTMLElement>("h1,h2,h3"))
-    .slice(0, 80)
+function jammerContentFilterElementDepth(element: Element): number {
+  let depth = 0;
+  let current: Element | null = element;
+  while (current?.parentElement) {
+    depth += 1;
+    current = current.parentElement;
+  }
+  return depth;
+}
+
+function jammerContentFilterCandidateText(element: HTMLElement): string {
+  return (element.innerText ?? "").replace(/\s+/g, " ").trim();
+}
+
+function jammerContentFilterCandidateEligible(element: HTMLElement): boolean {
+  if (!element.isConnected) return false;
+  if (element.hasAttribute(JAMMER_CONTENT_FILTER_REVEALED_ATTR)) return false;
+  if (element.hasAttribute(JAMMER_CONTENT_FILTER_MASK_ATTR)) return false;
+  if (element.closest(`[${JAMMER_CONTENT_FILTER_PLACEHOLDER_ATTR}]`)) return false;
+  if (element.closest("nav,header,footer,form,[role='navigation'],[role='banner'],[role='contentinfo']")) {
+    return false;
+  }
+  if (element.querySelector(`[${JAMMER_CONTENT_FILTER_MASK_ATTR}="true"]`)) return false;
+  if (element.closest(`[${JAMMER_CONTENT_FILTER_MASK_ATTR}="true"]`)) return false;
+
+  const text = jammerContentFilterCandidateText(element);
+  if (text.length < 24 || text.length > 8_000) return false;
+
+  const style = getComputedStyle(element);
+  if (style.display === "none" || style.visibility === "hidden") return false;
+  return true;
+}
+
+function jammerContentFilterPromoteTarget(element: HTMLElement): HTMLElement {
+  if (element.matches("p,h1,h2,h3,h4,h5,h6")) {
+    const container = element.closest<HTMLElement>(JAMMER_CONTENT_FILTER_CONTAINER_SELECTOR);
+    if (container) {
+      const text = jammerContentFilterCandidateText(container);
+      if (text.length >= 24 && text.length <= 8_000) return container;
+    }
+  }
+  return element;
+}
+
+function jammerContentFilterSampleForElement(element: HTMLElement): JammerContentSample {
+  const headings = Array.from(element.querySelectorAll<HTMLElement>("h1,h2,h3,h4"))
+    .slice(0, 8)
     .map((node) => node.innerText)
     .join(" ");
-  const body = document.body?.innerText ?? "";
+
+  const selfHeading = element.matches("h1,h2,h3,h4")
+    ? element.innerText
+    : "";
 
   return {
-    title: document.title ?? "",
-    description,
-    headings,
-    body
+    title: "",
+    description: "",
+    headings: [selfHeading, headings].filter(Boolean).join(" "),
+    body: jammerContentFilterCandidateText(element).slice(0, 8_000)
   };
 }
 
-function jammerContentFilterRenderWarning(
+function jammerContentFilterRestoreElement(element: HTMLElement): void {
+  const id = element.getAttribute(JAMMER_CONTENT_FILTER_ID_ATTR);
+  if (id) {
+    document.querySelector<HTMLElement>(
+      `[${JAMMER_CONTENT_FILTER_PLACEHOLDER_ATTR}="${CSS.escape(id)}"]`
+    )?.remove();
+  }
+
+  const originalDisplay = element.dataset.jammerContentOriginalDisplay;
+  const originalPriority = element.dataset.jammerContentOriginalDisplayPriority;
+
+  if (originalDisplay) {
+    element.style.setProperty("display", originalDisplay, originalPriority ?? "");
+  } else {
+    element.style.removeProperty("display");
+  }
+
+  delete element.dataset.jammerContentOriginalDisplay;
+  delete element.dataset.jammerContentOriginalDisplayPriority;
+  element.removeAttribute(JAMMER_CONTENT_FILTER_MASK_ATTR);
+  element.removeAttribute(JAMMER_CONTENT_FILTER_ID_ATTR);
+}
+
+function jammerContentFilterRestoreAll(): void {
+  document.querySelectorAll<HTMLElement>(
+    `[${JAMMER_CONTENT_FILTER_MASK_ATTR}="true"]`
+  ).forEach(jammerContentFilterRestoreElement);
+
+  document.querySelectorAll<HTMLElement>(
+    `[${JAMMER_CONTENT_FILTER_PLACEHOLDER_ATTR}]`
+  ).forEach((element) => element.remove());
+}
+
+function jammerContentFilterCreatePlaceholder(
+  element: HTMLElement,
   settings: JammerContentFilterSettings,
   matches: JammerContentMatch[]
-): void {
-  if (jammerContentDismissedForPage || matches.length === 0) return;
-
-  jammerContentFilterRemoveOverlay();
-
+): HTMLElement {
   const language = jammerContentFilterResolvedLanguage(settings.language);
-  const top = matches[0];
+  const id = `jammer-mask-${++jammerContentMaskSequence}`;
   const labels = matches
-    .slice(0, 3)
+    .slice(0, 2)
     .map((match) => jammerContentFilterCategoryLabel(match.category, language));
-  const signals = Array.from(new Set(matches.flatMap((match) => match.matchedTerms))).slice(0, 5);
+  const signals = Array.from(new Set(matches.flatMap((match) => match.matchedTerms))).slice(0, 4);
 
-  const host = document.createElement("div");
-  host.id = JAMMER_CONTENT_FILTER_HOST_ID;
-  host.style.cssText = "position:fixed;inset:0;z-index:2147483647;";
-  const shadow = host.attachShadow({ mode: "closed" });
-
-  const wrapper = document.createElement("div");
-  wrapper.setAttribute("role", "dialog");
-  wrapper.setAttribute("aria-modal", "true");
-  wrapper.style.cssText = [
-    "position:fixed",
-    "inset:0",
-    "display:grid",
-    "place-items:center",
-    "padding:24px",
-    "background:rgba(7,14,31,.84)",
-    "backdrop-filter:blur(16px)",
+  const placeholder = document.createElement("div");
+  placeholder.setAttribute(JAMMER_CONTENT_FILTER_PLACEHOLDER_ATTR, id);
+  placeholder.setAttribute("role", "note");
+  placeholder.style.cssText = [
+    "display:block",
+    "box-sizing:border-box",
+    "width:100%",
+    "min-height:88px",
+    "margin:8px 0",
+    "padding:14px",
+    "border:1px solid rgba(99,102,241,.42)",
+    "border-radius:12px",
+    "background:linear-gradient(135deg,rgba(17,24,39,.96),rgba(30,41,59,.96))",
+    "box-shadow:0 8px 24px rgba(15,23,42,.18)",
+    "color:#f8fafc",
     "font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
-    "color:#f8fafc"
+    "line-height:1.45"
   ].join(";");
 
-  const card = document.createElement("div");
-  card.style.cssText = [
-    "width:min(560px,100%)",
-    "border:1px solid rgba(255,255,255,.18)",
-    "border-radius:20px",
-    "background:#111a2e",
-    "box-shadow:0 24px 80px rgba(0,0,0,.48)",
-    "padding:24px"
-  ].join(";");
-
-  const badge = document.createElement("div");
-  badge.textContent = "J";
-  badge.style.cssText = [
-    "width:46px",
-    "height:46px",
-    "display:grid",
-    "place-items:center",
-    "border-radius:13px",
-    "background:linear-gradient(145deg,#4f46e5,#06b6d4)",
-    "font-size:25px",
-    "font-weight:800",
-    "margin-bottom:16px"
-  ].join(";");
-
-  const title = document.createElement("h1");
+  const title = document.createElement("div");
   title.textContent = language === "zh-CN"
-    ? "Jammer 检测到你选择过滤的内容"
-    : "Jammer detected a selected content category";
-  title.style.cssText = "font-size:22px;line-height:1.3;margin:0 0 10px;";
+    ? `Jammer 已隐藏：${labels.join("、")}`
+    : `Jammer hid: ${labels.join(", ")}`;
+  title.style.cssText = "font-size:14px;font-weight:750;margin-bottom:5px;";
 
-  const detail = document.createElement("p");
+  const detail = document.createElement("div");
   detail.textContent = language === "zh-CN"
-    ? `匹配类别：${labels.join("、")}。这是本地关键词评分结果，可能出现误判。`
-    : `Matched: ${labels.join(", ")}. This is a local keyword-score result and may be a false positive.`;
-  detail.style.cssText = "margin:0 0 12px;color:#cbd5e1;line-height:1.55;font-size:14px;";
-
-  const reason = document.createElement("p");
-  reason.textContent = language === "zh-CN"
-    ? `匹配信号：${signals.join("、") || jammerContentFilterCategoryLabel(top.category, language)}`
-    : `Matched signals: ${signals.join(", ") || jammerContentFilterCategoryLabel(top.category, language)}`;
-  reason.style.cssText = "margin:0 0 18px;color:#94a3b8;font-size:12px;line-height:1.5;";
+    ? `本地匹配信号：${signals.join("、") || "已选内容类别"}。可能存在误判。`
+    : `Local match signals: ${signals.join(", ") || "selected category"}. False positives are possible.`;
+  detail.style.cssText = "font-size:12px;color:#cbd5e1;margin-bottom:10px;";
 
   const actions = document.createElement("div");
-  actions.style.cssText = "display:flex;gap:10px;flex-wrap:wrap;";
+  actions.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;";
 
-  const show = document.createElement("button");
-  show.type = "button";
-  show.textContent = language === "zh-CN" ? "仍然显示本页" : "Show this page";
-  show.style.cssText = [
+  const reveal = document.createElement("button");
+  reveal.type = "button";
+  reveal.textContent = language === "zh-CN" ? "显示这段内容" : "Show this content";
+  reveal.style.cssText = [
     "border:0",
-    "border-radius:11px",
-    "padding:10px 14px",
-    "font:inherit",
-    "font-weight:700",
+    "border-radius:9px",
+    "padding:7px 11px",
     "cursor:pointer",
+    "font:inherit",
+    "font-size:12px",
+    "font-weight:700",
     "background:#4f46e5",
     "color:white"
   ].join(";");
-  show.addEventListener("click", () => {
-    jammerContentDismissedForPage = true;
-    jammerContentFilterRemoveOverlay();
+  reveal.addEventListener("click", () => {
+    element.setAttribute(JAMMER_CONTENT_FILTER_REVEALED_ATTR, "true");
+    jammerContentFilterRestoreElement(element);
   });
 
-  const always = document.createElement("button");
-  always.type = "button";
-  always.textContent = language === "zh-CN" ? "始终允许此网站" : "Always allow this site";
-  always.style.cssText = [
-    "border:1px solid #334155",
-    "border-radius:11px",
-    "padding:10px 14px",
-    "font:inherit",
-    "font-weight:700",
+  const allowSite = document.createElement("button");
+  allowSite.type = "button";
+  allowSite.textContent = language === "zh-CN" ? "此网站不做内容过滤" : "Skip content filtering on this site";
+  allowSite.style.cssText = [
+    "border:1px solid #475569",
+    "border-radius:9px",
+    "padding:7px 11px",
     "cursor:pointer",
+    "font:inherit",
+    "font-size:12px",
+    "font-weight:700",
     "background:#1e293b",
     "color:#f8fafc"
   ].join(";");
-  always.addEventListener("click", () => {
+  allowSite.addEventListener("click", () => {
     void jammerContentFilterLoadSettings().then(async (latest) => {
       const hostname = location.hostname.toLocaleLowerCase().replace(/\.$/, "");
       if (hostname && !latest.contentAllowlist.includes(hostname)) {
         latest.contentAllowlist = [...latest.contentAllowlist, hostname];
         await jammerContentFilterSaveSettings(latest);
       }
-      jammerContentDismissedForPage = true;
-      jammerContentFilterRemoveOverlay();
+      jammerContentFilterRestoreAll();
     });
   });
 
-  const note = document.createElement("p");
-  note.textContent = language === "zh-CN"
-    ? "页面文本只在本机匹配，不会发送到 Jammer 服务器。"
-    : "Page text is matched locally and is not sent to a Jammer server.";
-  note.style.cssText = "margin:16px 0 0;color:#94a3b8;font-size:11px;line-height:1.5;";
+  const privacy = document.createElement("div");
+  privacy.textContent = language === "zh-CN"
+    ? "只在本机判断；网页文字不会发送到 Jammer 服务器。"
+    : "Matched on-device; page text is not sent to a Jammer server.";
+  privacy.style.cssText = "font-size:10px;color:#94a3b8;margin-top:9px;";
 
-  actions.append(show, always);
-  card.append(badge, title, detail, reason, actions, note);
-  wrapper.append(card);
-  shadow.append(wrapper);
-  document.documentElement.append(host);
+  actions.append(reveal, allowSite);
+  placeholder.append(title, detail, actions, privacy);
+  return placeholder;
 }
 
-async function jammerContentFilterEvaluate(): Promise<void> {
-  if (jammerContentDismissedForPage) return;
+function jammerContentFilterMaskElement(
+  element: HTMLElement,
+  settings: JammerContentFilterSettings,
+  matches: JammerContentMatch[]
+): void {
+  if (element.hasAttribute(JAMMER_CONTENT_FILTER_MASK_ATTR)) return;
+  if (element.hasAttribute(JAMMER_CONTENT_FILTER_REVEALED_ATTR)) return;
 
+  const placeholder = jammerContentFilterCreatePlaceholder(element, settings, matches);
+  const id = placeholder.getAttribute(JAMMER_CONTENT_FILTER_PLACEHOLDER_ATTR);
+  if (!id) return;
+
+  element.dataset.jammerContentOriginalDisplay = element.style.getPropertyValue("display");
+  element.dataset.jammerContentOriginalDisplayPriority = element.style.getPropertyPriority("display");
+  element.setAttribute(JAMMER_CONTENT_FILTER_MASK_ATTR, "true");
+  element.setAttribute(JAMMER_CONTENT_FILTER_ID_ATTR, id);
+
+  element.parentNode?.insertBefore(placeholder, element);
+  element.style.setProperty("display", "none", "important");
+}
+
+function jammerContentFilterCollectCandidates(root: ParentNode = document): HTMLElement[] {
+  const nodes = Array.from(root.querySelectorAll<HTMLElement>(JAMMER_CONTENT_FILTER_CANDIDATE_SELECTOR));
+  if (root instanceof HTMLElement && root.matches(JAMMER_CONTENT_FILTER_CANDIDATE_SELECTOR)) {
+    nodes.push(root);
+  }
+
+  const unique = Array.from(new Set(nodes));
+  return unique.sort((a, b) => {
+    const depthDelta = jammerContentFilterElementDepth(b) - jammerContentFilterElementDepth(a);
+    if (depthDelta !== 0) return depthDelta;
+    return jammerContentFilterCandidateText(a).length - jammerContentFilterCandidateText(b).length;
+  });
+}
+
+async function jammerContentFilterScan(root: ParentNode = document): Promise<void> {
   const settings = await jammerContentFilterLoadSettings();
   const anyCategory = Object.values(settings.contentCategories).some(Boolean);
 
@@ -269,55 +391,102 @@ async function jammerContentFilterEvaluate(): Promise<void> {
     !anyCategory ||
     jammerContentFilterHostnameAllowed(location.hostname, settings.contentAllowlist)
   ) {
-    jammerContentFilterRemoveOverlay();
+    jammerContentFilterRestoreAll();
     return;
   }
 
-  const classifier = (globalThis as unknown as {
-    JammerContentClassifier: {
-      classify(
-        sample: JammerContentSample,
-        enabled: JammerContentCategorySelection
-      ): JammerContentMatch[];
-    };
-  }).JammerContentClassifier;
+  const classifier = jammerContentFilterClassifier();
+  const candidates = jammerContentFilterCollectCandidates(root).slice(0, 300);
 
-  const matches = classifier.classify(
-    jammerContentFilterSample(),
-    settings.contentCategories
-  );
+  for (const candidate of candidates) {
+    if (!jammerContentFilterCandidateEligible(candidate)) continue;
 
-  if (matches.length === 0) {
-    jammerContentFilterRemoveOverlay();
-    return;
+    const matches = classifier.classify(
+      jammerContentFilterSampleForElement(candidate),
+      settings.contentCategories
+    );
+    if (matches.length === 0) continue;
+
+    const target = jammerContentFilterPromoteTarget(candidate);
+    if (!jammerContentFilterCandidateEligible(target)) continue;
+    jammerContentFilterMaskElement(target, settings, matches);
   }
-
-  jammerContentFilterRenderWarning(settings, matches);
 }
 
-function jammerContentFilterScheduleScans(): void {
-  let remaining = 5;
-  const run = () => {
-    void jammerContentFilterEvaluate().catch(() => undefined);
-    remaining -= 1;
-    if (remaining <= 0 && jammerContentScanTimer !== undefined) {
-      clearInterval(jammerContentScanTimer);
-      jammerContentScanTimer = undefined;
-    }
-  };
+function jammerContentFilterQueueScan(root: ParentNode = document): void {
+  if (jammerContentScanQueued) return;
+  jammerContentScanQueued = true;
 
-  run();
-  jammerContentScanTimer = window.setInterval(run, 1000);
+  window.setTimeout(() => {
+    jammerContentScanQueued = false;
+    void jammerContentFilterScan(root).catch(() => undefined);
+  }, 180);
+}
+
+function jammerContentFilterStopDelayedScans(): void {
+  for (const timer of jammerContentDelayedTimers) clearTimeout(timer);
+  jammerContentDelayedTimers = [];
+}
+
+function jammerContentFilterStart(): void {
+  jammerContentFilterStopDelayedScans();
+  jammerContentFilterQueueScan(document);
+
+  jammerContentDelayedTimers = [700, 1800, 4000].map((delay) =>
+    window.setTimeout(() => {
+      void jammerContentFilterScan(document).catch(() => undefined);
+    }, delay)
+  );
+
+  jammerContentObserver?.disconnect();
+  jammerContentObserver = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type !== "childList" || mutation.addedNodes.length === 0) continue;
+
+      for (const added of Array.from(mutation.addedNodes)) {
+        if (!(added instanceof HTMLElement)) continue;
+        if (added.closest(`[${JAMMER_CONTENT_FILTER_PLACEHOLDER_ATTR}]`)) continue;
+        jammerContentFilterQueueScan(added);
+        return;
+      }
+    }
+  });
+
+  if (document.body) {
+    jammerContentObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
 }
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName !== "local" || !(JAMMER_CONTENT_FILTER_STORAGE_KEY in changes)) return;
-  jammerContentDismissedForPage = false;
-  void jammerContentFilterEvaluate().catch(() => undefined);
+
+  void jammerContentFilterLoadSettings().then((settings) => {
+    const active =
+      settings.enabled &&
+      settings.contentEnabled &&
+      Object.values(settings.contentCategories).some(Boolean) &&
+      !jammerContentFilterHostnameAllowed(location.hostname, settings.contentAllowlist);
+
+    if (!active) {
+      jammerContentObserver?.disconnect();
+      jammerContentFilterStopDelayedScans();
+      jammerContentFilterRestoreAll();
+      return;
+    }
+
+    jammerContentFilterRestoreAll();
+    document.querySelectorAll<HTMLElement>(
+      `[${JAMMER_CONTENT_FILTER_REVEALED_ATTR}="true"]`
+    ).forEach((element) => element.removeAttribute(JAMMER_CONTENT_FILTER_REVEALED_ATTR));
+    jammerContentFilterStart();
+  }).catch(() => undefined);
 });
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", jammerContentFilterScheduleScans, { once: true });
+  document.addEventListener("DOMContentLoaded", jammerContentFilterStart, { once: true });
 } else {
-  jammerContentFilterScheduleScans();
+  jammerContentFilterStart();
 }
