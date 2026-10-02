@@ -23,7 +23,8 @@ test('declares base, extended ads, and privacy rulesets and blocks extension net
   assert.deepEqual(manifest.declarative_net_request.rule_resources, [
     { id: 'ads_static', enabled: true, path: 'rules/ads.json' },
     { id: 'ads_extended', enabled: true, path: 'rules/ads-extended.json' },
-    { id: 'privacy_static', enabled: true, path: 'rules/privacy.json' }
+    { id: 'privacy_static', enabled: true, path: 'rules/privacy.json' },
+    { id: 'phishing_static', enabled: true, path: 'rules/phishing.json' }
   ]);
   assert.match(manifest.content_security_policy.extension_pages, /connect-src 'none'/);
 });
