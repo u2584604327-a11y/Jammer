@@ -8,7 +8,7 @@ Jammer is a local-first Manifest V3 browser extension for network ad blocking, p
 
 - **Network ad blocking:** pinned EasyList source compiled at build time into deterministic `declarativeNetRequest` rules.
 - **Page ad cleanup:** optional CSS-only cosmetic filtering using packaged selectors.
-- **Content filtering:** opt-in local text matching for gambling, explicit sexual material, graphic violence, scam-like promotion, and clickbait/nuisance content; masked blocks show the matched category and signals.
+- **Content filtering:** opt-in local text matching for gambling, explicit sexual material, graphic violence, scam-like promotion, and clickbait/nuisance content; only matched page blocks are hidden, with local reveal/exit controls and matched signals.
 - **Bilingual UI:** Auto / 中文 / English.
 - **Branded options cover:** packaged Jammer artwork shown locally inside the extension settings UI.
 - **Local exceptions:** separate ad-block allowlist and content-filter exception list, both stored only in extension storage.
@@ -113,6 +113,7 @@ The extension does not update filter lists at runtime.
 - [P5.6 store listing preparation](docs/P56_STORE_LISTING.md)
 - [P5.7 privacy policy](docs/P57_PRIVACY_POLICY.md)
 - [P6.0 local content filtering](docs/P60_CONTENT_FILTERING.md)
+- [P6.1 element-level content masking](docs/P61_ELEMENT_CONTENT_MASKING.md)
 - [Security](SECURITY.md)
 
 ## Status
