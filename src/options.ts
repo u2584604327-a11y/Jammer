@@ -53,7 +53,7 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
       "Optional. When enabled, Edge asks for website access so Jammer can inject CSS-only ad hiding.",
     cosmeticReload: "Reload open pages after changing this setting. Allowlisted sites are excluded.",
     contentTitle: "Content filtering",
-    contentMaster: "Warn on selected content categories",
+    contentMaster: "Hide matched content blocks",
     contentDescription:
       "Optional local text matching. Jammer reads visible page text on-device only when this feature is enabled and never uploads the page text.",
     contentReload:
@@ -65,7 +65,7 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     clickbait: "Clickbait / nuisance",
     contentAllowlistTitle: "Content-filter exceptions",
     contentAllowlistDescription:
-      "Sites listed here skip content-category warnings but can still use normal ad blocking.",
+      "Sites listed here skip content masking but can still use normal ad blocking.",
     allowlistTitle: "Ad-block allowlist",
     allowlistDescription: "Enter a domain manually. Jammer does not read the current tab.",
     add: "Add",
@@ -74,7 +74,7 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     permissionDenied: "Website access was not granted. This feature remains off.",
     cosmeticEnabled: "Page ad cleanup enabled. Reload open pages.",
     cosmeticDisabled: "Page ad cleanup disabled.",
-    contentEnabled: "Content filtering enabled. Reload already-open pages once.",
+    contentEnabled: "Content masking enabled. Reload already-open pages once.",
     contentDisabled: "Content filtering disabled.",
     contentSelectCategory: "Select at least one content category first.",
     protectionUpdated: "Protection setting updated.",
@@ -98,7 +98,7 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
       "可选功能。启用后会请求网站访问权限，仅用于注入本地 CSS 隐藏广告容器。",
     cosmeticReload: "修改后请刷新已打开页面。广告白名单网站不会注入页面广告清理 CSS。",
     contentTitle: "内容过滤",
-    contentMaster: "对所选内容类别显示警告",
+    contentMaster: "只隐藏命中的内容块",
     contentDescription:
       "可选的本地文本匹配。仅在启用后读取当前网页可见文本并在设备本地判断，不会把网页正文上传到 Jammer 服务器。",
     contentReload: "首次启用后，请刷新已经打开的页面一次。之后修改设置时，已加载的过滤脚本会响应变化。",
@@ -108,7 +108,7 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     scam: "疑似诈骗诱导",
     clickbait: "标题党 / 诱导内容",
     contentAllowlistTitle: "内容过滤例外",
-    contentAllowlistDescription: "这里的站点不会触发内容类别警告，但仍可继续使用广告拦截。",
+    contentAllowlistDescription: "这里的站点不会执行内容遮蔽，但仍可继续使用广告拦截。",
     allowlistTitle: "广告拦截白名单",
     allowlistDescription: "手动输入域名。Jammer 不读取当前标签页地址。",
     add: "添加",
@@ -117,7 +117,7 @@ const OPTIONS_STRINGS: Record<OptionsResolvedLanguage, Record<string, string>> =
     permissionDenied: "未授予网站访问权限，该功能保持关闭。",
     cosmeticEnabled: "页面广告清理已启用，请刷新已打开页面。",
     cosmeticDisabled: "页面广告清理已关闭。",
-    contentEnabled: "内容过滤已启用。请把已打开页面刷新一次。",
+    contentEnabled: "内容遮蔽已启用。请把已打开页面刷新一次。",
     contentDisabled: "内容过滤已关闭。",
     contentSelectCategory: "请先至少选择一个内容类别。",
     protectionUpdated: "总保护设置已更新。",

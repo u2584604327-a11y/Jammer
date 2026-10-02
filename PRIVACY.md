@@ -2,7 +2,7 @@
 
 **Effective date: October 2, 2026**
 
-Jammer is a local-first browser extension for network ad blocking, optional page-ad cleanup, and opt-in local content-category warnings. This policy describes what Jammer stores, what page data it may process locally, what permissions it can use, and what it does not transmit.
+Jammer is a local-first browser extension for network ad blocking, optional page-ad cleanup, and opt-in local content-block masking. This policy describes what Jammer stores, what page data it may process locally, what permissions it can use, and what it does not transmit.
 
 [简体中文](#简体中文) · [English](#english)
 
@@ -77,7 +77,7 @@ Current categories are:
 
 The classifier uses weighted keyword signals. It is not an AI service and it is not a security guarantee. False positives and false negatives are possible.
 
-If a selected category crosses its local score threshold, Jammer displays an on-page warning showing the category and matched signals. The user can dismiss the warning for that page or add the site to local content-filter exceptions.
+If a selected category crosses its local score threshold, Jammer hides the matched content block and inserts a local placeholder showing the category and matched signals. The user can dismiss the warning for that page or add the site to local content-filter exceptions.
 
 Jammer does not upload scanned page text or matched terms to a Jammer server. It does not intentionally read form values, password fields, cookies, or browser history for this feature.
 
@@ -85,7 +85,7 @@ Jammer does not upload scanned page text or matched terms to a Jammer server. It
 
 The ad-block allowlist contains domain names manually entered by the user and excludes matching sites from network blocking or cosmetic filtering.
 
-Content-filter exceptions are stored separately and only suppress content-category warnings for matching sites.
+Content-filter exceptions are stored separately and only suppress content-block masking for matching sites.
 
 Neither list is uploaded to a Jammer server.
 
@@ -208,7 +208,7 @@ Jammer不会利用该功能主动读取或收集网页正文、表单内容、�
 
 分类器使用加权关键词信号，不是AI服务，也不是安全防护保证，可能出现误判和漏判。
 
-当某一已选类别达到本地阈值时，Jammer会在页面上显示警告，并说明匹配类别和信号。用户可以仅显示当前页面，或把该站点加入本地“内容过滤例外”。
+当某一已选类别达到本地阈值时，Jammer会只隐藏命中的网页内容块，并在原位置显示匹配类别和信号。用户可以只显示当前被遮蔽的内容块，或把该站点加入本地“内容过滤例外”。
 
 Jammer不会把扫描到的网页正文或匹配词上传到Jammer服务器，也不会为了该功能主动读取表单输入值、密码字段、Cookie或浏览历史。
 
@@ -216,7 +216,7 @@ Jammer不会把扫描到的网页正文或匹配词上传到Jammer服务器，�
 
 广告拦截白名单只包含用户手动输入的域名，用于在相应网站上排除网络过滤或页面广告清理。
 
-内容过滤例外单独保存，只用于关闭相应网站的内容类别警告。
+内容过滤例外单独保存，只用于关闭相应网站的内容遮蔽。
 
 两类名单都不会上传到Jammer服务器。
 

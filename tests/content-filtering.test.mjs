@@ -109,10 +109,14 @@ test('content runtime is local-only and does not inspect form values', async () 
     assert.equal(source.includes(remotePrimitive), false);
   }
 
-  assert.match(source, /document\.title/);
-  assert.match(source, /meta\[name="description"\]/);
-  assert.match(source, /h1,h2,h3/);
-  assert.match(source, /document\.body\?\.innerText/);
+  assert.match(source, /JAMMER_CONTENT_FILTER_CANDIDATE_SELECTOR/);
+  assert.match(source, /role='article'/);
+  assert.match(source, /class\*='recommend'/);
+  assert.match(source, /h1,h2,h3,h4/);
+  assert.match(source, /innerText/);
+  assert.match(source, /aria-label/);
+  assert.match(source, /img\[alt\]/);
+  assert.match(source, /MutationObserver/);
   assert.doesNotMatch(source, /querySelectorAll<[^>]*>\(["']input/i);
   assert.doesNotMatch(source, /password/i);
 });
@@ -132,4 +136,48 @@ test('content filtering is opt-in and uses separate local exceptions', async () 
   assert.match(options, /content-filter\.js/);
   assert.match(popup, /content-classifier\.js/);
   assert.match(popup, /content-filter\.js/);
+});
+
+
+test('content runtime masks matched elements instead of covering the whole page', async () => {
+  const source = await readFile('src/content-filter.ts', 'utf8');
+
+  assert.match(source, /data-jammer-content-masked/);
+  assert.match(source, /data-jammer-content-placeholder/);
+  assert.match(source, /Show this content/);
+  assert.match(source, /显示这段内容/);
+  assert.match(source, /insertBefore\(placeholder, element\)/);
+  assert.match(source, /display", "none", "important"/);
+  assert.doesNotMatch(source, /position:fixed;inset:0;z-index:2147483647/);
+  assert.doesNotMatch(source, /Show this page/);
+});
+
+test('content runtime offers an explicit leave-page action without tabs permission', async () => {
+  const source = await readFile('src/content-filter.ts', 'utf8');
+  const manifest = JSON.parse(await readFile('manifest.json', 'utf8'));
+
+  assert.match(source, /Leave this page/);
+  assert.match(source, /退出此网页/);
+  assert.match(source, /history\.back\(\)/);
+  assert.match(source, /location\.replace\("about:blank"\)/);
+  assert.equal(manifest.permissions.includes('tabs'), false);
+});
+
+test('content runtime evaluates smaller blocks first and rescans dynamic feeds', async () => {
+  const source = await readFile('src/content-filter.ts', 'utf8');
+
+  assert.match(source, /jammerContentFilterElementDepth/);
+  assert.match(source, /depthDelta/);
+  assert.match(source, /slice\(0, 300\)/);
+  assert.match(source, /MutationObserver/);
+});
+
+test('classifier recall uses repeated-signal scoring and expanded variants', async () => {
+  const source = await readFile('src/content-classifier.ts', 'utf8');
+  assert.match(source, /jammerCountOccurrences/);
+  assert.match(source, /matchedTerms\.length >= 2/);
+  assert.match(source, /真人荷官/);
+  assert.match(source, /成人视频/);
+  assert.match(source, /冒充客服/);
+  assert.match(source, /before it gets deleted/);
 });

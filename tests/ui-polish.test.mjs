@@ -21,7 +21,7 @@ test('popup keeps all runtime control IDs after visual redesign', async () => {
   ]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
-  assert.match(html, /Build: p60-content-filter-dev/);
+  assert.match(html, /Build: p61-element-mask-dev/);
   assert.match(html, /class="brand-mark"/);
 });
 

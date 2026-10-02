@@ -13,7 +13,7 @@ test('store listing copy exists in English and Chinese', async () => {
   assert.match(zh, /无遥测/);
   assert.match(zh, /页面广告清理/);
   assert.match(zh, /内容过滤/);
-  assert.match(en, /content warnings/i);
+  assert.match(en, /content masking/i);
 });
 
 test('store copy does not claim unsupported capabilities', async () => {
@@ -38,5 +38,5 @@ test('store preparation documents current visual asset dimensions', async () => 
   assert.match(doc, /440×280/);
   assert.match(doc, /1400×560/);
   assert.match(doc, /1280×800/);
-  assert.match(doc, /0\.7\.0/);
+  assert.match(doc, /0\.7\.1/);
 });
