@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
+  <title id="title">Jammer</title>
+  <desc id="desc">Jammer local-first ad blocking project cover.</desc>
+  <defs>
+    <linearGradient id="bg" x1="90" y1="70" x2="1190" y2="590" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#111827"/>
+      <stop offset="1" stop-color="#0B1220"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="120" y1="120" x2="500" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4F46E5"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <circle cx="1110" cy="90" r="270" fill="#4F46E5" opacity=".08"/>
+  <circle cx="1170" cy="570" r="330" fill="#06B6D4" opacity=".06"/>
+  <rect x="92" y="104" width="392" height="392" rx="94" fill="url(#mark)"/>
+  <path d="M336 184v150c0 76-47 121-115 121-47 0-86-20-110-57" fill="none" stroke="#fff" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="301" y="257" width="73" height="20" rx="10" fill="#4759CA"/>
+  <rect x="301" y="296" width="73" height="20" rx="10" fill="#386FD0"/>
+  <text x="570" y="296" fill="#F8FAFC" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="104" font-weight="800" letter-spacing="2">Jammer</text>
+  <text x="574" y="366" fill="#AAB4C6" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="30" font-weight="500">Local-first ad blocking · transparent controls</text>
+  <g transform="translate(574 414)">
+    <rect width="184" height="48" rx="24" fill="#242B40"/>
+    <circle cx="25" cy="24" r="6" fill="#56D98A"/>
+    <text x="44" y="31" fill="#DCE3EE" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20">No telemetry</text>
+    <rect x="202" width="205" height="48" rx="24" fill="#242B40"/>
+    <circle cx="227" cy="24" r="6" fill="#8B83FF"/>
+    <text x="246" y="31" fill="#DCE3EE" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20">Local settings</text>
+    <rect x="425" width="228" height="48" rx="24" fill="#242B40"/>
+    <circle cx="450" cy="24" r="6" fill="#39C4DE"/>
+    <text x="469" y="31" fill="#DCE3EE" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20">User controlled</text>
+  </g>
+</svg>
