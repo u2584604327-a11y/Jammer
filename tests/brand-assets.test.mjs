@@ -34,3 +34,11 @@ test('social preview has local vector source and deterministic PNG generator', a
   assert.match(generator, /IHDR/);
   assert.match(generator, /IDAT/);
 });
+
+test('approved in-extension cover is a compact local WebP asset', async () => {
+  const cover = await readFile('assets/brand/jammer-cover.webp');
+  assert.equal(cover.subarray(0, 4).toString('ascii'), 'RIFF');
+  assert.equal(cover.subarray(8, 12).toString('ascii'), 'WEBP');
+  assert.ok(cover.length > 10_000);
+  assert.ok(cover.length < 250_000);
+});
