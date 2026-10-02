@@ -273,7 +273,16 @@ async function jammerContentFilterEvaluate(): Promise<void> {
     return;
   }
 
-  const matches = globalThis.JammerContentClassifier.classify(
+  const classifier = (globalThis as unknown as {
+    JammerContentClassifier: {
+      classify(
+        sample: JammerContentSample,
+        enabled: JammerContentCategorySelection
+      ): JammerContentMatch[];
+    };
+  }).JammerContentClassifier;
+
+  const matches = classifier.classify(
     jammerContentFilterSample(),
     settings.contentCategories
   );
