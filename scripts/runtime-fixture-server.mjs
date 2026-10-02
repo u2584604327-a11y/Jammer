@@ -54,11 +54,77 @@ const html = `<!doctype html>
 </body>
 </html>`;
 
+
+const cosmeticHtml = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Jammer P4.1 Cosmetic Fixture</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 16px; line-height: 1.5; }
+    .box { border: 2px solid #777; padding: 18px; margin: 14px 0; }
+    .pass { color: green; }
+    .fail { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Jammer P4.1 Cosmetic Fixture</h1>
+  <p>Normal content must stay visible. Explicit ad containers should disappear only when Page ad cleanup is enabled.</p>
+  <div id="normal-content" class="box">NORMAL CONTENT — MUST STAY VISIBLE</div>
+  <div id="internal-ad" class="box ad-container">INTERNAL AD CONTAINER — SHOULD BE HIDDEN</div>
+  <ins id="google-slot" class="box adsbygoogle">ADSBYGOOGLE SLOT — SHOULD BE HIDDEN</ins>
+  <aside id="aria-ad" class="box" role="complementary" aria-label="Advertisement">ADVERTISEMENT REGION — SHOULD BE HIDDEN</aside>
+  <ul>
+    <li>Normal content: <strong id="normal-state">PENDING</strong></li>
+    <li>Internal ad container: <strong id="internal-state">PENDING</strong></li>
+    <li>AdsByGoogle slot: <strong id="google-state">PENDING</strong></li>
+    <li>Advertisement region: <strong id="aria-state">PENDING</strong></li>
+  </ul>
+  <p id="cosmetic-verdict">Waiting for CSS state…</p>
+  <script>
+    function hidden(id) {
+      const element = document.getElementById(id);
+      const style = getComputedStyle(element);
+      return style.display === 'none' || style.visibility === 'hidden' || Number.parseFloat(style.height) === 0;
+    }
+
+    setTimeout(() => {
+      const normalHidden = hidden('normal-content');
+      const internalHidden = hidden('internal-ad');
+      const googleHidden = hidden('google-slot');
+      const ariaHidden = hidden('aria-ad');
+
+      document.getElementById('normal-state').textContent = normalHidden ? 'HIDDEN' : 'VISIBLE';
+      document.getElementById('internal-state').textContent = internalHidden ? 'HIDDEN' : 'VISIBLE';
+      document.getElementById('google-state').textContent = googleHidden ? 'HIDDEN' : 'VISIBLE';
+      document.getElementById('aria-state').textContent = ariaHidden ? 'HIDDEN' : 'VISIBLE';
+
+      const verdict = document.getElementById('cosmetic-verdict');
+      if (!normalHidden && internalHidden && googleHidden && ariaHidden) {
+        verdict.textContent = 'Page ad cleanup expectation: PASS';
+        verdict.className = 'pass';
+      } else if (!normalHidden && !internalHidden && !googleHidden && !ariaHidden) {
+        verdict.textContent = 'Page ad cleanup appears OFF.';
+      } else {
+        verdict.textContent = 'Unexpected partial cosmetic state.';
+        verdict.className = 'fail';
+      }
+    }, 700);
+  </script>
+</body>
+</html>`;
+
 const server = http.createServer((req, res) => {
   const url = req.url ?? '/';
   if (url === '/' || url === '/index.html') {
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
     res.end(html);
+    return;
+  }
+  if (url === '/cosmetic' || url === '/cosmetic.html') {
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
+    res.end(cosmeticHtml);
     return;
   }
   if (url === '/jammer-fixture/clean.js') {
@@ -77,5 +143,6 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, HOST, () => {
   console.log(`Jammer runtime fixture: http://${HOST}:${PORT}/`);
+  console.log(`Jammer cosmetic fixture: http://${HOST}:${PORT}/cosmetic`);
   console.log('Press Ctrl+C to stop.');
 });
