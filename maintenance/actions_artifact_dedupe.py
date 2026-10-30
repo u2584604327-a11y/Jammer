@@ -18,7 +18,7 @@ REPO="u2584604327-a11y/Jammer"
 NAMES=frozenset({"jammer-release-candidate","jammer-brand-preview"})
 KEEP_LATEST=5
 MIN_AGE_DAYS=14
-MAX_DELETE=150
+MAX_DELETE=30
 MAX_RECLAIM=160*1024*1024
 MAX_TOTAL_PAGES=30
 
@@ -99,7 +99,7 @@ def main():
     print("JAMMER_ARTIFACT_INVENTORY_BYTES="+str(summary["total_bytes"]))
     print("JAMMER_ALLOWLIST_DUPLICATE_COUNTS="+json.dumps(summary["groups"],sort_keys=True))
     print("JAMMER_CANDIDATES_UNBOUNDED="+str(summary["total_candidate_count"]))
-    print("JAMMER_SELECTED_MAX_150_COUNT="+str(summary["selected_count"]))
+    print("JAMMER_SELECTED_MAX_30_COUNT="+str(summary["selected_count"]))
     print("JAMMER_SELECTED_MAX_160MIB_BYTES="+str(summary["selected_bytes"]))
     print("JAMMER_PROTECTED_NEWEST_PER_NAME="+str(KEEP_LATEST))
     print("JAMMER_DELETE_MODE="+mode)
