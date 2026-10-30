@@ -70,6 +70,7 @@ def plan(artifacts,now):
         "groups":{k:len(v) for k,v in eligible.items()}}
 
 def perform(rows,dry):
+    if dry:return []
     deleted=[]
     for a in rows:
         id=a["id"]
