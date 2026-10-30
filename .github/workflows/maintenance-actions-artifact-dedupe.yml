@@ -22,7 +22,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
-      CLEANUP_MODE: dry-run
+      CLEANUP_MODE: delete
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
@@ -31,11 +31,22 @@ jobs:
         run: |
           set -euo pipefail
           test "$GH_REPO" = "u2584604327-a11y/Jammer"
-          test "$CLEANUP_MODE" = dry-run
+          test "$CLEANUP_MODE" = delete
           python -m py_compile maintenance/actions_artifact_dedupe.py
           python maintenance/actions_artifact_dedupe.py | tee /tmp/jammer-artifact-audit.txt
-          grep -Fxq 'JAMMER_DELETE_MODE=dry-run' /tmp/jammer-artifact-audit.txt
-          grep -Fxq 'JAMMER_DELETED_COUNT=0' /tmp/jammer-artifact-audit.txt
+          grep -Fxq 'JAMMER_DELETE_MODE=delete' /tmp/jammer-artifact-audit.txt
+          grep -E '^JAMMER_DELETED_COUNT=[1-9][0-9]*
+          {
+            echo "## Jammer bounded duplicate artifact deletion audit"
+            echo "Only old duplicate candidate and preview artifacts; newest five per type preserved, ≤150 IDs, ≤160 MiB. No releases."
+            echo "~~~"
+            cat /tmp/jammer-artifact-audit.txt
+            echo "~~~"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Always discard inventory text
+        if: always()
+        run: rm -f /tmp/jammer-artifact-audit.txt
+ /tmp/jammer-artifact-audit.txt
           {
             echo "## Jammer artifact inventory, no deletion"
             echo "Only historical duplicates of the two fixed Jammer CI artifact names are candidates."
